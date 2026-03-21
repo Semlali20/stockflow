@@ -1,0 +1,43 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+
+  - job_name: 'product-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['product-service:8082']
+
+  - job_name: 'inventory-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['inventory-service:8086']
+
+  - job_name: 'movement-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['movement-service:8084']
+
+  - job_name: 'location-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['location-service:8085']
+
+  - job_name: 'quality-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['quality-service:8087']
+
+  - job_name: 'alert-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['alert-service:8088']
+
+  - job_name: 'auth-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['auth-service:8083']

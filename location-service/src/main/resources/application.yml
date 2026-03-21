@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: location-service
+
+server:
+  port: 8085
+  error:
+    include-message: always
+    include-binding-errors: always

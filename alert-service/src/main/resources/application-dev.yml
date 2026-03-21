@@ -1,0 +1,95 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5438/alert_db
+    username: alert_user
+    password: alert_pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: alert-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "*"
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8083
+          jwk-set-uri: http://localhost:8083/.well-known/jwks.json
+
+server:
+  port: 8088
+
+logging:
+  level:
+    com.stock.alertservice: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+# Custom Alert Service Properties
+app:
+  alert:
+    escalation:
+      threshold-minutes: 30
+    cleanup:
+      resolved-alerts-days: 90
+  notification:
+    retry:
+      max-attempts: 3
+      delay-seconds: 2
+    cleanup:
+      old-notifications-days: 60
+
+# ==============================================
+# CORS CONFIGURATION
+# ==============================================
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:4200,http://localhost:8080
+
+# ==============================================
+# SWAGGER/OPENAPI CONFIGURATION
+# ==============================================
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha

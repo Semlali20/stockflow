@@ -1,0 +1,63 @@
+package com.stock.alertservice.event.consumer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stock.alertservice.entity.DeadLetterMessage;
+import com.stock.alertservice.repository.DeadLetterMessageRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class DeadLetterQueueConsumer {
+
+    private final DeadLetterMessageRepository dlqRepository;
+    private final ObjectMapper objectMapper;
+
+    @KafkaListener(
+        topics = {
+            "inventory.updated.DLQ",
+            "item.created.DLQ",
+            "movement.completed.DLQ",
+            "location.created.DLQ",
+            "quality.inspection.completed.DLQ"
+        },
+        groupId = "dlq-consumer-group"
+    )
+    public void handleDeadLetterMessage(
+        @Payload Object message,
+        @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+        @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
+        @Header(KafkaHeaders.OFFSET) long offset,
+        @Header(value = KafkaHeaders.RECEIVED_KEY, required = false) String key
+    ) {
+        log.error("📮 DLQ message from: {}", topic);
+
+        try {
+            String payload = objectMapper.writeValueAsString(message);
+            String originalTopic = topic.replace(".DLQ", "");
+
+            DeadLetterMessage dlqMessage = DeadLetterMessage.builder()
+                .originalTopic(originalTopic)
+                .dlqTopic(topic)
+                .partition(partition)
+                .offset(offset)
+                .messageKey(key)
+                .messagePayload(payload)
+                .status(DeadLetterMessage.DLQStatus.PENDING)
+                .retryCount(0)
+                .build();
+
+            dlqRepository.save(dlqMessage);
+            log.error("📮 DLQ saved: {}", originalTopic);
+
+        } catch (Exception e) {
+            log.error("❌ Failed to save DLQ message", e);
+        }
+    }
+}

@@ -1,0 +1,76 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:4200"
+              - "http://localhost:8080"
+              - "http://host.docker.internal:3000"
+              - "http://host.docker.internal:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+# JWT Configuration for Docker
+jwt:
+  jwks-url: http://auth-service:8083/.well-known/jwks.json
+
+# Service URLs (internal Docker network)
+services:
+  auth-service:
+    url: http://auth-service:8083
+  product-service:
+    url: http://product-service:8082
+  inventory-service:
+    url: http://inventory-service:8086
+  movement-service:
+    url: http://movement-service:8084
+  location-service:
+    url: http://location-service:8085
+  quality-service:
+    url: http://quality-service:8087
+  alert-service:
+    url: http://alert-service:8088
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.stock.apigateway: DEBUG
+    org.springframework.cloud.gateway: INFO
+    reactor.netty: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always

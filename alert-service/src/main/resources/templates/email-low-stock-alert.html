@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Low Stock Alert</title>
+</head>
+<body style="margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;background-color:#f3f4f6;">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#f3f4f6;">
+  <tr>
+    <td align="center" style="padding:30px 10px;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+
+        <!-- HEADER -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#f97316 0%,#dc2626 100%);padding:40px 40px 30px;text-align:center;">
+            <table cellpadding="0" cellspacing="0" align="center" style="margin-bottom:16px;">
+              <tr>
+                <td align="center" style="width:60px;height:60px;background:rgba(255,255,255,0.2);border-radius:50%;">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="vertical-align:middle;margin-top:14px;">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                </td>
+              </tr>
+            </table>
+            <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px;">&#9888; Low Stock Alert</h1>
+            <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:15px;">Immediate attention required</p>
+          </td>
+        </tr>
+
+        <!-- BODY -->
+        <tr>
+          <td style="padding:32px 40px;">
+            <p style="margin:0 0 20px;font-size:16px;color:#374151;line-height:1.6;">
+              Your stock level for <strong style="color:#dc2626;">{{itemName}}</strong> has dropped below the minimum threshold. Please take action to replenish stock.
+            </p>
+
+            <!-- Stock Info Card -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;margin:20px 0;">
+              <tr><td style="padding:20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                  <tr>
+                    <td width="50%" style="padding:8px 0;border-bottom:1px solid #fecaca;">
+                      <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Item Name</span><br>
+                      <span style="font-size:15px;color:#111827;font-weight:600;">{{itemName}}</span>
+                    </td>
+                    <td width="50%" style="padding:8px 0 8px 16px;border-bottom:1px solid #fecaca;">
+                      <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Alert Level</span><br>
+                      <span style="font-size:15px;color:#dc2626;font-weight:700;">{{alertLevel}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td width="50%" style="padding:8px 0 0;">
+                      <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Current Quantity</span><br>
+                      <span style="font-size:24px;color:#dc2626;font-weight:700;">{{currentQuantity}}</span>
+                    </td>
+                    <td width="50%" style="padding:8px 0 0 16px;">
+                      <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Minimum Threshold</span><br>
+                      <span style="font-size:24px;color:#374151;font-weight:700;">{{threshold}}</span>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+
+            <!-- Location -->
+            <p style="margin:0 0 24px;font-size:14px;color:#6b7280;">
+              &#128205; <strong>Location:</strong> {{warehouseLocation}}
+            </p>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin:28px 0;">
+              <a href="{{dashboardUrl}}" style="display:inline-block;background:linear-gradient(135deg,#f97316,#dc2626);color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:8px;box-shadow:0 4px 12px rgba(220,38,38,0.3);">
+                View Alert in Dashboard
+              </a>
+            </div>
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;">
+            <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">
+              Alert ID: {{alertId}} &nbsp;|&nbsp; Stock Management System<br>
+              This is an automated notification. Please do not reply to this email.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

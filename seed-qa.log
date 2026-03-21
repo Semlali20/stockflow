@@ -1,0 +1,15 @@
+Logging in...
+Logged in!
+
+--- 1. FETCHING ITEMS ---
+
+--- 2. CREATING QUALITY CONTROLS ---
+  [QC] Inspection for 467b9567-d896-4e76-a4cb-1d6bd6680ea3 (INCOMING)
+  [QC] Inspection for 5ef99273-716c-4cbf-a0f7-36f54d0ca52b (RANDOM_AUDIT)
+
+--- 3. CREATING ALERT RULES ---
+  [RULE] Alert Rule: Low Stock Alert (LOW_STOCK)
+  [RULE] Alert Rule: Critical Expiry Monitor (NEAR_EXPIRY)
+  [RULE] Alert Rule: Quality Violation Guard (QUALITY_ISSUE)
+
+=== QUALITY & ALERTS SEEDING COMPLETE! ===

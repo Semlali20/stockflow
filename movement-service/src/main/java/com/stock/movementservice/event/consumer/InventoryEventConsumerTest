@@ -1,0 +1,45 @@
+package com.stock.movementservice.event.consumer;
+
+import com.stock.movementservice.event.dto.InventoryEvent;
+import com.stock.movementservice.service.cache.InventoryCacheService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
+
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class InventoryEventConsumerTest {
+
+    @Mock
+    private InventoryCacheService inventoryCacheService;
+
+    @InjectMocks
+    private InventoryEventConsumer consumer;
+
+    @Test
+    void shouldCacheInventoryWhenUpdated() {
+        // Given
+        InventoryEvent event = InventoryEvent.builder()
+            .inventoryId("INV-001")
+            .itemId("ITEM-001")
+            .locationId("LOC-001")
+            .quantityOnHand(100.0)
+            .availableQuantity(80.0)
+            .reservedQuantity(20.0)
+            .status("AVAILABLE")
+            .eventType("UPDATED")
+            .timestamp(LocalDateTime.now())
+            .build();
+
+        // When
+        consumer.handleInventoryUpdated(event, "INV-001", "inventory.updated");
+
+        // Then
+        verify(inventoryCacheService).cacheInventory(event);
+    }
+}

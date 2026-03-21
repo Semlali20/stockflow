@@ -1,0 +1,233 @@
+// src/components/item-variants/ItemVariantDetailModal.tsx
+import React from 'react';
+import { X, Edit, Layers, Tag, Calendar, Clock, CheckCircle, Package, Sparkles } from 'lucide-react';
+import { ItemVariant } from '@/types';
+import { useTranslation } from 'react-i18next';
+
+interface ItemVariantDetailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  variant: ItemVariant | null;
+  onEdit: () => void;
+}
+
+export const ItemVariantDetailModal: React.FC<ItemVariantDetailModalProps> = ({
+  isOpen,
+  onClose,
+  variant,
+  onEdit
+}) => {
+  const { t } = useTranslation();
+  if (!isOpen || !variant) return null;
+
+  // Parse attributes if they're a string
+  let parsedAttributes = null;
+  try {
+    parsedAttributes = typeof variant.attributes === 'string' 
+      ? JSON.parse(variant.attributes) 
+      : variant.attributes;
+  } catch (error) {
+    console.error('Error parsing attributes:', error);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto shadow-2xl">
+        {/* Header with gradient */}
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-t-2xl">
+          <div className="flex justify-between items-start">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
+                <Layers className="w-8 h-8" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Sparkles size={20} className="text-yellow-300" />
+                  <span className="text-sm font-semibold text-purple-100 uppercase tracking-wider">
+                    {t('products.variants.detail.title')}
+                  </span>
+                </div>
+                <h2 className="text-3xl font-bold mb-1">{variant.name || t('products.variants.detail.unnamed')}</h2>
+                <div className="flex items-center gap-3 text-purple-100">
+                  <span className="flex items-center gap-1">
+                    <Tag size={16} />
+                    {variant.sku}
+                  </span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    variant.isActive
+                      ? 'bg-green-500 text-white'
+                      : 'bg-red-500 text-white'
+                  }`}>
+                    {variant.isActive ? `● ${t('products.variants.detail.activeAvailable')}` : `● ${t('products.variants.detail.inactive')}`}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Main Information Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200 hover:border-purple-300 transition-colors">
+              <label className="block text-xs font-semibold text-purple-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <Tag size={14} />
+                {t('products.variants.detail.variantSku')}
+              </label>
+              <p className="text-xl font-bold text-purple-900">{variant.sku}</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border-2 border-blue-200 hover:border-blue-300 transition-colors">
+              <label className="block text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <Package size={14} />
+                {t('products.variants.detail.parentItemId')}
+              </label>
+              <p className="text-xl font-bold text-blue-900">{variant.parentItemId || 'N/A'}</p>
+            </div>
+
+            {variant.name && (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-200 hover:border-amber-300 transition-colors">
+                <label className="block text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">
+                  {t('products.variants.detail.variantName')}
+                </label>
+                <p className="text-xl font-bold text-amber-900">{variant.name}</p>
+              </div>
+            )}
+
+            {variant.barcode && (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200 hover:border-green-300 transition-colors">
+                <label className="block text-xs font-semibold text-green-600 uppercase tracking-wider mb-1">
+                  {t('products.variants.detail.barcode')}
+                </label>
+                <p className="text-xl font-bold text-green-900 font-mono">{variant.barcode}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Variant Attributes - Featured Section */}
+          {parsedAttributes && Object.keys(parsedAttributes).length > 0 && (
+            <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-6 border-2 border-indigo-200 shadow-lg">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">{t('products.variants.detail.attributes')}</h3>
+                <span className="ml-auto px-3 py-1 bg-indigo-200 text-indigo-900 rounded-full text-xs font-semibold">
+                  {t('products.variants.detail.attributesCount', { count: Object.keys(parsedAttributes).length })}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(parsedAttributes).map(([key, value], index) => {
+                  const colors = [
+                    'from-blue-400 to-cyan-400',
+                    'from-purple-400 to-pink-400',
+                    'from-green-400 to-emerald-400',
+                    'from-orange-400 to-red-400',
+                    'from-indigo-400 to-purple-400',
+                    'from-teal-400 to-cyan-400',
+                  ];
+                  const colorClass = colors[index % colors.length];
+                  
+                  return (
+                    <div
+                      key={key}
+                      className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1 border border-gray-200"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${colorClass}`} />
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                          {key}
+                        </label>
+                      </div>
+                      <p className="text-lg font-bold text-gray-900">{String(value)}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Status Section */}
+          <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <CheckCircle size={16} className="text-gray-600" />
+              {t('products.variants.detail.statusInfo')}
+            </h3>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                {variant.isActive ? (
+                  <>
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-sm font-medium text-gray-700">{t('products.variants.detail.activeAvailable')}</span>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-3 h-3 bg-red-500 rounded-full" />
+                    <span className="text-sm font-medium text-gray-700">{t('products.variants.detail.inactive')}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Timestamps */}
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('products.variants.detail.timeline')}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Calendar size={18} className="text-blue-600" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    {t('products.variants.detail.created')}
+                  </label>
+                  <p className="text-sm font-medium text-gray-900">
+                    {variant.createdAt ? new Date(variant.createdAt).toLocaleString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Clock size={18} className="text-purple-600" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                    {t('products.variants.detail.lastUpdated')}
+                  </label>
+                  <p className="text-sm font-medium text-gray-900">
+                    {variant.updatedAt ? new Date(variant.updatedAt).toLocaleString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+          >
+            {t('common.close')}
+          </button>
+          <button
+            onClick={onEdit}
+            className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg font-medium flex items-center gap-2"
+          >
+            <Edit size={18} />
+            {t('products.variants.detail.editVariant')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

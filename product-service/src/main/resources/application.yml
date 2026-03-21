@@ -1,0 +1,14 @@
+
+spring:
+  application:
+    name: product-service
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 52MB
+
+server:
+  port: 8082
+  error:
+    include-message: always
+    include-binding-errors: always

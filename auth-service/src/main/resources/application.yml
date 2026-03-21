@@ -1,0 +1,114 @@
+spring:
+  application:
+    name: auth-service
+
+  profiles:
+    active: dev
+
+  # Default datasource (for local dev)
+  datasource:
+    url: jdbc:postgresql://localhost:5437/user_db
+    username: user_user
+    password: user_pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+  # Default Redis (for local dev)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # Mail configuration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: houarimehdi7@gmail.com
+    password: jflhephmpxlznycj
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:7xK9mP2nQ5wR8tY3uV6zA1bC4dE7fG0hI2jK5lM8nO1pQ4rS7tU0vW3xY6zA9bB2cD5eF8gH1iJ4kL7mN0oP3qR6sT9uV2wX5yZ8aB1cD4eE7fF0gG3hH6iI9jJ2kK5lL8mM1nN4oO7pP0qQ3rR6sS9tT2uU5vV8wW1xX4yY7zZ0aA3b}
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+  mfa-temp-token-expiration: 300000
+  issuer: stock-management-auth-service
+
+# App configuration
+app:
+  base-url: http://localhost:8083
+
+# Server Configuration
+server:
+  port: 8083
+  servlet:
+    context-path: /
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.stock.authservice: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# Springdoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+
+# Eureka Client Configuration (for local dev)
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: false  # Désactivé pour dev local
+    fetch-registry: false
+  instance:
+    prefer-ip-address: true

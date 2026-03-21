@@ -1,0 +1,10 @@
+
+spring:
+  application:
+    name: quality-service
+
+server:
+  port: 8087
+  error:
+    include-message: always
+    include-binding-errors: always

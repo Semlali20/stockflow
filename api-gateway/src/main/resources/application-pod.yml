@@ -1,0 +1,84 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "${ALLOWED_ORIGINS:*}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+  data:
+    redis:
+      host: ${REDIS_HOST:redis-service}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 8
+          min-idle: 2
+        shutdown-timeout: 100ms
+
+# JWT Configuration for Kubernetes
+jwt:
+  jwks-url: ${JWT_JWKS_URL:http://auth-service:8083/.well-known/jwks.json}
+
+# Service URLs (Kubernetes service discovery)
+services:
+  auth-service:
+    url: ${AUTH_SERVICE_URL:http://auth-service:8083}
+  product-service:
+    url: ${PRODUCT_SERVICE_URL:http://product-service:8082}
+  inventory-service:
+    url: ${INVENTORY_SERVICE_URL:http://inventory-service:8086}
+  movement-service:
+    url: ${MOVEMENT_SERVICE_URL:http://movement-service:8084}
+  location-service:
+    url: ${LOCATION_SERVICE_URL:http://location-service:8085}
+  quality-service:
+    url: ${QUALITY_SERVICE_URL:http://quality-service:8087}
+  alert-service:
+    url: ${ALERT_SERVICE_URL:http://alert-service:8088}
+
+server:
+  port: 8080
+  shutdown: graceful
+
+logging:
+  level:
+    root: INFO
+    com.stock.apigateway: INFO
+    org.springframework.cloud.gateway: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+# Graceful shutdown
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s

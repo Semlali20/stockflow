@@ -1,0 +1,14 @@
+package com.stock.alertservice.repository;
+
+import com.stock.alertservice.entity.DeadLetterMessage;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface DeadLetterMessageRepository extends JpaRepository<DeadLetterMessage, String> {
+    List<DeadLetterMessage> findByOriginalTopicOrderByCreatedAtDesc(String originalTopic);
+    List<DeadLetterMessage> findByStatusOrderByCreatedAtDesc(DeadLetterMessage.DLQStatus status);
+    Long countByStatus(DeadLetterMessage.DLQStatus status);
+}

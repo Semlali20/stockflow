@@ -1,0 +1,721 @@
+// frontend/src/services/alert.service.ts
+// 🔔 COMPLETE ALERT SERVICE - 100% DYNAMIC WITH ALL BACKEND ENDPOINTS
+
+import { apiClient } from './api';
+import { API_ENDPOINTS } from '@/config/constants';
+import type { PaginatedResponse, PaginationParams } from '@/types';
+
+// ==================== TYPES ====================
+
+export interface Alert {
+  id: string;
+  type: 'LOW_STOCK' | 'OVERSTOCK' | 'EXPIRY' | 'QUALITY' | 'LOCATION' | 'MOVEMENT' | 'SYSTEM';
+  level: 'INFO' | 'WARNING' | 'EMERGENCY';
+  status: 'ACTIVE' | 'ACKNOWLEDGED' | 'RESOLVED' | 'ESCALATED';
+  message: string;
+  entityType?: string;
+  entityId?: string;
+  data?: Record<string, any>;
+  acknowledged?: boolean;
+  acknowledgedBy?: string;
+  acknowledgedAt?: string;
+  resolved?: boolean;
+  resolvedBy?: string;
+  resolvedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Notification {
+  id: string;
+  channelType: 'EMAIL' | 'SMS' | 'WEBHOOK' | 'PUSH' | 'BLACK';
+  recipient: string;
+  subject?: string;
+  body: string;
+  status: 'PENDING' | 'SENT' | 'DELIVERED' | 'FAILED' | 'BOUNCED';
+  sentAt?: string;
+  deliveredAt?: string;
+  retryCount: number;
+  errorMessage?: string;
+  metadata?: Record<string, any>;
+  alertId?: string;
+  templateId?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface AlertRule {
+  id: string;
+  name: string;
+  description?: string;
+  event: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  isActive: boolean;
+  frequency: 'REALTIME' | 'HOURLY' | 'DAILY' | 'WEEKLY';
+  configuration?: Record<string, any>;
+  actions?: string[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface NotificationChannel {
+  id: string;
+  name: string;
+  channelType: 'EMAIL' | 'SMS' | 'WEBHOOK' | 'PUSH' | 'BLACK';
+  settings?: Record<string, any>;
+  rateLimitPerHour?: number;
+  priority: number;
+  isActive: boolean;
+  totalNotificationsSent: number;
+  successfulNotifications: number;
+  failedNotifications: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface NotificationTemplate {
+  id: string;
+  name: string;
+  templateType: 'LOW_STOCK' | 'OVERSTOCK' | 'EXPIRY' | 'QUALITY' | 'LOCATION' | 'MOVEMENT' | 'SYSTEM';
+  channel: 'EMAIL' | 'SMS' | 'WEBHOOK' | 'PUSH';
+  subject?: string;
+  body: string;
+  htmlBody?: string;
+  requiredVariables?: string[];
+  language: string;
+  isActive: boolean;
+  totalNotificationsSent: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CreateAlertRequest {
+  type: Alert['type'];
+  level: Alert['level'];
+  message: string;
+  entityType?: string;
+  entityId?: string;
+  data?: Record<string, any>;
+}
+
+export interface CreateNotificationRequest {
+  channelType: Notification['channelType'];
+  recipient: string;
+  subject?: string;
+  body: string;
+  alertId?: string;
+  templateId?: string;
+}
+
+export interface AlertStatistics {
+  totalAlerts: number;
+  activeAlerts: number;
+  acknowledgedAlerts: number;
+  resolvedAlerts: number;
+  escalatedAlerts: number;
+  byType: Record<string, number>;
+  byLevel: Record<string, number>;
+  byStatus: Record<string, number>;
+  topAlerts: Alert[];
+}
+
+export interface NotificationStatistics {
+  totalNotifications: number;
+  pendingNotifications: number;
+  sentNotifications: number;
+  deliveredNotifications: number;
+  failedNotifications: number;
+  byStatus: Record<string, number>;
+  byChannel: Record<string, number>;
+  successRateByChannel: Record<string, {
+    success: number;
+    total: number;
+    successRate: string;
+  }>;
+}
+
+// ==================== HELPERS ====================
+const mapPageResponse = <T>(data: any): PaginatedResponse<T> => {
+  if (!data) return { content: [], totalElements: 0, totalPages: 0, size: 10, number: 0, numberOfElements: 0, first: true, last: true, empty: true };
+  
+  // If it's already in the correct format, return it
+  if (data.number !== undefined) return data;
+
+  // Map backend field names (pageNumber/pageSize) to frontend names (number/size)
+  return {
+    content: data.content || [],
+    totalElements: data.totalElements || 0,
+    totalPages: data.totalPages || 0,
+    size: data.pageSize || data.size || 10,
+    number: data.pageNumber !== undefined ? data.pageNumber : (data.number || 0),
+    numberOfElements: data.numberOfElements || (data.content?.length || 0),
+    first: data.first || false,
+    last: data.last || false,
+    empty: data.empty || false
+  };
+};
+
+// ==================== ALERT SERVICE ====================
+
+export const alertService = {
+  // ========== ALERTS ==========
+
+  /**
+   * Get paginated list of alerts with optional filters
+   */
+  getAlerts: async (params?: PaginationParams & {
+    type?: string;
+    level?: string;
+    status?: string;
+    entityType?: string;
+    acknowledged?: boolean;
+  }): Promise<PaginatedResponse<Alert>> => {
+    const response = await apiClient.get<any>(
+      API_ENDPOINTS.ALERTS.ALERTS,
+      { params }
+    );
+    return mapPageResponse<Alert>(response.data);
+  },
+
+  /**
+   * Get alert by ID
+   */
+  getAlertById: async (id: string): Promise<Alert> => {
+    const response = await apiClient.get<Alert>(API_ENDPOINTS.ALERTS.ALERT_BY_ID(id));
+    return response.data;
+  },
+
+  /**
+   * Create new alert
+   */
+  createAlert: async (data: CreateAlertRequest): Promise<Alert> => {
+    // Backend expects request params (not a JSON body).
+    const response = await apiClient.post<any>(
+      API_ENDPOINTS.ALERTS.ALERTS,
+      null,
+      {
+        params: {
+          type: data.type,
+          level: data.level,
+          entityType: data.entityType,
+          entityId: data.entityId,
+          message: data.message,
+          data: data.data ? JSON.stringify(data.data) : undefined,
+        },
+      }
+    );
+    // Alert-service wraps payload in ApiResponse<AlertResponse>
+    return response.data?.data ?? response.data;
+  },
+
+  /**
+   * Update alert
+   */
+  updateAlert: async () => {
+    throw new Error('Updating alerts is not supported by the backend API');
+  },
+
+  /**
+   * Delete alert
+   */
+  deleteAlert: async (id: string): Promise<void> => {
+    await apiClient.delete(API_ENDPOINTS.ALERTS.ALERT_BY_ID(id));
+  },
+
+  /**
+   * Acknowledge alert
+   */
+  acknowledgeAlert: async (id: string, comment?: string): Promise<Alert> => {
+    const response = await apiClient.patch<any>(`${API_ENDPOINTS.ALERTS.ALERT_BY_ID(id)}/acknowledge`, {
+      comment: comment || 'Acknowledged by user'
+    });
+    return response.data?.data ?? response.data;
+  },
+
+  /**
+   * Resolve alert
+   */
+  resolveAlert: async (id: string, resolutionComment?: string): Promise<Alert> => {
+    const response = await apiClient.patch<any>(`${API_ENDPOINTS.ALERTS.ALERT_BY_ID(id)}/resolve`, {
+      resolutionComment: resolutionComment || 'Resolved by user'
+    });
+    return response.data?.data ?? response.data;
+  },
+
+  /**
+   * Escalate alert
+   */
+  escalateAlert: async (id: string): Promise<Alert> => {
+    const response = await apiClient.patch<any>(`${API_ENDPOINTS.ALERTS.ALERT_BY_ID(id)}/escalate`);
+    return response.data?.data ?? response.data;
+  },
+
+  /**
+   * Get alerts by type
+   */
+  getAlertsByType: async (type: Alert['type'], params?: PaginationParams): Promise<PaginatedResponse<Alert>> => {
+    const response = await apiClient.get<any>(
+      `${API_ENDPOINTS.ALERTS.ALERTS}/type/${type}`,
+      { params }
+    );
+    return mapPageResponse<Alert>(response.data);
+  },
+
+  /**
+   * Get alerts by level
+   */
+  getAlertsByLevel: async (level: Alert['level'], params?: PaginationParams): Promise<PaginatedResponse<Alert>> => {
+    const response = await apiClient.get<any>(
+      `${API_ENDPOINTS.ALERTS.ALERTS}/level/${level}`,
+      { params }
+    );
+    return mapPageResponse<Alert>(response.data);
+  },
+
+  /**
+   * Get alerts by status
+   */
+  getAlertsByStatus: async (status: Alert['status'], params?: PaginationParams): Promise<PaginatedResponse<Alert>> => {
+    const response = await apiClient.get<any>(
+      `${API_ENDPOINTS.ALERTS.ALERTS}/status/${status}`,
+      { params }
+    );
+    return mapPageResponse<Alert>(response.data);
+  },
+
+  /**
+   * Get active alerts
+   */
+  getActiveAlerts: async (params?: PaginationParams): Promise<PaginatedResponse<Alert>> => {
+    const response = await apiClient.get<any>(
+      `${API_ENDPOINTS.ALERTS.ALERTS}/active`,
+      { params }
+    );
+    return mapPageResponse<Alert>(response.data);
+  },
+
+  /**
+   * Get unacknowledged alerts
+   */
+  getUnacknowledgedAlerts: async (params?: PaginationParams): Promise<PaginatedResponse<Alert>> => {
+    const response = await apiClient.get<any>(
+      `${API_ENDPOINTS.ALERTS.ALERTS}/unacknowledged`,
+      { params }
+    );
+    return mapPageResponse<Alert>(response.data);
+  },
+
+  /**
+   * Search alerts
+   */
+  searchAlerts: async (searchParams: {
+    type?: string;
+    level?: string;
+    status?: string;
+    entityType?: string;
+    entityId?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    size?: number;
+  }): Promise<PaginatedResponse<Alert>> => {
+    const { page = 0, size = 10, ...filter } = searchParams;
+    const response = await apiClient.post<any>(
+      `${API_ENDPOINTS.ALERTS.ALERTS}/search`,
+      filter,
+      { params: { page, size } }
+    );
+    return mapPageResponse<Alert>(response.data);
+  },
+
+  /**
+   * Get alert statistics
+   */
+  getAlertStatistics: async (): Promise<AlertStatistics> => {
+    const response = await apiClient.get<any>(`${API_ENDPOINTS.ALERTS.ALERTS}/statistics`);
+    return response.data?.data ?? response.data;
+  },
+
+  /**
+   * Get alert count
+   */
+  getAlertCount: async () => {
+    throw new Error('Alert count endpoint is not implemented on the backend API');
+  },
+
+  // ========== NOTIFICATIONS ==========
+
+  /**
+   * Get paginated list of notifications
+   */
+  getNotifications: async (params?: PaginationParams & {
+    status?: string;
+    channelType?: string;
+    recipient?: string;
+    alertId?: string;
+  }): Promise<PaginatedResponse<Notification>> => {
+    const response = await apiClient.get<any>(
+      API_ENDPOINTS.ALERTS.NOTIFICATIONS,
+      { params }
+    );
+    return mapPageResponse<Notification>(response.data);
+  },
+
+  /**
+   * Get notification by ID
+   */
+  getNotificationById: async (id: string): Promise<Notification> => {
+    const response = await apiClient.get<Notification>(API_ENDPOINTS.ALERTS.NOTIFICATION_BY_ID(id));
+    return response.data;
+  },
+
+  /**
+   * Send notification
+   */
+  sendNotification: async (data: CreateNotificationRequest): Promise<Notification> => {
+    // Backend doesn't expose a generic "create notification" endpoint.
+    // It exposes /send-for-alert/{alertId}.
+    if (!data.alertId) {
+      throw new Error('alertId is required to send a notification');
+    }
+    await apiClient.post(`${API_ENDPOINTS.ALERTS.NOTIFICATIONS}/send-for-alert/${data.alertId}`);
+    // No NotificationResponse returned by backend here.
+    return {
+      id: 'sent',
+      channelType: data.channelType,
+      recipient: data.recipient,
+      subject: data.subject,
+      body: data.body,
+      status: 'SENT',
+      retryCount: 0,
+      createdAt: new Date().toISOString(),
+    };
+  },
+
+  /**
+   * Get notifications by status
+   */
+  getNotificationsByStatus: async (
+    status: Notification['status'],
+    params?: PaginationParams
+  ): Promise<PaginatedResponse<Notification>> => {
+    const response = await apiClient.get<any>(
+      `${API_ENDPOINTS.ALERTS.NOTIFICATIONS}/status/${status}`,
+      { params }
+    );
+    return mapPageResponse<Notification>(response.data);
+  },
+
+  /**
+   * Get notifications by channel
+   */
+  getNotificationsByChannel: async (
+    channelType: Notification['channelType'],
+    params?: PaginationParams
+  ): Promise<PaginatedResponse<Notification>> => {
+    const response = await apiClient.get<any>(
+      `${API_ENDPOINTS.ALERTS.NOTIFICATIONS}/channel/${channelType}`,
+      { params }
+    );
+    return mapPageResponse<Notification>(response.data);
+  },
+
+  /**
+   * Get notifications by recipient
+   */
+  getNotificationsByRecipient: async (recipient: string): Promise<Notification[]> => {
+    const response = await apiClient.get<Notification[]>(
+      `${API_ENDPOINTS.ALERTS.NOTIFICATIONS}/recipient/${recipient}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Get notifications by alert
+   */
+  getNotificationsByAlert: async (alertId: string): Promise<Notification[]> => {
+    const response = await apiClient.get<Notification[]>(
+      `${API_ENDPOINTS.ALERTS.NOTIFICATIONS}/alert/${alertId}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Mark notification as delivered
+   */
+  markAsDelivered: async (id: string): Promise<Notification> => {
+    const response = await apiClient.patch<any>(
+      `${API_ENDPOINTS.ALERTS.NOTIFICATION_BY_ID(id)}/mark-delivered`
+    );
+    return response.data?.data ?? response.data;
+  },
+
+  /**
+   * Mark notification as failed
+   */
+  markAsFailed: async (id: string, errorMessage: string): Promise<Notification> => {
+    const response = await apiClient.patch<any>(
+      `${API_ENDPOINTS.ALERTS.NOTIFICATION_BY_ID(id)}/mark-failed`,
+      null,
+      { params: { errorMessage } }
+    );
+    return response.data?.data ?? response.data;
+  },
+
+  /**
+   * Retry failed notifications
+   */
+  retryFailedNotifications: async (): Promise<void> => {
+    await apiClient.post(`${API_ENDPOINTS.ALERTS.NOTIFICATIONS}/retry-failed`);
+  },
+
+  /**
+   * Search notifications
+   */
+  searchNotifications: async (searchParams: {
+    status?: string;
+    channelType?: string;
+    recipient?: string;
+    alertId?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    size?: number;
+  }): Promise<PaginatedResponse<Notification>> => {
+    const response = await apiClient.get<any>(
+      `${API_ENDPOINTS.ALERTS.NOTIFICATIONS}/search`,
+      { params: searchParams }
+    );
+    return mapPageResponse<Notification>(response.data);
+  },
+
+  /**
+   * Get notification statistics
+   */
+  getNotificationStatistics: async (): Promise<NotificationStatistics> => {
+    const response = await apiClient.get<any>(`${API_ENDPOINTS.ALERTS.NOTIFICATIONS}/statistics`);
+    return response.data?.data ?? response.data;
+  },
+
+  // ========== ALERT RULES ==========
+
+  /**
+   * Get paginated list of alert rules
+   */
+  getAlertRules: async (params?: PaginationParams): Promise<PaginatedResponse<AlertRule>> => {
+    const response = await apiClient.get<any>(
+      API_ENDPOINTS.ALERTS.RULES,
+      { params }
+    );
+    return mapPageResponse<AlertRule>(response.data);
+  },
+
+  /**
+   * Get alert rule by ID
+   */
+  getAlertRuleById: async (id: string): Promise<AlertRule> => {
+    const response = await apiClient.get<AlertRule>(API_ENDPOINTS.ALERTS.RULE_BY_ID(id));
+    return response.data;
+  },
+
+  /**
+   * Create alert rule
+   */
+  createAlertRule: async (data: Partial<AlertRule>): Promise<AlertRule> => {
+    const response = await apiClient.post<AlertRule>(API_ENDPOINTS.ALERTS.RULES, data);
+    return response.data;
+  },
+
+  /**
+   * Update alert rule
+   */
+  updateAlertRule: async (id: string, data: Partial<AlertRule>): Promise<AlertRule> => {
+    const response = await apiClient.put<AlertRule>(API_ENDPOINTS.ALERTS.RULE_BY_ID(id), data);
+    return response.data;
+  },
+
+  /**
+   * Delete alert rule
+   */
+  deleteAlertRule: async (id: string): Promise<void> => {
+    await apiClient.delete(API_ENDPOINTS.ALERTS.RULE_BY_ID(id));
+  },
+
+  /**
+   * Activate alert rule
+   */
+  activateAlertRule: async (id: string): Promise<AlertRule> => {
+    const response = await apiClient.patch<any>(`${API_ENDPOINTS.ALERTS.RULE_BY_ID(id)}/activate`);
+    return response.data?.data ?? response.data;
+  },
+
+  /**
+   * Deactivate alert rule
+   */
+  deactivateAlertRule: async (id: string): Promise<AlertRule> => {
+    const response = await apiClient.patch<any>(`${API_ENDPOINTS.ALERTS.RULE_BY_ID(id)}/deactivate`);
+    return response.data?.data ?? response.data;
+  },
+
+  /**
+   * Get active alert rules
+   */
+  getActiveAlertRules: async (): Promise<AlertRule[]> => {
+    const response = await apiClient.get<AlertRule[]>(`${API_ENDPOINTS.ALERTS.RULES}/active`);
+    return response.data;
+  },
+
+  /**
+   * Evaluate rule
+   */
+  evaluateRule: async (id: string, data: Record<string, any>): Promise<{ shouldTrigger: boolean; message?: string }> => {
+    const response = await apiClient.post<{ shouldTrigger: boolean; message?: string }>(
+      `${API_ENDPOINTS.ALERTS.RULE_BY_ID(id)}/evaluate`,
+      data
+    );
+    return response.data;
+  },
+
+  // ========== NOTIFICATION CHANNELS ==========
+
+  /**
+   * Get all notification channels
+   */
+  getNotificationChannels: async (params?: PaginationParams): Promise<PaginatedResponse<NotificationChannel>> => {
+    const response = await apiClient.get<any>(
+      API_ENDPOINTS.ALERTS.CHANNELS,
+      { params }
+    );
+    return mapPageResponse<NotificationChannel>(response.data);
+  },
+
+  /**
+   * Get notification channel by ID
+   */
+  getNotificationChannelById: async (id: string): Promise<NotificationChannel> => {
+    const response = await apiClient.get<NotificationChannel>(
+      API_ENDPOINTS.ALERTS.CHANNEL_BY_ID(id)
+    );
+    return response.data;
+  },
+
+  /**
+   * Create notification channel
+   */
+  createNotificationChannel: async (data: Partial<NotificationChannel>): Promise<NotificationChannel> => {
+    const response = await apiClient.post<NotificationChannel>(
+      API_ENDPOINTS.ALERTS.CHANNELS,
+      data
+    );
+    return response.data;
+  },
+
+  /**
+   * Update notification channel
+   */
+  updateNotificationChannel: async (id: string, data: Partial<NotificationChannel>): Promise<NotificationChannel> => {
+    const response = await apiClient.put<NotificationChannel>(
+      API_ENDPOINTS.ALERTS.CHANNEL_BY_ID(id),
+      data
+    );
+    return response.data;
+  },
+
+  /**
+   * Delete notification channel
+   */
+  deleteNotificationChannel: async (id: string): Promise<void> => {
+    await apiClient.delete(API_ENDPOINTS.ALERTS.CHANNEL_BY_ID(id));
+  },
+
+  /**
+   * Get active channels
+   */
+  getActiveChannels: async (): Promise<NotificationChannel[]> => {
+    const response = await apiClient.get<NotificationChannel[]>(
+      `${API_ENDPOINTS.ALERTS.CHANNELS}/active`
+    );
+    return response.data;
+  },
+
+  // ========== NOTIFICATION TEMPLATES ==========
+
+  /**
+   * Get all notification templates
+   */
+  getNotificationTemplates: async (params?: PaginationParams): Promise<PaginatedResponse<NotificationTemplate>> => {
+    const response = await apiClient.get<any>(
+      API_ENDPOINTS.ALERTS.TEMPLATES,
+      { params }
+    );
+    return mapPageResponse<NotificationTemplate>(response.data);
+  },
+
+  /**
+   * Get notification template by ID
+   */
+  getNotificationTemplateById: async (id: string): Promise<NotificationTemplate> => {
+    const response = await apiClient.get<NotificationTemplate>(
+      API_ENDPOINTS.ALERTS.TEMPLATE_BY_ID(id)
+    );
+    return response.data;
+  },
+
+  /**
+   * Create notification template
+   */
+  createNotificationTemplate: async (data: Partial<NotificationTemplate>): Promise<NotificationTemplate> => {
+    const response = await apiClient.post<NotificationTemplate>(
+      API_ENDPOINTS.ALERTS.TEMPLATES,
+      data
+    );
+    return response.data;
+  },
+
+  /**
+   * Update notification template
+   */
+  updateNotificationTemplate: async (
+    id: string,
+    data: Partial<NotificationTemplate>
+  ): Promise<NotificationTemplate> => {
+    const response = await apiClient.put<NotificationTemplate>(
+      API_ENDPOINTS.ALERTS.TEMPLATE_BY_ID(id),
+      data
+    );
+    return response.data;
+  },
+
+  /**
+   * Delete notification template
+   */
+  deleteNotificationTemplate: async (id: string): Promise<void> => {
+    await apiClient.delete(API_ENDPOINTS.ALERTS.TEMPLATE_BY_ID(id));
+  },
+
+  /**
+   * Get active templates
+   */
+  getActiveTemplates: async (): Promise<NotificationTemplate[]> => {
+    const response = await apiClient.get<NotificationTemplate[]>(
+      `${API_ENDPOINTS.ALERTS.TEMPLATES}/active`
+    );
+    return response.data;
+  },
+
+  /**
+   * Preview template
+   */
+  previewTemplate: async (
+    id: string,
+    variables: Record<string, any>
+  ): Promise<{ subject?: string; body: string; htmlBody?: string }> => {
+    const response = await apiClient.post<{ subject?: string; body: string; htmlBody?: string }>(
+      `${API_ENDPOINTS.ALERTS.TEMPLATES}/${id}/process`,
+      variables
+    );
+    return response.data;
+  },
+};
+
+export default alertService;

@@ -1,0 +1,81 @@
+Logging in...
+Logged in!
+
+--- SITE 1: Main Distribution Center ---
+  [SITE] Paris Distribution Center (DISTRIBUTION_CENTER)
+    [WH] Paris Main Warehouse (WH-PAR-01)
+      [LOC] PAR-REC-01 ÔÇö RECEIVING (zone: Receiving Zone A)
+      [LOC] PAR-REC-02 ÔÇö RECEIVING (zone: Receiving Zone B)
+      [LOC] PAR-STG-01 ÔÇö STORAGE (zone: Storage Zone A)
+      [LOC] PAR-STG-02 ÔÇö STORAGE (zone: Storage Zone A)
+      [LOC] PAR-STG-03 ÔÇö STORAGE (zone: Storage Zone B)
+      [LOC] PAR-STG-04 ÔÇö STORAGE (zone: Storage Zone B)
+      [LOC] PAR-PCK-01 ÔÇö PICKING (zone: Picking Zone)
+      [LOC] PAR-PCK-02 ÔÇö PICKING (zone: Picking Zone)
+      [LOC] PAR-STA-01 ÔÇö STAGING (zone: Staging Area)
+      [LOC] PAR-SHP-01 ÔÇö SHIPPING (zone: Shipping Dock 1)
+      [LOC] PAR-SHP-02 ÔÇö SHIPPING (zone: Shipping Dock 2)
+      [LOC] PAR-QRN-01 ÔÇö QUARANTINE (zone: Quarantine Zone)
+      [LOC] PAR-RET-01 ÔÇö RETURNS (zone: Returns Processing)
+    [WH] Paris Cold Storage (WH-PAR-02)
+      [LOC] PAR-CS-STG-01 ÔÇö STORAGE (zone: Cold Room 1)
+      [LOC] PAR-CS-STG-02 ÔÇö STORAGE (zone: Cold Room 2)
+      [LOC] PAR-CS-QRN-01 ÔÇö QUARANTINE (zone: Cold Quarantine)
+
+--- SITE 2: Manufacturing Plant ---
+  [SITE] Lyon Manufacturing Plant (MANUFACTURING)
+    [WH] Lyon Production Warehouse (WH-LYN-01)
+      [LOC] LYN-REC-01 ÔÇö RECEIVING (zone: Raw Material Receiving)
+      [LOC] LYN-STG-01 ÔÇö STORAGE (zone: Raw Material Storage)
+      [LOC] LYN-STG-02 ÔÇö STORAGE (zone: Raw Material Storage)
+      [LOC] LYN-MFG-01 ÔÇö MANUFACTURING (zone: Production Line 1)
+      [LOC] LYN-MFG-02 ÔÇö MANUFACTURING (zone: Production Line 2)
+      [LOC] LYN-STA-01 ÔÇö STAGING (zone: Finished Goods Staging)
+      [LOC] LYN-STG-03 ÔÇö STORAGE (zone: Finished Goods Storage)
+      [LOC] LYN-SHP-01 ÔÇö SHIPPING (zone: Outbound Dock)
+      [LOC] LYN-QRN-01 ÔÇö QUARANTINE (zone: Quality Hold Zone)
+
+--- SITE 3: Retail Store ---
+  [SITE] Marseille Retail Store (STORE)
+    [WH] Marseille Store Backroom (WH-MRS-01)
+      [LOC] MRS-REC-01 ÔÇö RECEIVING (zone: Store Receiving)
+      [LOC] MRS-STG-01 ÔÇö STORAGE (zone: Backroom Storage A)
+      [LOC] MRS-STG-02 ÔÇö STORAGE (zone: Backroom Storage B)
+      [LOC] MRS-PCK-01 ÔÇö PICKING (zone: Floor Shelves)
+      [LOC] MRS-RET-01 ÔÇö RETURNS (zone: Customer Returns Area)
+
+--- SITE 4: Regional Warehouse ---
+  [SITE] Toulouse Regional Warehouse (WAREHOUSE)
+    [WH] Toulouse Warehouse A (WH-TLS-01)
+      [LOC] TLS-REC-01 ÔÇö RECEIVING (zone: Inbound Dock)
+      [LOC] TLS-STG-01 ÔÇö STORAGE (zone: Bulk Storage Zone 1)
+      [LOC] TLS-STG-02 ÔÇö STORAGE (zone: Bulk Storage Zone 1)
+      [LOC] TLS-STG-03 ÔÇö STORAGE (zone: Bulk Storage Zone 2)
+      [LOC] TLS-STG-04 ÔÇö STORAGE (zone: Bulk Storage Zone 2)
+      [LOC] TLS-PCK-01 ÔÇö PICKING (zone: Pick Zone)
+      [LOC] TLS-STA-01 ÔÇö STAGING (zone: Outbound Staging)
+      [LOC] TLS-SHP-01 ÔÇö SHIPPING (zone: Loading Bay 1)
+      [LOC] TLS-SHP-02 ÔÇö SHIPPING (zone: Loading Bay 2)
+    [WH] Toulouse Warehouse B (WH-TLS-02)
+      [LOC] TLS-B-STG-01 ÔÇö STORAGE (zone: Overflow Storage)
+      [LOC] TLS-B-STG-02 ÔÇö STORAGE (zone: Overflow Storage)
+      [LOC] TLS-B-QRN-01 ÔÇö QUARANTINE (zone: Inspection Bay)
+
+--- SITE 5: E-Commerce Fulfillment ---
+  [SITE] Bordeaux Fulfillment Center (DISTRIBUTION_CENTER)
+    [WH] Bordeaux FC Warehouse (WH-BDX-01)
+      [LOC] BDX-REC-01 ÔÇö RECEIVING (zone: Inbound Receiving)
+      [LOC] BDX-STG-01 ÔÇö STORAGE (zone: Fast-Moving Items)
+      [LOC] BDX-STG-02 ÔÇö STORAGE (zone: Fast-Moving Items)
+      [LOC] BDX-STG-03 ÔÇö STORAGE (zone: Slow-Moving Items)
+      [LOC] BDX-STG-04 ÔÇö STORAGE (zone: Slow-Moving Items)
+      [LOC] BDX-PCK-01 ÔÇö PICKING (zone: Pick & Pack Station 1)
+      [LOC] BDX-PCK-02 ÔÇö PICKING (zone: Pick & Pack Station 2)
+      [LOC] BDX-STA-01 ÔÇö STAGING (zone: Packing Staging)
+      [LOC] BDX-SHP-01 ÔÇö SHIPPING (zone: Parcel Dispatch 1)
+      [LOC] BDX-SHP-02 ÔÇö SHIPPING (zone: Parcel Dispatch 2)
+      [LOC] BDX-RET-01 ÔÇö RETURNS (zone: E-Commerce Returns)
+      [LOC] BDX-QRN-01 ÔÇö QUARANTINE (zone: Damaged Goods Hold)
+
+=== SITES, WAREHOUSES & LOCATIONS SEEDING COMPLETE! ===
+  5 Sites | 7 Warehouses | 54 Locations created.

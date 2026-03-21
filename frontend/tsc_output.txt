@@ -1,0 +1,259 @@
+src/components/categories/CategoryDetailModal.tsx(24,18): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/categories/CategoryDetailModal.tsx(25,38): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/categories/CategoryDetailModal.tsx(26,31): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/categories/CategoryDetailModal.tsx(27,20): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/categories/CategoryDetailModal.tsx(54,30): error TS2339: Property 'isActive' does not exist on type 'Category'.
+src/components/categories/CategoryDetailModal.tsx(58,31): error TS2339: Property 'isActive' does not exist on type 'Category'.
+src/components/categories/CategoryDetailModal.tsx(92,27): error TS2339: Property 'parentCategoryId' does not exist on type 'Category'.
+src/components/categories/CategoryDetailModal.tsx(96,23): error TS2339: Property 'displayOrder' does not exist on type 'Category'.
+src/components/categories/CategoryDetailModal.tsx(96,57): error TS2339: Property 'displayOrder' does not exist on type 'Category'.
+src/components/categories/CategoryDetailModal.tsx(101,75): error TS2339: Property 'displayOrder' does not exist on type 'Category'.
+src/components/categories/CategoryFormModal.tsx(52,38): error TS2339: Property 'parentCategoryId' does not exist on type 'Category'.
+src/components/categories/CategoryFormModal.tsx(53,34): error TS2339: Property 'displayOrder' does not exist on type 'Category'.
+src/components/categories/CategoryFormModal.tsx(58,24): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/categories/CategoryFormModal.tsx(59,44): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/categories/CategoryFormModal.tsx(60,37): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/categories/CategoryFormModal.tsx(61,26): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/categories/CategoryFormModal.tsx(144,58): error TS2345: Argument of type '{ name: string; description: string | null; parentCategoryId: string | null; displayOrder: number | null; attributeSchemas: string | null; }' is not assignable to parameter of type 'Partial<Category>'.
+  Types of property 'description' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/components/categories/CategoryFormModal.tsx(147,45): error TS2345: Argument of type '{ name: string; description: string | null; parentCategoryId: string | null; displayOrder: number | null; attributeSchemas: string | null; }' is not assignable to parameter of type 'Partial<Category>'.
+  Types of property 'description' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/components/item-variants/ItemVariantDetailModal.tsx(3,62): error TS6133: 'XCircle' is declared but its value is never read.
+src/components/item-variants/ItemVariantDetailModal.tsx(48,66): error TS2339: Property 'name' does not exist on type 'ItemVariant'.
+src/components/item-variants/ItemVariantDetailModal.tsx(55,29): error TS2339: Property 'isActive' does not exist on type 'ItemVariant'.
+src/components/item-variants/ItemVariantDetailModal.tsx(59,30): error TS2339: Property 'isActive' does not exist on type 'ItemVariant'.
+src/components/item-variants/ItemVariantDetailModal.tsx(89,71): error TS2339: Property 'parentItemId' does not exist on type 'ItemVariant'.
+src/components/item-variants/ItemVariantDetailModal.tsx(92,22): error TS2339: Property 'name' does not exist on type 'ItemVariant'.
+src/components/item-variants/ItemVariantDetailModal.tsx(97,74): error TS2339: Property 'name' does not exist on type 'ItemVariant'.
+src/components/item-variants/ItemVariantDetailModal.tsx(163,26): error TS2339: Property 'isActive' does not exist on type 'ItemVariant'.
+src/components/item-variants/ItemVariantFormModal.tsx(48,33): error TS2339: Property 'parentItemId' does not exist on type 'ItemVariant'.
+src/components/item-variants/ItemVariantFormModal.tsx(90,39): error TS2339: Property 'parentItemId' does not exist on type 'ItemVariant'.
+src/components/item-variants/ItemVariantFormModal.tsx(91,61): error TS2339: Property 'parentItemId' does not exist on type 'ItemVariant'.
+src/components/item-variants/ItemVariantFormModal.tsx(118,15): error TS2339: Property 'info' does not exist on type '{ (message: Message, opts?: Partial<Pick<Toast, "id" | "style" | "className" | "position" | "duration" | "icon" | "ariaProps" | "iconTheme" | "toasterId" | "removeDelay">> | undefined): string; ... 8 more ...; promise<T>(promise: Promise<...> | (() => Promise<...>), msgs: { ...; }, opts?: DefaultToastOptions | undef...'.
+src/components/items/ItemDetailModal.tsx(34,14): error TS2339: Property 'temperatureControl' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(35,40): error TS2339: Property 'temperatureControl' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(36,27): error TS2339: Property 'temperatureControl' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(37,16): error TS2339: Property 'temperatureControl' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(61,26): error TS2339: Property 'isActive' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(65,27): error TS2339: Property 'isActive' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(117,27): error TS2339: Property 'isSerialized' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(125,27): error TS2339: Property 'isLotManaged' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(133,27): error TS2339: Property 'hazardousMaterial' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(139,25): error TS2339: Property 'shelfLifeDays' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(142,76): error TS2339: Property 'shelfLifeDays' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(177,21): error TS2339: Property 'tags' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(184,27): error TS2339: Property 'tags' does not exist on type 'Item'.
+src/components/items/ItemDetailModal.tsx(184,48): error TS7006: Parameter 'tag' implicitly has an 'any' type.
+src/components/items/ItemDetailModal.tsx(184,53): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/items/ItemFormModal.tsx(3,13): error TS6133: 'Upload' is declared but its value is never read.
+src/components/items/ItemFormModal.tsx(71,22): error TS2339: Property 'tags' does not exist on type 'Item'.
+src/components/items/ItemFormModal.tsx(72,30): error TS2339: Property 'isSerialized' does not exist on type 'Item'.
+src/components/items/ItemFormModal.tsx(73,30): error TS2339: Property 'isLotManaged' does not exist on type 'Item'.
+src/components/items/ItemFormModal.tsx(74,31): error TS2339: Property 'shelfLifeDays' does not exist on type 'Item'.
+src/components/items/ItemFormModal.tsx(75,35): error TS2339: Property 'hazardousMaterial' does not exist on type 'Item'.
+src/components/items/ItemFormModal.tsx(96,20): error TS2339: Property 'temperatureControl' does not exist on type 'Item'.
+src/components/items/ItemFormModal.tsx(97,40): error TS2339: Property 'temperatureControl' does not exist on type 'Item'.
+src/components/items/ItemFormModal.tsx(98,33): error TS2339: Property 'temperatureControl' does not exist on type 'Item'.
+src/components/items/ItemFormModal.tsx(99,22): error TS2339: Property 'temperatureControl' does not exist on type 'Item'.
+src/components/items/ItemFormModal.tsx(155,20): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/items/ItemFormModal.tsx(157,43): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/items/ItemFormModal.tsx(158,35): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/items/ItemFormModal.tsx(159,24): error TS2339: Property 'attributeSchemas' does not exist on type 'Category'.
+src/components/items/ItemFormModal.tsx(300,50): error TS2345: Argument of type '{ categoryId: string; sku: string; name: string; description: string | null; attributes: string | null; tags: string | null; imageUrl: string | null; isSerialized: boolean; isLotManaged: boolean; shelfLifeDays: number | null; hazardousMaterial: boolean; temperatureControl: string | null; }' is not assignable to parameter of type 'Partial<Item>'.
+  Types of property 'description' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/components/items/ItemFormModal.tsx(303,41): error TS2345: Argument of type '{ categoryId: string; sku: string; name: string; description: string | null; attributes: string | null; tags: string | null; imageUrl: string | null; isSerialized: boolean; isLotManaged: boolean; shelfLifeDays: number | null; hazardousMaterial: boolean; temperatureControl: string | null; }' is not assignable to parameter of type 'Partial<Item>'.
+  Types of property 'description' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/components/locations/LocationFormModal.tsx(3,13): error TS6133: 'Plus' is declared but its value is never read.
+src/components/locations/LocationFormModal.tsx(3,19): error TS6133: 'Trash2' is declared but its value is never read.
+src/components/locations/LocationFormModal.tsx(116,46): error TS2345: Argument of type '{ warehouseId: string; code: string; zone: string | null; aisle: string | null; rack: string | null; level: string | null; bin: string | null; type: "PICKING" | "QUARANTINE" | "MANUFACTURING" | ... 4 more ... | "RETURNS"; capacity: string | null; restrictions: string | null; coordinates: string | null; }' is not assignable to parameter of type 'Partial<Location>'.
+  Types of property 'aisle' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/components/locations/LocationFormModal.tsx(119,59): error TS2345: Argument of type '{ warehouseId: string; code: string; zone: string | null; aisle: string | null; rack: string | null; level: string | null; bin: string | null; type: "PICKING" | "QUARANTINE" | "MANUFACTURING" | ... 4 more ... | "RETURNS"; capacity: string | null; restrictions: string | null; coordinates: string | null; }' is not assignable to parameter of type 'Partial<Location>'.
+  Types of property 'aisle' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/components/movement-lines/MovementLineDetailModal.tsx(75,19): error TS2551: Property 'movement' does not exist on type 'MovementLine'. Did you mean 'movementId'?
+src/components/movement-lines/MovementLineDetailModal.tsx(81,68): error TS2551: Property 'movement' does not exist on type 'MovementLine'. Did you mean 'movementId'?
+src/components/movement-lines/MovementLineDetailModal.tsx(85,68): error TS2551: Property 'movement' does not exist on type 'MovementLine'. Did you mean 'movementId'?
+src/components/movement-lines/MovementLineDetailModal.tsx(89,68): error TS2551: Property 'movement' does not exist on type 'MovementLine'. Did you mean 'movementId'?
+src/components/movement-tasks/AssignTaskModal.tsx(69,29): error TS2339: Property 'assignMovementTask' does not exist on type '{ getMovements: (params?: PaginationParams | undefined) => Promise<PaginatedResponse<Movement>>; getMovementById: (id: string) => Promise<...>; ... 41 more ...; getPendingTasks: () => Promise<...>; }'.
+src/components/movement-tasks/MovementTaskDetailModal.tsx(87,111): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/components/movements/Createmovementmodal.tsx(78,44): error TS2345: Argument of type '{ movementDate: string; expectedDate: string | null; scheduledDate: string | null; lines: { status: string; itemId: string; requestedQuantity: number; uom: string; fromLocationId: string; toLocationId: string; notes: string; }[]; ... 6 more ...; notes: string; }' is not assignable to parameter of type 'MovementRequestDto'.
+  Types of property 'expectedDate' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/components/movements/Movementcard.tsx(11,25): error TS6133: 'confirmDelete' is declared but its value is never read.
+src/components/movements/MovementDetailModal.tsx(15,48): error TS6133: 'MovementStatus' is declared but its value is never read.
+src/components/movements/MovementDetailModal.tsx(17,40): error TS6133: 'confirmWarning' is declared but its value is never read.
+src/components/movements/MovementDetailModal.tsx(199,48): error TS2551: Property 'getInventoryByItemAndLocation' does not exist on type '{ getAllInventories: () => Promise<any>; getInventory: (params?: any) => Promise<any>; getInventoryById: (id: string) => Promise<any>; createInventory: (data: InventoryCreateRequest) => Promise<...>; ... 23 more ...; getSerialsByItem: (itemId: string) => Promise<...>; }'. Did you mean 'getInventoriesByLocation'?
+src/components/movements/MovementFormModal.tsx(16,3): error TS6133: 'TaskStatus' is declared but its value is never read.
+src/components/movements/MovementFormModal.tsx(360,9): error TS6133: 'updateLine' is declared but its value is never read.
+src/components/movements/MovementFormModal.tsx(912,40): error TS2339: Property 'zone' does not exist on type 'Location'.
+src/components/movements/MovementFormModal.tsx(929,40): error TS2339: Property 'zone' does not exist on type 'Location'.
+src/components/movements/Movementtaskcard.tsx(7,23): error TS6133: 'confirmAction' is declared but its value is never read.
+src/components/NotificationDropdown.tsx(106,29): error TS6133: 'alert' is declared but its value is never read.
+src/components/NotificationDropdown.tsx(138,52): error TS2339: Property 'code' does not exist on type 'Item'.
+src/components/profile/ProfileFormModal.tsx(28,10): error TS6133: 'imageFile' is declared but its value is never read.
+src/components/quality-controls/QualityControlFormModal.tsx(209,20): error TS2345: Argument of type '(PaginatedResponse<Location> & any[]) | Location[]' is not assignable to parameter of type 'SetStateAction<Location[]>'.
+  Type 'Location[]' is not assignable to type 'SetStateAction<Location[]>'.
+    Type 'import("C:/Users/Legion/Downloads/stock-management-suspicious-goldstine/stock-management-suspicious-goldstine/frontend/src/types/index").Location[]' is not assignable to type 'Location[]'.
+      Property 'type' is missing in type 'import("C:/Users/Legion/Downloads/stock-management-suspicious-goldstine/stock-management-suspicious-goldstine/frontend/src/types/index").Location' but required in type 'Location'.
+src/components/sites/SiteDetailModal.tsx(3,39): error TS6133: 'Calendar' is declared but its value is never read.
+src/components/sites/SiteFormModal.tsx(65,42): error TS2345: Argument of type '{ name: string; type: "PICKING" | "QUARANTINE" | "WAREHOUSE" | "DISTRIBUTION_CENTER" | "STORE" | "MANUFACTURING" | "STAGING" | "SHIPPING"; timezone: string | null; address: string | null; }' is not assignable to parameter of type 'Partial<Site>'.
+  Types of property 'address' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/components/sites/SiteFormModal.tsx(68,51): error TS2345: Argument of type '{ name: string; type: "PICKING" | "QUARANTINE" | "WAREHOUSE" | "DISTRIBUTION_CENTER" | "STORE" | "MANUFACTURING" | "STAGING" | "SHIPPING"; timezone: string | null; address: string | null; }' is not assignable to parameter of type 'Partial<Site>'.
+  Types of property 'address' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/components/ui/StatCard.tsx(1,1): error TS6133: 'ReactNode' is declared but its value is never read.
+src/components/warehouses/WarehouseDetailModal.tsx(3,40): error TS6133: 'Calendar' is declared but its value is never read.
+src/hooks/usePermissions.ts(4,3): error TS6133: 'PERMISSIONS' is declared but its value is never read.
+src/pages/Alerts/AlertsPage.tsx(10,3): error TS6133: 'Filter' is declared but its value is never read.
+src/pages/Alerts/AlertsPage.tsx(13,3): error TS6133: 'Eye' is declared but its value is never read.
+src/pages/Alerts/AlertsPage.tsx(15,3): error TS6133: 'XCircle' is declared but its value is never read.
+src/pages/Alerts/AlertsPage.tsx(146,52): error TS2339: Property 'code' does not exist on type 'Item'.
+src/pages/Alerts/AlertsPage.tsx(547,87): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/pages/auth/LoginPage.tsx(378,38): error TS2339: Property 'info' does not exist on type '{ (message: Message, opts?: Partial<Pick<Toast, "id" | "style" | "className" | "position" | "duration" | "icon" | "ariaProps" | "iconTheme" | "toasterId" | "removeDelay">> | undefined): string; ... 8 more ...; promise<T>(promise: Promise<...> | (() => Promise<...>), msgs: { ...; }, opts?: DefaultToastOptions | undef...'.
+src/pages/auth/LoginPage.tsx(403,38): error TS2339: Property 'info' does not exist on type '{ (message: Message, opts?: Partial<Pick<Toast, "id" | "style" | "className" | "position" | "duration" | "icon" | "ariaProps" | "iconTheme" | "toasterId" | "removeDelay">> | undefined): string; ... 8 more ...; promise<T>(promise: Promise<...> | (() => Promise<...>), msgs: { ...; }, opts?: DefaultToastOptions | undef...'.
+src/pages/auth/RegisterPage.tsx(11,3): error TS6133: 'Building' is declared but its value is never read.
+src/pages/auth/RegisterPage.tsx(12,3): error TS6133: 'Phone' is declared but its value is never read.
+src/pages/auth/RegisterPage.tsx(398,21): error TS2322: Type '"accent"' is not assignable to type '"primary" | "secondary" | "success" | "danger" | undefined'.
+src/pages/auth/RegisterPage.tsx(523,23): error TS2322: Type '"accent"' is not assignable to type '"primary" | "secondary" | "success" | "danger" | undefined'.
+src/pages/auth/RegisterPage.tsx(551,42): error TS2339: Property 'info' does not exist on type '{ (message: Message, opts?: Partial<Pick<Toast, "id" | "style" | "className" | "position" | "duration" | "icon" | "ariaProps" | "iconTheme" | "toasterId" | "removeDelay">> | undefined): string; ... 8 more ...; promise<T>(promise: Promise<...> | (() => Promise<...>), msgs: { ...; }, opts?: DefaultToastOptions | undef...'.
+src/pages/auth/RegisterPage.tsx(576,42): error TS2339: Property 'info' does not exist on type '{ (message: Message, opts?: Partial<Pick<Toast, "id" | "style" | "className" | "position" | "duration" | "icon" | "ariaProps" | "iconTheme" | "toasterId" | "removeDelay">> | undefined): string; ... 8 more ...; promise<T>(promise: Promise<...> | (() => Promise<...>), msgs: { ...; }, opts?: DefaultToastOptions | undef...'.
+src/pages/auth/Verifyemailpage.tsx(41,13): error TS6133: 'response' is declared but its value is never read.
+src/pages/auth/Verifyemailpage.tsx(284,19): error TS2322: Type '"accent"' is not assignable to type '"primary" | "secondary" | "success" | "danger" | undefined'.
+src/pages/inventory/InventoryPage.tsx(3,18): error TS6133: 'AnimatePresence' is declared but its value is never read.
+src/pages/inventory/InventoryPage.tsx(18,3): error TS6133: 'Filter' is declared but its value is never read.
+src/pages/inventory/InventoryPage.tsx(19,3): error TS6133: 'Download' is declared but its value is never read.
+src/pages/inventory/InventoryPage.tsx(1048,61): error TS2353: Object literal may only specify known properties, and 'warehouseId' does not exist in type 'PaginationParams'.
+src/pages/inventory/InventoryPage.tsx(1098,48): error TS2345: Argument of type '{ unitCost: number | undefined; lotId: string | undefined; serialId: string | undefined; expiryDate: string | undefined; manufactureDate: string | undefined; attributes: string | undefined; ... 7 more ...; status: string; }' is not assignable to parameter of type 'InventoryCreateRequest'.
+  Property 'quantity' is missing in type '{ unitCost: number | undefined; lotId: string | undefined; serialId: string | undefined; expiryDate: string | undefined; manufactureDate: string | undefined; attributes: string | undefined; ... 7 more ...; status: string; }' but required in type 'InventoryCreateRequest'.
+src/pages/inventory/InventoryPageEnhanced.tsx(3,18): error TS6133: 'AnimatePresence' is declared but its value is never read.
+src/pages/inventory/InventoryPageEnhanced.tsx(14,3): error TS6133: 'X' is declared but its value is never read.
+src/pages/inventory/InventoryPageEnhanced.tsx(18,3): error TS6133: 'Filter' is declared but its value is never read.
+src/pages/inventory/InventoryPageEnhanced.tsx(19,3): error TS6133: 'Download' is declared but its value is never read.
+src/pages/inventory/InventoryPageEnhanced.tsx(92,10): error TS6133: 'isCreateModalOpen' is declared but its value is never read.
+src/pages/inventory/InventoryPageEnhanced.tsx(93,10): error TS6133: 'isEditModalOpen' is declared but its value is never read.
+src/pages/inventory/InventoryPageEnhanced.tsx(95,10): error TS6133: 'isViewModalOpen' is declared but its value is never read.
+src/pages/inventory/InventoryPageEnhanced.tsx(298,9): error TS6133: 'handleModalSuccess' is declared but its value is never read.
+src/pages/inventory/LotsPage.tsx(3,38): error TS6133: 'Eye' is declared but its value is never read.
+src/pages/inventory/SerialsPage.tsx(3,44): error TS6133: 'MapPin' is declared but its value is never read.
+src/pages/locations/LocationsPage.tsx(37,20): error TS2345: Argument of type 'PaginatedResponse<Location>' is not assignable to parameter of type 'SetStateAction<Location[]>'.
+  Type 'PaginatedResponse<Location>' is missing the following properties from type 'Location[]': length, pop, push, concat, and 28 more.
+src/pages/locations/LocationsPage.tsx(38,28): error TS2345: Argument of type 'PaginatedResponse<Location>' is not assignable to parameter of type 'SetStateAction<Location[]>'.
+  Type 'PaginatedResponse<Location>' is missing the following properties from type 'Location[]': length, pop, push, concat, and 28 more.
+src/pages/locations/LocationsPage.tsx(50,21): error TS2345: Argument of type 'PaginatedResponse<Warehouse>' is not assignable to parameter of type 'SetStateAction<any[]>'.
+  Type 'PaginatedResponse<Warehouse>' is missing the following properties from type 'any[]': length, pop, push, concat, and 28 more.
+src/pages/locations/LocationsPage.tsx(71,20): error TS2339: Property 'zone' does not exist on type 'Location'.
+src/pages/locations/LocationsPage.tsx(88,57): error TS2339: Property 'isActive' does not exist on type 'Location'.
+src/pages/locations/LocationsPage.tsx(215,44): error TS2339: Property 'isActive' does not exist on type 'Location'.
+src/pages/locations/LocationsPage.tsx(300,37): error TS2551: Property 'warehouseName' does not exist on type 'Location'. Did you mean 'warehouse'?
+src/pages/locations/LocationsPage.tsx(305,38): error TS2339: Property 'zone' does not exist on type 'Location'.
+src/pages/locations/LocationsPage.tsx(316,38): error TS2339: Property 'isActive' does not exist on type 'Location'.
+src/pages/locations/LocationsPage.tsx(321,37): error TS2339: Property 'isActive' does not exist on type 'Location'.
+src/pages/locations/SitesPage.tsx(35,16): error TS2345: Argument of type 'PaginatedResponse<Site>' is not assignable to parameter of type 'SetStateAction<Site[]>'.
+  Type 'PaginatedResponse<Site>' is missing the following properties from type 'Site[]': length, pop, push, concat, and 28 more.
+src/pages/locations/SitesPage.tsx(36,24): error TS2345: Argument of type 'PaginatedResponse<Site>' is not assignable to parameter of type 'SetStateAction<Site[]>'.
+  Type 'PaginatedResponse<Site>' is missing the following properties from type 'Site[]': length, pop, push, concat, and 28 more.
+src/pages/locations/SitesPage.tsx(65,49): error TS2339: Property 'type' does not exist on type 'Site'.
+src/pages/locations/SitesPage.tsx(71,49): error TS2339: Property 'isActive' does not exist on type 'Site'.
+src/pages/locations/SitesPage.tsx(185,40): error TS2339: Property 'isActive' does not exist on type 'Site'.
+src/pages/locations/SitesPage.tsx(196,40): error TS2339: Property 'type' does not exist on type 'Site'.
+src/pages/locations/SitesPage.tsx(207,40): error TS2339: Property 'type' does not exist on type 'Site'.
+src/pages/locations/SitesPage.tsx(270,33): error TS2339: Property 'type' does not exist on type 'Site'.
+src/pages/locations/SitesPage.tsx(282,70): error TS2339: Property 'timezone' does not exist on type 'Site'.
+src/pages/locations/SitesPage.tsx(287,34): error TS2339: Property 'isActive' does not exist on type 'Site'.
+src/pages/locations/SitesPage.tsx(292,33): error TS2339: Property 'isActive' does not exist on type 'Site'.
+src/pages/locations/WarehousesPage.tsx(36,21): error TS2345: Argument of type 'PaginatedResponse<Warehouse>' is not assignable to parameter of type 'SetStateAction<Warehouse[]>'.
+  Type 'PaginatedResponse<Warehouse>' is missing the following properties from type 'Warehouse[]': length, pop, push, concat, and 28 more.
+src/pages/locations/WarehousesPage.tsx(37,29): error TS2345: Argument of type 'PaginatedResponse<Warehouse>' is not assignable to parameter of type 'SetStateAction<Warehouse[]>'.
+  Type 'PaginatedResponse<Warehouse>' is missing the following properties from type 'Warehouse[]': length, pop, push, concat, and 28 more.
+src/pages/locations/WarehousesPage.tsx(49,16): error TS2345: Argument of type 'PaginatedResponse<Site>' is not assignable to parameter of type 'SetStateAction<any[]>'.
+  Type 'PaginatedResponse<Site>' is missing the following properties from type 'any[]': length, pop, push, concat, and 28 more.
+src/pages/locations/WarehousesPage.tsx(81,59): error TS2339: Property 'isActive' does not exist on type 'Warehouse'.
+src/pages/locations/WarehousesPage.tsx(195,45): error TS2339: Property 'isActive' does not exist on type 'Warehouse'.
+src/pages/locations/WarehousesPage.tsx(206,46): error TS2339: Property 'isActive' does not exist on type 'Warehouse'.
+src/pages/locations/WarehousesPage.tsx(274,75): error TS2339: Property 'siteName' does not exist on type 'Warehouse'.
+src/pages/locations/WarehousesPage.tsx(282,39): error TS2339: Property 'isActive' does not exist on type 'Warehouse'.
+src/pages/locations/WarehousesPage.tsx(287,38): error TS2339: Property 'isActive' does not exist on type 'Warehouse'.
+src/pages/movements/MovementsPage.tsx(170,29): error TS2551: Property 'updateMovementStatus' does not exist on type '{ getMovements: (params?: PaginationParams | undefined) => Promise<PaginatedResponse<Movement>>; getMovementById: (id: string) => Promise<...>; ... 41 more ...; getPendingTasks: () => Promise<...>; }'. Did you mean 'updateMovementTask'?
+src/pages/movements/MovementsPage.tsx(199,21): error TS2353: Object literal may only specify known properties, and 'severity' does not exist in type 'CreateAlertRequest'.
+src/pages/movements/MovementsPage.tsx(217,19): error TS2353: Object literal may only specify known properties, and 'locationId' does not exist in type 'Partial<QualityControl>'.
+src/pages/products/CategoriesPage.tsx(188,37): error TS2339: Property 'parentCategoryId' does not exist on type 'Category'.
+src/pages/products/CategoriesPage.tsx(189,72): error TS2339: Property 'parentCategoryId' does not exist on type 'Category'.
+src/pages/products/CategoriesPage.tsx(196,38): error TS2339: Property 'isActive' does not exist on type 'Category'.
+src/pages/products/CategoriesPage.tsx(201,37): error TS2339: Property 'isActive' does not exist on type 'Category'.
+src/pages/products/ItemsPage.tsx(91,49): error TS2339: Property 'isActive' does not exist on type 'Item'.
+src/pages/products/ItemsPage.tsx(251,34): error TS2339: Property 'isActive' does not exist on type 'Item'.
+src/pages/products/ItemsPage.tsx(256,33): error TS2339: Property 'isActive' does not exist on type 'Item'.
+src/pages/products/ItemVariantsPage.tsx(78,19): error TS2339: Property 'name' does not exist on type 'ItemVariant'.
+src/pages/products/ItemVariantsPage.tsx(84,55): error TS2339: Property 'parentItemId' does not exist on type 'ItemVariant'.
+src/pages/products/ItemVariantsPage.tsx(90,55): error TS2339: Property 'isActive' does not exist on type 'ItemVariant'.
+src/pages/products/ItemVariantsPage.tsx(232,85): error TS2339: Property 'name' does not exist on type 'ItemVariant'.
+src/pages/products/ItemVariantsPage.tsx(239,63): error TS2339: Property 'parentItemId' does not exist on type 'ItemVariant'.
+src/pages/products/ItemVariantsPage.tsx(254,37): error TS2339: Property 'isActive' does not exist on type 'ItemVariant'.
+src/pages/products/ItemVariantsPage.tsx(259,36): error TS2339: Property 'isActive' does not exist on type 'ItemVariant'.
+src/pages/products/ProductsPage.tsx(98,13): error TS2322: Type '{ children: Element; className: string; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & CardProps'.
+  Property 'onClick' does not exist on type 'IntrinsicAttributes & CardProps'.
+src/pages/products/ProductsPage.tsx(123,13): error TS2322: Type '{ children: Element; className: string; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & CardProps'.
+  Property 'onClick' does not exist on type 'IntrinsicAttributes & CardProps'.
+src/pages/products/ProductsPage.tsx(148,13): error TS2322: Type '{ children: Element; className: string; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & CardProps'.
+  Property 'onClick' does not exist on type 'IntrinsicAttributes & CardProps'.
+src/pages/products/ProductsPage.tsx(176,15): error TS2322: Type '{ children: string; variant: "primary"; fullWidth: true; onClick: () => void; icon: Element; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'fullWidth' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/pages/products/ProductsPage.tsx(184,15): error TS2322: Type '{ children: string; variant: "accent"; fullWidth: true; onClick: () => void; icon: Element; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'fullWidth' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/pages/products/ProductsPage.tsx(192,15): error TS2322: Type '{ children: string; variant: "outline"; fullWidth: true; onClick: () => void; icon: Element; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+  Property 'fullWidth' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+src/pages/quality/QualityAttachmentsPage.tsx(2,24): error TS6133: 'Eye' is declared but its value is never read.
+src/pages/quality/QualityAttachmentsPage.tsx(20,10): error TS6133: 'isUploadModalOpen' is declared but its value is never read.
+src/pages/quality/QualityAttachmentsPage.tsx(54,15): error TS2339: Property 'description' does not exist on type 'QualityAttachment'.
+src/pages/quality/QualityAttachmentsPage.tsx(59,47): error TS2339: Property 'attachmentType' does not exist on type 'QualityAttachment'.
+src/pages/quality/QualityAttachmentsPage.tsx(165,46): error TS2339: Property 'attachmentType' does not exist on type 'QualityAttachment'.
+src/pages/quality/QualityAttachmentsPage.tsx(176,46): error TS2339: Property 'attachmentType' does not exist on type 'QualityAttachment'.
+src/pages/quality/QualityAttachmentsPage.tsx(187,46): error TS2339: Property 'attachmentType' does not exist on type 'QualityAttachment'.
+src/pages/quality/QualityAttachmentsPage.tsx(271,60): error TS2339: Property 'attachmentType' does not exist on type 'QualityAttachment'.
+src/pages/quality/QualityAttachmentsPage.tsx(277,37): error TS2339: Property 'description' does not exist on type 'QualityAttachment'.
+src/pages/quality/QualityAttachmentsPage.tsx(283,37): error TS2551: Property 'uploadedAt' does not exist on type 'QualityAttachment'. Did you mean 'uploadedBy'?
+src/pages/quality/QualityAttachmentsPage.tsx(283,77): error TS2551: Property 'uploadedAt' does not exist on type 'QualityAttachment'. Did you mean 'uploadedBy'?
+src/pages/quality/QualityControlPage.tsx(7,19): error TS6133: 'AlertTriangle' is declared but its value is never read.
+src/pages/quality/QualityControlPage.tsx(195,9): error TS6133: 'handleUpdateStatus' is declared but its value is never read.
+src/pages/quality/QuarantinesPage.tsx(21,10): error TS6133: 'isCreateModalOpen' is declared but its value is never read.
+src/pages/quality/QuarantinesPage.tsx(22,10): error TS6133: 'isEditModalOpen' is declared but its value is never read.
+src/pages/quality/QuarantinesPage.tsx(23,10): error TS6133: 'isDetailModalOpen' is declared but its value is never read.
+src/pages/quality/QuarantinesPage.tsx(67,43): error TS2339: Property 'severity' does not exist on type 'Quarantine'.
+src/pages/quality/QuarantinesPage.tsx(287,57): error TS2339: Property 'serialNumber' does not exist on type 'Quarantine'.
+src/pages/quality/QuarantinesPage.tsx(290,37): error TS2339: Property 'quantity' does not exist on type 'Quarantine'.
+src/pages/quality/QuarantinesPage.tsx(296,54): error TS2339: Property 'severity' does not exist on type 'Quarantine'.
+src/pages/quality/QuarantinesPage.tsx(302,37): error TS2339: Property 'expectedReleaseDate' does not exist on type 'Quarantine'.
+src/pages/quality/QuarantinesPage.tsx(303,56): error TS2339: Property 'expectedReleaseDate' does not exist on type 'Quarantine'.
+src/services/alert.service.ts(6,52): error TS6196: 'ApiResponse' is declared but never used.
+src/services/auth.service.ts(9,3): error TS2305: Module '"@/types"' has no exported member 'TokenResponse'.
+src/services/auth.service.ts(10,3): error TS2305: Module '"@/types"' has no exported member 'RefreshTokenRequest'.
+src/services/auth.service.ts(11,3): error TS2305: Module '"@/types"' has no exported member 'PasswordResetRequest'.
+src/services/auth.service.ts(12,3): error TS2305: Module '"@/types"' has no exported member 'PasswordResetConfirmRequest'.
+src/services/auth.service.ts(13,3): error TS2305: Module '"@/types"' has no exported member 'PasswordChangeRequest'.
+src/services/user.service.ts(44,5): error TS2322: Type 'User | undefined' is not assignable to type 'User'.
+  Type 'undefined' is not assignable to type 'User'.
+src/types/index.ts(691,3): error TS2411: Property 'content' of type 'T[]' is not assignable to 'string' index type 'Warehouse[]'.
+src/types/index.ts(692,3): error TS2411: Property 'totalElements' of type 'number' is not assignable to 'string' index type 'Warehouse[]'.
+src/types/index.ts(693,3): error TS2411: Property 'totalPages' of type 'number' is not assignable to 'string' index type 'Warehouse[]'.
+src/types/index.ts(694,3): error TS2411: Property 'size' of type 'number' is not assignable to 'string' index type 'Warehouse[]'.
+src/types/index.ts(695,3): error TS2411: Property 'number' of type 'number' is not assignable to 'string' index type 'Warehouse[]'.
+src/types/index.ts(696,3): error TS2411: Property 'numberOfElements' of type 'number' is not assignable to 'string' index type 'Warehouse[]'.
+src/types/index.ts(697,3): error TS2411: Property 'first' of type 'boolean' is not assignable to 'string' index type 'Warehouse[]'.
+src/types/index.ts(698,3): error TS2411: Property 'last' of type 'boolean' is not assignable to 'string' index type 'Warehouse[]'.
+src/types/index.ts(699,3): error TS2411: Property 'empty' of type 'boolean' is not assignable to 'string' index type 'Warehouse[]'.

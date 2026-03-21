@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movement Completed</title>
+</head>
+<body style="margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;background-color:#f3f4f6;">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#f3f4f6;">
+  <tr>
+    <td align="center" style="padding:30px 10px;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+
+        <!-- HEADER -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:40px 40px 30px;text-align:center;">
+            <table cellpadding="0" cellspacing="0" align="center" style="margin-bottom:16px;">
+              <tr>
+                <td align="center" style="width:60px;height:60px;background:rgba(255,255,255,0.2);border-radius:50%;">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="vertical-align:middle;margin-top:14px;">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </td>
+              </tr>
+            </table>
+            <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px;">&#10003; Movement Completed</h1>
+            <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:15px;">Stock movement has been successfully completed</p>
+          </td>
+        </tr>
+
+        <!-- BODY -->
+        <tr>
+          <td style="padding:32px 40px;">
+            <p style="margin:0 0 20px;font-size:16px;color:#374151;line-height:1.6;">
+              Movement <strong style="color:#059669;">{{referenceNumber}}</strong> has been completed successfully. All movement lines have been processed.
+            </p>
+
+            <!-- Movement Info Card -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;margin:20px 0;">
+              <tr><td style="padding:20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                  <tr>
+                    <td width="50%" style="padding:8px 0;border-bottom:1px solid #a7f3d0;">
+                      <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Reference Number</span><br>
+                      <span style="font-size:15px;color:#111827;font-weight:600;">{{referenceNumber}}</span>
+                    </td>
+                    <td width="50%" style="padding:8px 0 8px 16px;border-bottom:1px solid #a7f3d0;">
+                      <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Movement Type</span><br>
+                      <span style="font-size:15px;color:#059669;font-weight:700;">{{movementType}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td width="50%" style="padding:8px 0;border-bottom:1px solid #a7f3d0;">
+                      <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Total Lines</span><br>
+                      <span style="font-size:24px;color:#059669;font-weight:700;">{{totalLines}}</span>
+                    </td>
+                    <td width="50%" style="padding:8px 0 8px 16px;border-bottom:1px solid #a7f3d0;">
+                      <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Completed At</span><br>
+                      <span style="font-size:14px;color:#374151;font-weight:600;">{{completedAt}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td width="100%" colspan="2" style="padding:8px 0 0;">
+                      <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Completed By</span><br>
+                      <span style="font-size:15px;color:#374151;font-weight:600;">{{completedBy}}</span>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin:28px 0;">
+              <a href="{{dashboardUrl}}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:8px;box-shadow:0 4px 12px rgba(5,150,105,0.3);">
+                View Movement in Dashboard
+              </a>
+            </div>
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;">
+            <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">
+              Stock Management System<br>
+              This is an automated notification. Please do not reply to this email.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

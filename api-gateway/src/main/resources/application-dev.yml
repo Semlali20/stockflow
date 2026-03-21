@@ -1,0 +1,74 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:4200"
+              - "http://localhost:8080"
+              - "http://127.0.0.1:3000"
+              - "http://127.0.0.1:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+
+# JWT Configuration for Local Dev
+jwt:
+  jwks-url: http://localhost:8083/.well-known/jwks.json
+
+# Service URLs (localhost for development)
+services:
+  auth-service:
+    url: http://localhost:8083
+  product-service:
+    url: http://localhost:8082
+  inventory-service:
+    url: http://localhost:8086
+  movement-service:
+    url: http://localhost:8084
+  location-service:
+    url: http://localhost:8085
+  quality-service:
+    url: http://localhost:8087
+  alert-service:
+    url: http://localhost:8088
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: DEBUG
+    com.stock.apigateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG
+    reactor.netty: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
