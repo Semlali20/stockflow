@@ -3,10 +3,10 @@
   "configurations": [
     {
       "name": "frontend",
-      "runtimeExecutable": "cmd.exe",
-      "runtimeArgs": ["/c", "node_modules\\.bin\\vite.cmd --host --port 3000"],
-      "port": 3000,
-      "cwd": "C:\\Users\\PC\\.claude-worktrees\\stock-management-monorepo\\suspicious-goldstine\\.claude\\worktrees\\thirsty-lehmann\\frontend"
+      "runtimeExecutable": "C:/Program Files/nodejs/node.exe",
+      "runtimeArgs": ["C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js", "run", "dev", "--", "--port", "5174", "--strictPort"],
+      "cwd": "frontend",
+      "port": 5174
     }
   ]
 }

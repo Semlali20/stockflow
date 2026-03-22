@@ -43,7 +43,18 @@
     "never": "أبداً",
     "rejectionReason": "سبب الرفض",
     "create": "إنشاء",
-    "add": "إضافة"
+    "add": "إضافة",
+    "confirm": "تأكيد",
+    "failed": "فشل",
+    "success": "نجاح",
+    "actions": "الإجراءات",
+    "allStatuses": "جميع الحالات",
+    "selectSupplier": "اختر مورداً",
+    "exportCsv": "تصدير CSV",
+    "importCsv": "استيراد CSV",
+    "report": "تقرير",
+    "live": "مباشر",
+    "notes": "ملاحظات"
   },
   "layout": {
     "quickAdd": "إضافة سريعة",
@@ -72,12 +83,15 @@
     "sites": "المواقع الرئيسية",
     "warehouses": "المستودعات",
     "movements": "الحركات",
-    "quality": "الجودة",
-    "controls": "الرقابة",
-    "quarantines": "الحجر",
-    "attachments": "المرفقات",
     "alerts": "التنبيهات",
-    "admin": "الإدارة"
+    "admin": "الإدارة",
+    "purchase": "المشتريات",
+    "suppliers": "الموردون",
+    "purchaseOrders": "أوامر الشراء",
+    "sales": "المبيعات",
+    "customers": "العملاء",
+    "quotes": "عروض الأسعار",
+    "deliveryNotes": "سندات التسليم"
   },
   "dashboard": {
     "systemOverview": "نظرة عامة على النظام",
@@ -198,7 +212,15 @@
       "risk": "الخطر",
       "critical": "حرج",
       "warning": "تحذير"
-    }
+    },
+    "commercial": "النظرة التجارية",
+    "suppliers": "الموردون",
+    "purchaseOrders": "أوامر الشراء",
+    "customers": "العملاء",
+    "quotes": "عروض الأسعار",
+    "deliveryNotes": "مذكرات التسليم",
+    "stockValue": "قيمة المخزون",
+    "stockValueDesc": "مُقيَّم بالتكلفة الوحدوية"
   },
   "products": {
     "items": {
@@ -221,6 +243,7 @@
       "noItemsFound": "لم يتم العثور على عناصر",
       "deleteTitle": "حذف العنصر",
       "deleteConfirm": "هل أنت متأكد أنك تريد حذف \"{{name}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "reportDescription": "إنشاء تقرير بجميع عناصر المنتجات",
       "messages": {
         "fetchError": "فشل في جلب العناصر",
         "deleteSuccess": "تم حذف العنصر بنجاح",
@@ -374,6 +397,7 @@
       "noCategoriesFound": "لم يتم العثور على فئات",
       "deleteTitle": "حذف الفئة",
       "deleteConfirm": "هل أنت متأكد أنك تريد حذف \"{{name}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "reportDescription": "إنشاء تقرير بجميع فئات المنتجات",
       "messages": {
         "fetchError": "فشل في جلب الفئات",
         "deleteSuccess": "تم حذف الفئة بنجاح",
@@ -432,7 +456,31 @@
     "title": "إدارة المخزون",
     "subtitle": "تتبع وإدارة مستويات المخزون عبر جميع المواقع",
     "refresh": "تحديث",
+    "exportCsv": "تصدير CSV",
+    "report": "تقرير",
     "newInventory": "مخزون جديد",
+    "reportModal": {
+      "title": "إنشاء تقرير {{title}}",
+      "selectFormat": "اختر صيغة التصدير:",
+      "excel": "Excel (.xlsx)",
+      "excelDesc": "الأفضل لتحليل البيانات وتصفيتها",
+      "pdf": "مستند PDF",
+      "pdfDesc": "الأفضل للمشاركة والطباعة",
+      "csv": "ملف CSV",
+      "csvDesc": "بيانات خام للمعالجة المخصصة",
+      "generate": "إنشاء التقرير",
+      "generating": "جاري الإنشاء...",
+      "fetchingData": "جاري جلب البيانات...",
+      "generatingReport": "جاري إنشاء التقرير...",
+      "success": "تم إنشاء تقرير {{title}} بنجاح!",
+      "error": "فشل إنشاء التقرير. يرجى المحاولة مرة أخرى."
+    },
+    "autoRefresh": "تحديث تلقائي كل 30 ثانية • آخر تحديث:",
+    "deleteTitle": "حذف سجل المخزون",
+    "deleteMessage": "هل أنت متأكد من حذف سجل المخزون لـ",
+    "reportDescription": "إنشاء تقرير عن مستويات المخزون الحالية",
+    "loadingInventory": "جاري تحميل المخزون...",
+    "justNow": "الآن",
     "stats": {
       "totalItems": "إجمالي العناصر",
       "available": "متوفر",
@@ -584,6 +632,7 @@
         "supplier": "معرف المورد",
         "attributes": "السمات (JSON)"
       },
+      "reportDescription": "إنشاء تقرير بجميع دفعات المخزون",
       "messages": {
         "noLots": "لم يتم العثور على شحنات",
         "fetchError": "فشل جلب الشحنات",
@@ -937,6 +986,7 @@
     "subtitle": "تتبع وإدارة جميع عمليات الوارد والصادر والتحويل",
     "refresh": "تحديث",
     "newMovement": "حركة جديدة",
+    "reportDescription": "إنشاء تقرير بجميع حركات المخزون",
     "stats": {
       "total": "إجمالي الحركات",
       "draft": "مسودة",
@@ -1000,256 +1050,6 @@
       "lowStockTitle": "تنبيه انخفاض المخزون",
       "lowStockMessage": "العنصر {{itemId}} منخفض (المتبقي {{remaining}})",
       "autoQC": "تم إنشاؤه تلقائياً من الحركة {{reference}}"
-    }
-  },
-  "quality": {
-    "controls": {
-      "title": "رقابة الجودة",
-      "subtitle": "إدارة فحوصات وموافقات رقابة الجودة",
-      "newQC": "إنشاء فحص جودة",
-      "searchPlaceholder": "البحث برقم الفحص، معرف العنصر...",
-      "stats": {
-        "total": "إجمالي الفحوصات",
-        "passed": "ناجحة",
-        "failed": "فاشلة",
-        "pending": "قيد الانتظار"
-      },
-      "filters": {
-        "allStatuses": "جميع الحالات",
-        "allResults": "جميع النتائج",
-        "passedOnly": "الناجحة فقط",
-        "failedOnly": "الفاشلة فقط",
-        "allTypes": "جميع الأنواع",
-        "clearFilters": "مسح الفلاتر"
-      },
-      "table": {
-        "controlNumber": "رقم الفحص",
-        "type": "النوع",
-        "status": "الحالة",
-        "result": "النتيجة",
-        "quantity": "الكمية",
-        "defects": "العيوب",
-        "date": "التاريخ"
-      },
-      "empty": {
-        "title": "لم يتم العثور على فحوصات جودة",
-        "description": "قم بإنشاء أول فحص جودة لك"
-      },
-      "actions": {
-      "approve": "موافقة",
-        "reject": "رفض",
-        "viewDetails": "عرض التفاصيل"
-      },
-      "messages": {
-        "fetchError": "فشل في جلب فحوصات الجودة",
-        "fetchItemsError": "فشل في تحميل العناصر",
-        "fetchLocationsError": "فشل في تحميل المواقع",
-        "approveSuccess": "تمت الموافقة على فحص الجودة بنجاح",
-        "approveError": "فشل في الموافقة على فحص الجودة",
-        "rejectSuccess": "تم رفض فحص الجودة",
-        "rejectError": "فشل في رفض فحص الجودة",
-        "statusUpdateSuccess": "تم تحديث الحالة إلى {{status}}",
-        "statusUpdateError": "فشل في تحديث الحالة",
-        "deleteSuccess": "تم حذف فحص الجودة بنجاح",
-        "deleteError": "فشل في حذف فحص الجودة"
-      },
-      "delete": {
-        "title": "حذف فحص الجودة",
-        "confirm": "هل أنت متأكد من حذف فحص الجودة \"{{number}}\"؟ لا يمكن التراجع عن هذا الإجراء."
-      },
-      "form": {
-        "createTitle": "إنشاء فحص جودة",
-        "editTitle": "تعديل فحص الجودة",
-        "inspectorId": "معرف المفتش",
-        "inspectorIdAuto": "تم التعرف عليه تلقائياً",
-        "inspectorIdRequired": "مطلوب",
-        "inspectorIdPlaceholder": "أدخل معرف المفتش الخاص بك",
-        "inspectorIdManual": "تعذر التحميل التلقائي. يرجى الإدخال يدوياً.",
-        "basicInfo": "معلومات أساسية",
-        "item": "العنصر / المنتج",
-        "selectItem": "اختر عنصراً",
-        "loadingItems": "جاري تحميل العناصر...",
-        "sku": "رمز SKU:",
-        "lot": "الدفعة / رقم التشغيلة",
-        "selectItemFirst": "اختر عنصراً أولاً",
-        "loadingLots": "جاري تحميل الدفعات...",
-        "noLots": "لا توجد دفعات متاحة",
-        "selectLotOptional": "اختر دفعة (اختياري)",
-        "serial": "الرقم التسلسلي",
-        "serialPlaceholder": "رقم تسلسلي اختياري",
-        "quantity": "الكمية المفحوصة",
-        "quantityPlaceholder": "أدخل الكمية",
-        "type": "نوع الفحص",
-        "typeIncoming": "فحص وارد",
-        "typeInProcess": "فحص أثناء التشغيل",
-        "typeFinal": "فحص نهائي",
-        "typeRandom": "تدقيق عشوائي",
-        "typeReturn": "مرتجع عملاء",
-        "typeProcess": "فحص العملية",
-        "status": "الحالة",
-        "statusPending": "قيد الانتظار",
-        "statusInProgress": "جاري التنفيذ",
-        "statusPassed": "ناجح",
-        "statusFailed": "فاشل",
-        "statusQuarantined": "في الحجر",
-        "statusConditional": "قبول مشروط",
-        "result": "النتيجة",
-        "resultNotSet": "غير محدد",
-        "resultAccept": "قبول",
-        "resultReject": "رفض",
-        "resultRework": "إعادة تصنيع",
-        "resultScrap": "تحويله إلى خردة",
-        "resultReturn": "العودة للمورد",
-        "resultReview": "قيد المراجعة",
-        "location": "موقع الفحص",
-        "loadingLocations": "جاري تحميل المواقع...",
-        "selectLocationOptional": "اختر موقعاً (اختياري)",
-        "scheduledDate": "التاريخ المجدول",
-        "defectCount": "عدد العيوب",
-        "results": "نتائج الفحص",
-        "addTest": "إضافة اختبار",
-        "noResults": "لم يتم إضافة نتائج اختبار بعد. انقر على \"إضافة اختبار\" لإضافة المعايير.",
-        "testNum": "اختبار رقم",
-        "testParameter": "معيار الاختبار",
-        "expectedValue": "القيمة المتوقعة",
-        "actualValue": "القيمة الفعلية",
-        "uom": "وحدة القياس",
-        "minValue": "أقل قيمة",
-        "maxValue": "أقصى قيمة",
-        "defectSeverity": "خطورة العيب",
-        "remarks": "ملاحظات",
-        "notesPlaceholder": "أدخل ملاحظات الفحص...",
-        "correctiveActionsPlaceholder": "أدخل الإجراءات التصحيحية...",
-        "uploadFiles": "تحميل ملفات",
-        "uploadLimits": "PNG, JPG, PDF حتى 10 ميجابايت",
-        "selectedFiles": "الملفات المختارة ({{count}})",
-        "testParameterPlaceholder": "مثال: الوزن، الطول",
-        "expectedValuePlaceholder": "القيمة المتوقعة",
-        "actualValuePlaceholder": "القيمة الفعلية",
-        "uomPlaceholder": "كجم، سم، إلخ."
-      },
-      "details": {
-        "title": "تفاصيل فحص الجودة",
-        "disposition": "التصرف",
-        "startInspection": "بدء الفحص",
-        "markPassed": "تحديد كناجح",
-        "markFailed": "تحديد كفاشل",
-        "quarantine": "حجر",
-        "reInspect": "إعادة فحص",
-        "conditionalAccept": "قبول مشروط",
-        "approved": "تمت الموافقة",
-        "approvedByOn": "بواسطة {{user}} في {{date}}",
-        "info": {
-          "itemId": "معرف العنصر",
-          "inspectorId": "معرف المفتش",
-          "location": "الموقع"
-        },
-        "quantities": {
-          "title": "الكميات",
-          "inspected": "المفحوصة",
-          "passed": "الناجحة",
-          "failed": "الفاشلة",
-          "defects": "العيوب",
-          "defectRate": "معدل العيوب"
-        },
-        "impact": {
-          "title": "تأثير تسوية المخزون",
-          "passedTitle": "تظل العناصر متاحة في المخزون",
-          "passedDesc": "اجتازت {{qty}} وحدة الفحص وهي متاحة للاستخدام",
-          "failedTitle": "تم نقل العناصر إلى المخزون التالف",
-          "failedDesc": "فشلت {{qty}} وحدة في الفحص وتم خصمها من المخزون المتاح",
-          "quarTitle": "تم وضع العناصر في الحجر",
-          "quarDesc": "تم حجر {{qty}} وحدة وحجزها من المخزون المتاح",
-          "autoAdjustment": "يتم تطبيق تسويات المخزون تلقائياً عند تغيير الحالة"
-        },
-        "notesActions": "ملاحظات وإجراءات",
-        "inspectorNotes": "ملاحظات المفتش",
-        "correctiveActions": "إجراءات تصحيحية",
-        "attachments": "المرفقات",
-        "timeline": {
-          "title": "الجدول الزمني",
-          "scheduled": "مجدول",
-          "started": "بدأ",
-          "completed": "اكتمل",
-          "created": "تم الإنشاء",
-          "lastUpdated": "آخر تحديث"
-        }
-      }
-    },
-    "quarantines": {
-      "title": "الحجر الصحي",
-      "subtitle": "إدارة العناصر المحجورة وتتبع حالتها",
-      "newQuarantine": "حجر جديد",
-      "stats": {
-        "total": "إجمالي الحجر",
-        "inProcess": "قيد التنفيذ",
-        "released": "مفرج عنه",
-        "rejected": "مرفوض"
-      },
-      "filters": {
-        "searchPlaceholder": "البحث في الحجر...",
-        "allStatuses": "جميع الحالات",
-        "allSeverities": "جميع مستويات الخطورة"
-      },
-      "table": {
-        "itemId": "معرف العنصر",
-        "lotSerial": "الدفعة/التسلسلي",
-        "quantity": "الكمية",
-        "reason": "السبب",
-        "severity": "الخطورة",
-        "status": "الحالة",
-        "expectedRelease": "الإفراج المتوقع"
-      },
-      "empty": "لم يتم العثور على سجلات حجر",
-      "messages": {
-        "fetchError": "فشل في جلب سجلات الحجر",
-        "deleteSuccess": "تم حذف سجل الحجر بنجاح",
-        "deleteError": "فشل في حذف سجل الحجر",
-        "createNotImplemented": "خاصية الإنشاء لم يتم تفعيلها بعد",
-        "editNotImplemented": "خاصية التعديل لم يتم تفعيلها بعد",
-        "detailNotImplemented": "عرض التفاصيل لم يتم تفعيلها بعد"
-      },
-      "delete": {
-        "title": "حذف سجل الحجر",
-        "confirm": "هل أنت متأكد من حذف هذا الحجر للعنصر \"{{id}}\"؟ لا يمكن التراجع عن هذا الإجراء."
-      }
-    },
-    "attachments": {
-      "title": "مرفقات الجودة",
-      "subtitle": "إدارة مرفقات رقابة الجودة والحجر",
-      "upload": "تحميل مرفق",
-      "stats": {
-        "total": "إجمالي المرفقات",
-        "images": "صور",
-        "videos": "مقاطع فيديو",
-        "documents": "مستندات",
-        "certificates": "شهادات"
-      },
-      "filters": {
-        "searchPlaceholder": "البحث باسم الملف أو الوصف...",
-        "allTypes": "جميع الأنواع"
-      },
-      "table": {
-        "file": "الملف",
-        "type": "النوع",
-        "size": "الحجم",
-        "description": "الوصف",
-        "uploadedBy": "حُمِّل بواسطة",
-        "uploadedAt": "تاريخ التحميل"
-      },
-      "empty": "لم يتم العثور على مرفقات",
-      "noDescription": "لا يوجد وصف",
-      "messages": {
-        "fetchError": "فشل في جلب المرفقات",
-        "deleteSuccess": "تم حذف المرفق بنجاح",
-        "deleteError": "فشل في حذف المرفق",
-        "urlError": "رابط الملف غير متاح",
-        "uploadNotImplemented": "خاصية التحميل لم يتم تفعيلها بعد"
-      },
-      "delete": {
-        "title": "حذف المرفق",
-        "confirm": "هل أنت متأكد من حذف \"{{name}}\"؟ لا يمكن التراجع عن هذا الإجراء."
-      }
     }
   },
   "alerts": {
@@ -1318,7 +1118,8 @@
       "created": "تم الإنشاء:",
       "acknowledged": "تم الإقرار:",
       "resolved": "تم الحل:",
-      "byUser": "بواسطة {{user}}"
+      "byUser": "بواسطة {{user}}",
+      "location": "الموقع"
     },
     "messages": {
       "ackSuccess": "تم الإقرار بالتنبيه",
@@ -1451,173 +1252,420 @@
       "saveError": "فشل حفظ التفضيلات"
     }
   },
-    "users": {
-      "searchPlaceholder": "البحث عن مستخدمين...",
-      "createAccount": "إنشاء حساب",
-      "totalUsers": "إجمالي المستخدمين",
-      "active": "نشط",
-      "locked": "مقفل",
-      "admins": "المسؤولين",
-      "table": {
-        "user": "المستخدم",
-        "email": "البريد الإلكتروني",
-        "role": "الدور",
-        "emailVerified": "تم التحقق من البريد",
-        "status": "الحالة",
-        "lastLogin": "آخر تسجيل دخول",
-        "actions": "إجراءات"
-      },
-      "noUsersFound": "لم يتم العثور على مستخدمين",
-      "actions": {
-        "deactivate": "تعطيل",
-        "activate": "تفعيل",
-        "unlock": "إلغاء القفل",
-        "lock": "قفل",
-        "delete": "حذف",
-        "activated": "تم تنشيط \"{{username}}\"",
-        "deactivated": "تم إلغاء تنشيط \"{{username}}\"",
-        "locked": "تم قفل \"{{username}}\"",
-        "unlocked": "تم إلغاء قفل \"{{username}}\""
-      },
-      "delete": {
-        "title": "حذف الحساب",
-        "subtitle": "هذا الإجراء لا يمكن التراجع عنه",
-        "warning": "أنت على وشك حذف **@{{username}}** نهائيًا. سيتم حذف جميع البيانات المرتبطة بهذا الحساب وسيتم إلغاء الوصول إليه فورًا.",
-        "confirm": "نعم، احذف",
-        "deleting": "جاري الحذف...",
-        "success": "تم حذف الحساب \"@{{username}}\"",
-        "error": "فشل حذف المستخدم"
-      }
+  "users": {
+    "searchPlaceholder": "البحث عن مستخدمين...",
+    "createAccount": "إنشاء حساب",
+    "totalUsers": "إجمالي المستخدمين",
+    "active": "نشط",
+    "locked": "مقفل",
+    "admins": "المسؤولين",
+    "table": {
+      "user": "المستخدم",
+      "email": "البريد الإلكتروني",
+      "role": "الدور",
+      "emailVerified": "تم التحقق من البريد",
+      "status": "الحالة",
+      "lastLogin": "آخر تسجيل دخول",
+      "actions": "إجراءات"
     },
-    "audit": {
-      "title": "سجلات التدقيق",
-      "allLogs": "جميع السجلات",
-      "failedLogins": "محاولات الدخول الفاشلة",
-      "securityEvents": "الأحداث الأمنية",
-      "searchPlaceholder": "البحث في السجلات...",
-      "totalLogs": "إجمالي السجلات",
-      "successful": "ناجحة",
-      "failed": "فاشلة",
-      "uniqueUsers": "مستخدمون مميزون",
-      "table": {
-        "timestamp": "الطابع الزمني",
-        "user": "المستخدم",
-        "action": "الإجراء",
-        "status": "الحالة",
-        "ipAddress": "عنوان IP",
-        "details": "التفاصيل"
-      },
-      "noLogsFound": "لم يتم العثور على سجلات تدقيق"
+    "noUsersFound": "لم يتم العثور على مستخدمين",
+    "actions": {
+      "deactivate": "تعطيل",
+      "activate": "تفعيل",
+      "unlock": "إلغاء القفل",
+      "lock": "قفل",
+      "delete": "حذف",
+      "activated": "تم تنشيط \"{{username}}\"",
+      "deactivated": "تم إلغاء تنشيط \"{{username}}\"",
+      "locked": "تم قفل \"{{username}}\"",
+      "unlocked": "تم إلغاء قفل \"{{username}}\""
     },
-    "permissions": {
-      "matrixTitle": "مصفوفة صلاحيات الأدوار",
-      "matrixSubtitle": "عرض الصلاحيات المسندة لكل دور في النظام. الصلاحيات تعتمد على الدور ويتم فرضها من خلال النظام الخلفي.",
-      "fullBadge": "كامل",
-      "count": "{{count}} صلاحية",
-      "granted": "ممنوحة",
-      "denied": "مرفوضة",
-      "footer": "يتم فرض الصلاحيات من جانب الخادم. تتطلب التغييرات في الأدوار تحديثًا في النظام الخلفي وإعادة تسجيل دخول المستخدم.",
-      "groups": {
-        "dashboard": "لوحة التحكم",
-        "products": "المنتجات",
-        "categories": "الفئات",
-        "inventory": "المخزون",
-        "locations": "المواقع",
-        "movements": "الحركات",
-        "quality": "الجودة",
-        "alerts": "التنبيهات",
-        "userManagement": "إدارة المستخدمين",
-        "auditSettings": "التدقيق والإعدادات"
-      },
-      "labels": {
-        "viewDashboard": "عرض لوحة التحكم",
-        "viewProducts": "عرض المنتجات",
-        "createProducts": "إنشاء المنتجات",
-        "editProducts": "تعديل المنتجات",
-        "deleteProducts": "حذف المنتجات",
-        "viewCategories": "عرض الفئات",
-        "createCategories": "إنشاء الفئات",
-        "editCategories": "تعديل الفئات",
-        "deleteCategories": "حذف الفئات",
-        "viewInventory": "عرض المخزون",
-        "createInventory": "إنشاء المخزون",
-        "editInventory": "تعديل المخزون",
-        "deleteInventory": "حذف المخزون",
-        "viewLots": "عرض الدفعات",
-        "createLots": "إنشاء الدفعات",
-        "editLots": "تعديل الدفعات",
-        "deleteLots": "حذف الدفعات",
-        "viewSerials": "عرض الأرقام التسلسلية",
-        "createSerials": "إنشاء الأرقام التسلسلية",
-        "editSerials": "تعديل الأرقام التسلسلية",
-        "deleteSerials": "حذف الأرقام التسلسلية",
-        "viewLocations": "عرض المواقع",
-        "createLocations": "إنشاء المواقع",
-        "editLocations": "تعديل المواقع",
-        "deleteLocations": "حذف المواقع",
-        "viewMovements": "عرض الحركات",
-        "createMovements": "إنشاء الحركات",
-        "editMovements": "تعديل الحركات",
-        "deleteMovements": "حذف الحركات",
-        "approveMovements": "الموافقة على الحركات",
-        "cancelMovements": "إلغاء الحركات",
-        "viewQuality": "عرض مراقبة الجودة",
-        "createQuality": "إنشاء سجلات الجودة",
-        "editQuality": "تعديل سجلات الجودة",
-        "deleteQuality": "حذف سجلات الجودة",
-        "approveQuality": "الموافقة على نتائج الجودة",
-        "manageQuarantine": "إدارة الحجر",
-        "viewAlerts": "عرض التنبيهات",
-        "manageAlerts": "إدارة قواعد التنبيه",
-        "deleteAlerts": "حذف التنبيهات",
-        "viewUsers": "عرض المستخدمين",
-        "createUsers": "إنشاء المستخدمين",
-        "editUsers": "تعديل المستخدمين",
-        "deleteUsers": "حذف المستخدمين",
-        "viewPermissions": "عرض الصلاحيات",
-        "managePermissions": "إدارة الصلاحيات",
-        "viewAudit": "عرض سجلات التدقيق",
-        "viewSettings": "عرض الإعدادات",
-        "manageSettings": "إدارة الإعدادات"
-      }
+    "delete": {
+      "title": "حذف الحساب",
+      "subtitle": "هذا الإجراء لا يمكن التراجع عنه",
+      "warning": "أنت على وشك حذف **@{{username}}** نهائيًا. سيتم حذف جميع البيانات المرتبطة بهذا الحساب وسيتم إلغاء الوصول إليه فورًا.",
+      "confirm": "نعم، احذف",
+      "deleting": "جاري الحذف...",
+      "success": "تم حذف الحساب \"@{{username}}\"",
+      "error": "فشل حذف المستخدم"
+    }
+  },
+  "audit": {
+    "title": "سجلات التدقيق",
+    "allLogs": "جميع السجلات",
+    "failedLogins": "محاولات الدخول الفاشلة",
+    "securityEvents": "الأحداث الأمنية",
+    "searchPlaceholder": "البحث في السجلات...",
+    "totalLogs": "إجمالي السجلات",
+    "successful": "ناجحة",
+    "failed": "فاشلة",
+    "uniqueUsers": "مستخدمون مميزون",
+    "table": {
+      "timestamp": "الطابع الزمني",
+      "user": "المستخدم",
+      "action": "الإجراء",
+      "status": "الحالة",
+      "ipAddress": "عنوان IP",
+      "details": "التفاصيل"
     },
-    "roles": {
-      "admin": {
-        "label": "مسؤول",
-        "description": "وصول كامل لجميع الميزات والإعدادات"
-      },
-      "manager": {
-        "label": "مدير",
-        "description": "وصول واسع باستثناء إدارة المستخدمين والصلاحيات"
-      },
-      "warehouseManager": {
-        "label": "مدير مستودع",
-        "description": "تحكم كامل في المستودع والمخزون والحركات"
-      },
-      "qualityManager": {
-        "label": "مدير جودة",
-        "description": "إدارة مراقبة الجودة والحجر"
-      },
-      "supervisor": {
-        "label": "مشرف",
-        "description": "الإشراف على العمليات والموافقة على الحركات"
-      },
-      "operator": {
-        "label": "مشغل",
-        "description": "المهام التشغيلية اليومية"
-      },
-      "procurement": {
-        "label": "مشتريات",
-        "description": "إنشاء المنتجات والدفعات للشراء"
-      },
-      "auditor": {
-        "label": "مدقق",
-        "description": "وصول للقراءة فقط بالإضافة إلى سجلات التدقيق"
-      },
-      "user": {
-        "label": "مستخدم",
-        "description": "وصول أساسي للقراءة فقط"
-      }
+    "noLogsFound": "لم يتم العثور على سجلات تدقيق"
+  },
+  "permissions": {
+    "matrixTitle": "مصفوفة صلاحيات الأدوار",
+    "matrixSubtitle": "عرض الصلاحيات المسندة لكل دور في النظام. الصلاحيات تعتمد على الدور ويتم فرضها من خلال النظام الخلفي.",
+    "fullBadge": "كامل",
+    "count": "{{count}} صلاحية",
+    "granted": "ممنوحة",
+    "denied": "مرفوضة",
+    "footer": "يتم فرض الصلاحيات من جانب الخادم. تتطلب التغييرات في الأدوار تحديثًا في النظام الخلفي وإعادة تسجيل دخول المستخدم.",
+    "groups": {
+      "dashboard": "لوحة التحكم",
+      "products": "المنتجات",
+      "categories": "الفئات",
+      "inventory": "المخزون",
+      "locations": "المواقع",
+      "movements": "الحركات",
+      "alerts": "التنبيهات",
+      "userManagement": "إدارة المستخدمين",
+      "auditSettings": "التدقيق والإعدادات"
+    },
+    "labels": {
+      "viewDashboard": "عرض لوحة التحكم",
+      "viewProducts": "عرض المنتجات",
+      "createProducts": "إنشاء المنتجات",
+      "editProducts": "تعديل المنتجات",
+      "deleteProducts": "حذف المنتجات",
+      "viewCategories": "عرض الفئات",
+      "createCategories": "إنشاء الفئات",
+      "editCategories": "تعديل الفئات",
+      "deleteCategories": "حذف الفئات",
+      "viewInventory": "عرض المخزون",
+      "createInventory": "إنشاء المخزون",
+      "editInventory": "تعديل المخزون",
+      "deleteInventory": "حذف المخزون",
+      "viewLots": "عرض الدفعات",
+      "createLots": "إنشاء الدفعات",
+      "editLots": "تعديل الدفعات",
+      "deleteLots": "حذف الدفعات",
+      "viewSerials": "عرض الأرقام التسلسلية",
+      "createSerials": "إنشاء الأرقام التسلسلية",
+      "editSerials": "تعديل الأرقام التسلسلية",
+      "deleteSerials": "حذف الأرقام التسلسلية",
+      "viewLocations": "عرض المواقع",
+      "createLocations": "إنشاء المواقع",
+      "editLocations": "تعديل المواقع",
+      "deleteLocations": "حذف المواقع",
+      "viewMovements": "عرض الحركات",
+      "createMovements": "إنشاء الحركات",
+      "editMovements": "تعديل الحركات",
+      "deleteMovements": "حذف الحركات",
+      "approveMovements": "الموافقة على الحركات",
+      "cancelMovements": "إلغاء الحركات",
+      "viewAlerts": "عرض التنبيهات",
+      "manageAlerts": "إدارة قواعد التنبيه",
+      "deleteAlerts": "حذف التنبيهات",
+      "viewUsers": "عرض المستخدمين",
+      "createUsers": "إنشاء المستخدمين",
+      "editUsers": "تعديل المستخدمين",
+      "deleteUsers": "حذف المستخدمين",
+      "viewPermissions": "عرض الصلاحيات",
+      "managePermissions": "إدارة الصلاحيات",
+      "viewAudit": "عرض سجلات التدقيق",
+      "viewSettings": "عرض الإعدادات",
+      "manageSettings": "إدارة الإعدادات"
+    }
+  },
+  "roles": {
+    "admin": {
+      "label": "مسؤول",
+      "description": "وصول كامل لجميع الميزات والإعدادات"
+    },
+    "manager": {
+      "label": "مدير",
+      "description": "وصول واسع باستثناء إدارة المستخدمين والصلاحيات"
+    },
+    "warehouseManager": {
+      "label": "مدير مستودع",
+      "description": "تحكم كامل في المستودع والمخزون والحركات"
+    },
+    "supervisor": {
+      "label": "مشرف",
+      "description": "الإشراف على العمليات والموافقة على الحركات"
+    },
+    "operator": {
+      "label": "مشغل",
+      "description": "المهام التشغيلية اليومية"
+    },
+    "procurement": {
+      "label": "مشتريات",
+      "description": "إنشاء المنتجات والدفعات للشراء"
+    },
+    "auditor": {
+      "label": "مدقق",
+      "description": "وصول للقراءة فقط بالإضافة إلى سجلات التدقيق"
+    },
+    "user": {
+      "label": "مستخدم",
+      "description": "وصول أساسي للقراءة فقط"
+    }
+  },
+  "purchase": {
+    "title": "المشتريات",
+    "suppliers": {
+      "title": "الموردون",
+      "new": "مورد جديد",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "address": "العنوان",
+      "contactPerson": "جهة الاتصال",
+      "paymentTerms": "شروط الدفع (أيام)",
+      "leadTime": "وقت التوريد (أيام)",
+      "status": "الحالة",
+      "notes": "ملاحظات",
+      "deleteConfirm": "هل أنت متأكد من حذف هذا المورد؟",
+      "statusActive": "نشط",
+      "statusInactive": "غير نشط",
+      "statusBlocked": "محظور",
+      "allStatuses": "جميع الحالات",
+      "count": "موردون",
+      "searchPlaceholder": "البحث عن موردين...",
+      "emptyState": "لا يوجد موردون",
+      "created": "تم إنشاء المورد",
+      "updated": "تم تحديث المورد",
+      "deleted": "تم حذف المورد",
+      "deleteFailed": "فشل حذف المورد",
+      "saveFailed": "فشل حفظ المورد"
+    },
+    "orders": {
+      "title": "أوامر الشراء",
+      "new": "أمر شراء جديد",
+      "reference": "المرجع",
+      "supplier": "المورد",
+      "status": "الحالة",
+      "expectedDelivery": "تاريخ التسليم المتوقع",
+      "totalAmount": "المبلغ الإجمالي",
+      "lines": "البنود",
+      "confirm": "تأكيد",
+      "send": "إرسال",
+      "receive": "استلام",
+      "cancel": "إلغاء",
+      "count": "أوامر",
+      "searchPlaceholder": "البحث عن أوامر الشراء...",
+      "emptyState": "لا توجد أوامر شراء",
+      "created": "تم إنشاء أمر الشراء",
+      "updated": "تم تحديث أمر الشراء",
+      "deleted": "تم حذف أمر الشراء",
+      "deleteFailed": "فشل حذف الأمر",
+      "saveFailed": "فشل حفظ الأمر",
+      "actionFailed": "فشل الإجراء",
+      "statusDraft": "مسودة",
+      "statusConfirmed": "مؤكد",
+      "statusSent": "مرسل",
+      "statusPartiallyReceived": "مستلم جزئياً",
+      "statusReceived": "مستلم",
+      "statusCancelled": "ملغي",
+      "allSuppliers": "جميع الموردين",
+      "confirmOrder": "تم تأكيد الأمر",
+      "sentOrder": "تم إرسال الأمر",
+      "cancelOrder": "تم إلغاء الأمر"
+    }
+  },
+  "sales": {
+    "title": "المبيعات",
+    "customers": {
+      "title": "العملاء",
+      "new": "عميل جديد",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "address": "العنوان",
+      "contactPerson": "جهة الاتصال",
+      "paymentTerms": "شروط الدفع (أيام)",
+      "status": "الحالة",
+      "notes": "ملاحظات",
+      "statusActive": "نشط",
+      "statusInactive": "غير نشط",
+      "statusBlocked": "محظور",
+      "allStatuses": "جميع الحالات",
+      "count": "عملاء",
+      "emptyState": "لا يوجد عملاء",
+      "created": "تم إنشاء العميل",
+      "updated": "تم تحديث العميل",
+      "deleted": "تم حذف العميل",
+      "deleteFailed": "فشل حذف العميل",
+      "saveFailed": "فشل حفظ العميل"
+    },
+    "quotes": {
+      "title": "عروض الأسعار",
+      "new": "عرض سعر جديد",
+      "reference": "المرجع",
+      "customer": "العميل",
+      "status": "الحالة",
+      "validUntil": "صالح حتى",
+      "discount": "الخصم (%)",
+      "subtotal": "المجموع الفرعي",
+      "total": "الإجمالي",
+      "send": "إرسال",
+      "accept": "قبول",
+      "reject": "رفض",
+      "convert": "تحويل إلى سند تسليم",
+      "searchPlaceholder": "البحث عن عروض الأسعار...",
+      "emptyState": "لا توجد عروض أسعار",
+      "allCustomers": "جميع العملاء",
+      "selectCustomer": "اختر عميلاً",
+      "created": "تم إنشاء عرض السعر",
+      "updated": "تم تحديث عرض السعر",
+      "deleted": "تم حذف عرض السعر",
+      "saveFailed": "فشل حفظ عرض السعر",
+      "actionFailed": "فشل الإجراء",
+      "statusDraft": "مسودة",
+      "statusSent": "مرسل",
+      "statusAccepted": "مقبول",
+      "statusRejected": "مرفوض",
+      "statusExpired": "منتهي الصلاحية",
+      "statusConverted": "محوّل",
+      "sent": "تم إرسال عرض السعر",
+      "accepted": "تم قبول عرض السعر",
+      "rejected": "تم رفض عرض السعر",
+      "converted": "تم تحويل عرض السعر إلى سند تسليم",
+      "itemName": "اسم المادة",
+      "sku": "رمز المنتج",
+      "qty": "الكمية",
+      "unitPrice": "سعر الوحدة",
+      "lineTotal": "إجمالي السطر",
+      "discountPct": "الخصم %"
+    },
+    "deliveryNotes": {
+      "title": "سندات التسليم",
+      "new": "سند تسليم جديد",
+      "reference": "المرجع",
+      "customer": "العميل",
+      "status": "الحالة",
+      "deliveryDate": "تاريخ التسليم",
+      "deliveryAddress": "عنوان التسليم",
+      "validate": "تحقق",
+      "ship": "شحن",
+      "deliver": "تسليم",
+      "cancel": "إلغاء",
+      "searchPlaceholder": "البحث عن سندات التسليم...",
+      "emptyState": "لا توجد سندات تسليم",
+      "allCustomers": "جميع العملاء",
+      "selectCustomer": "اختر عميلاً",
+      "created": "تم إنشاء سند التسليم",
+      "updated": "تم تحديث سند التسليم",
+      "saveFailed": "فشل حفظ سند التسليم",
+      "actionFailed": "فشل الإجراء",
+      "cancelled": "تم إلغاء سند التسليم",
+      "validated": "تم التحقق من سند التسليم",
+      "shipped": "تم شحن سند التسليم",
+      "delivered": "تم التسليم بنجاح",
+      "statusDraft": "مسودة",
+      "statusValidated": "محقق",
+      "statusShipped": "مشحون",
+      "statusDelivered": "مسلّم",
+      "statusCancelled": "ملغي"
+    }
+  },
+  "quoteForm": {
+    "title": "عرض سعر جديد",
+    "subtitle": "إنشاء عرض سعر للبيع مع عناصر المخزون",
+    "basicInfo": "المعلومات الأساسية",
+    "warehouse": "المستودع / المخزون",
+    "selectWarehouse": "اختر مستودعاً",
+    "availableItems": "العناصر المتاحة في المخزون",
+    "noItemsInWarehouse": "لا توجد عناصر في هذا المستودع",
+    "quoteLines": "سطور عرض السعر",
+    "noLines": "لم تتم إضافة عناصر بعد. اختر مستودعاً وأضف عناصر.",
+    "item": "المنتج",
+    "availableQty": "الكمية المتاحة",
+    "avail": "متاح",
+    "added": "مضاف",
+    "unitPrice": "سعر الوحدة",
+    "exceedsStock": "يتجاوز المخزون المتاح",
+    "summary": "ملخص عرض السعر",
+    "linesCount": "{{count}} سطر/سطور",
+    "stockWarning": "⚠ بعض العناصر تتجاوز المخزون المتاح",
+    "saveDraft": "حفظ كمسودة",
+    "sendQuote": "إرسال عرض السعر",
+    "generatePdf": "إنشاء PDF",
+    "selectCustomer": "الرجاء اختيار عميل",
+    "addItems": "الرجاء إضافة عنصر واحد على الأقل",
+    "itemAlreadyAdded": "هذا العنصر موجود بالفعل في عرض السعر",
+    "notesPlaceholder": "ملاحظات إضافية...",
+    "errorLoadingItems": "فشل تحميل عناصر المخزون"
+  },
+  "deliveryForm": {
+    "title": "بوليصة تسليم جديدة",
+    "subtitle": "إنشاء بوليصة تسليم مرتبطة بعرض سعر أو يدوياً",
+    "linkQuote": "ربط بعرض سعر مقبول (اختياري)",
+    "searchQuotePlaceholder": "البحث بالمرجع أو المعرّف...",
+    "linkButton": "ربط",
+    "linkHint": "اربط بعرض سعر مقبول لملء العناصر تلقائياً",
+    "linkedQuote": "عرض السعر المرتبط",
+    "unlinkQuote": "إلغاء الربط",
+    "quoteNotFound": "عرض السعر غير موجود",
+    "quoteNotAccepted": "يمكن ربط عروض الأسعار المقبولة فقط",
+    "quoteLinkSuccess": "تم ربط عرض السعر بنجاح",
+    "quoteLinkError": "فشل في ربط عرض السعر",
+    "deliveryLines": "سطور التسليم",
+    "orderedQty": "الكمية المطلوبة",
+    "deliveredQty": "الكمية المسلّمة",
+    "save": "حفظ بوليصة التسليم",
+    "addressPlaceholder": "عنوان التسليم...",
+    "lineNotesPlaceholder": "ملاحظات السطر...",
+    "addItemManually": "إضافة عنصر يدوياً",
+    "itemNamePlaceholder": "اسم العنصر...",
+    "itemSkuPlaceholder": "رمز المنتج (اختياري)...",
+    "lockedByQuote": "مقفل بعرض السعر",
+    "active": "نشط",
+    "inventoryHint": "اختياري: اختر مستودعاً لتحديد العناصر من المخزون",
+    "autoLoadedItems": "تم تحميل {{count}} عنصراً تلقائياً",
+    "hintSelectFromAbove": "اختر عناصر من لوحة المخزون أعلاه أو انقر «إضافة يدوياً»",
+    "hintManualOrInventory": "اختر مستودعاً أعلاه أو انقر «إضافة يدوياً»",
+    "searchCustomer": "البحث عن عميل..."
+  },
+  "purchaseForm": {
+    "title": "أمر شراء جديد",
+    "subtitle": "إنشاء أمر شراء مع اقتراحات المخزون",
+    "selectSupplier": "اختر مورداً",
+    "orderLines": "سطور الطلب",
+    "addLine": "إضافة سطر",
+    "orderedQty": "الكمية المطلوبة",
+    "lineTotal": "الإجمالي",
+    "totalLines": "إجمالي السطور",
+    "itemNamePlaceholder": "اسم المنتج...",
+    "currentStock": "المخزون الحالي",
+    "lowStockSuggestions": "اقتراحات المخزون المنخفض",
+    "threshold": "الحد الأدنى",
+    "noLowStockItems": "لا توجد عناصر أقل من الحد الأدنى",
+    "availQty": "متاح",
+    "addToOrder": "إضافة للطلب",
+    "saveOrder": "حفظ الطلب",
+    "fillAllItems": "الرجاء ملء جميع أسماء العناصر"
+  },
+  "landing": {
+    "hero": {
+      "badge": "✨ جديد: خدمة المشتريات والمبيعات متاحة الآن",
+      "title": "أدر مخزونك بذكاء",
+      "subtitle": "المنصة SaaS الشاملة للشركات الصغيرة والمتوسطة.",
+      "cta": "ابدأ مجاناً",
+      "demo": "شاهد العرض"
+    },
+    "features": {
+      "title": "كل ما تحتاجه"
+    },
+    "pricing": {
+      "title": "أسعار بسيطة وشفافة",
+      "popular": "الأكثر شعبية"
+    },
+    "waitlist": {
+      "title": "انضم إلى قائمة الانتظار",
+      "subtitle": "كن من أوائل المستخدمين للميزات الجديدة.",
+      "placeholder": "بريدك@الإلكتروني.com",
+      "button": "انضم",
+      "success": "✅ شكراً! أنت على القائمة.",
+      "social": "247 شخص بالفعل على القائمة • بدون رسائل مزعجة"
     }
   }
-
+}

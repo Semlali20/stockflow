@@ -143,7 +143,7 @@ export const LotsPage: React.FC = () => {
             onClick={() => downloadCsv(API_ENDPOINTS.INVENTORY.LOTS_EXPORT_CSV, 'lots.csv')}
             loading={isDownloading}
           >
-            Export CSV
+            {t('common.exportCsv')}
           </Button>
           <Button
             variant="outline"
@@ -151,7 +151,7 @@ export const LotsPage: React.FC = () => {
             icon={<Upload size={15} />}
             onClick={() => setIsImportModalOpen(true)}
           >
-            Import CSV
+            {t('common.importCsv')}
           </Button>
           <Button
             variant="outline"
@@ -159,7 +159,7 @@ export const LotsPage: React.FC = () => {
             icon={<FileText size={15} />}
             onClick={() => setIsReportModalOpen(true)}
           >
-            Report
+            {t('common.report')}
           </Button>
           <Button onClick={handleCreate} className="flex items-center gap-2">
             <Plus size={20} />
@@ -365,8 +365,8 @@ export const LotsPage: React.FC = () => {
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        title="Lots"
-        description="Generate a report of all inventory lots"
+        title={t('inventory.lots.title')}
+        description={t('inventory.lots.reportDescription')}
         columns={lotsReportColumns}
         fetchData={async () => {
           return lots as unknown as Record<string, unknown>[];

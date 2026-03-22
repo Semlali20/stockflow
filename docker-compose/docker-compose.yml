@@ -138,25 +138,6 @@ services:
       timeout: 5s
       retries: 5
 
-  postgres-quality:
-    image: postgres:15-alpine
-    container_name: postgres-quality
-    environment:
-      POSTGRES_DB: quality_db
-      POSTGRES_USER: quality_user
-      POSTGRES_PASSWORD: quality_pass
-    ports:
-      - "5436:5432"
-    volumes:
-      - postgres-quality-data:/var/lib/postgresql/data
-    networks:
-      - stock-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U quality_user -d quality_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   postgres-user:
     image: postgres:15-alpine
     container_name: postgres-user
@@ -191,6 +172,44 @@ services:
       - stock-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U alert_user -d alert_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-purchase:
+    image: postgres:15-alpine
+    container_name: postgres-purchase
+    environment:
+      POSTGRES_DB: purchase_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5441:5432"
+    volumes:
+      - postgres-purchase-data:/var/lib/postgresql/data
+    networks:
+      - stock-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-sales:
+    image: postgres:15-alpine
+    container_name: postgres-sales
+    environment:
+      POSTGRES_DB: sales_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5442:5432"
+    volumes:
+      - postgres-sales-data:/var/lib/postgresql/data
+    networks:
+      - stock-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -329,28 +348,6 @@ services:
       - stock-network
     restart: unless-stopped
 
-  quality-service:
-    build:
-      context: ../quality-service
-      dockerfile: Dockerfile
-    container_name: quality-service
-    depends_on:
-      postgres-quality:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    ports:
-      - "8087:8087"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-quality:5432/quality_db
-      SPRING_DATASOURCE_USERNAME: quality_user
-      SPRING_DATASOURCE_PASSWORD: quality_pass
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-    networks:
-      - stock-network
-    restart: unless-stopped
-
   auth-service:
     build:
       context: ../auth-service
@@ -414,6 +411,48 @@ services:
     networks:
       - stock-network
     restart: unless-stopped
+
+  purchase-service:
+    build:
+      context: ../purchase-service
+      dockerfile: Dockerfile
+    container_name: purchase-service
+    ports:
+      - "8089:8089"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JWT_SECRET=${JWT_SECRET:-mySecretKeyForJWTTokenGenerationThatIsAtLeast256BitsLong12345678}
+    depends_on:
+      postgres-purchase:
+        condition: service_healthy
+    networks:
+      - stock-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  sales-service:
+    build:
+      context: ../sales-service
+      dockerfile: Dockerfile
+    container_name: sales-service
+    ports:
+      - "8090:8090"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JWT_SECRET=${JWT_SECRET:-mySecretKeyForJWTTokenGenerationThatIsAtLeast256BitsLong12345678}
+    depends_on:
+      postgres-sales:
+        condition: service_healthy
+    networks:
+      - stock-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8090/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # ================== MONITORING ==================
 
@@ -483,8 +522,9 @@ volumes:
   postgres-inventory-data:
   postgres-movement-data:
   postgres-location-data:
-  postgres-quality-data:
   postgres-user-data:
   postgres-alert-data:
+  postgres-purchase-data:
+  postgres-sales-data:
   prometheus-data:
   grafana-data:

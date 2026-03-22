@@ -297,7 +297,6 @@ const RoleBadge: React.FC<{ role: string }> = ({ role }) => {
     ADMIN: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
     MANAGER: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     WAREHOUSE_MANAGER: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
-    QUALITY_MANAGER: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     SUPERVISOR: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
     OPERATOR: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
     PROCUREMENT: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
@@ -363,7 +362,7 @@ const Pagination: React.FC<{
 // ─── CREATE USER MODAL ────────────────────────────────────────────────────────
 
 const AVAILABLE_ROLES = [
-  'ADMIN', 'MANAGER', 'WAREHOUSE_MANAGER', 'QUALITY_MANAGER',
+  'ADMIN', 'MANAGER', 'WAREHOUSE_MANAGER',
   'SUPERVISOR', 'OPERATOR', 'PROCUREMENT', 'AUDITOR', 'USER',
 ];
 

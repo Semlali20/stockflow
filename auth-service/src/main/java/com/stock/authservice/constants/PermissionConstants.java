@@ -66,13 +66,6 @@ public final class PermissionConstants {
     public static final String PRODUCT_UPDATE = "product:update:all";
     public static final String PRODUCT_DELETE = "product:delete:all";
 
-    // ==================== QUALITY MANAGEMENT ====================
-    public static final String QUALITY_INSPECT = "quality:inspect:all";
-    public static final String QUALITY_APPROVE = "quality:approve:all";
-    public static final String QUALITY_REJECT = "quality:reject:all";
-    public static final String QUALITY_QUARANTINE = "quality:quarantine:all";
-    public static final String QUALITY_RELEASE = "quality:release:all";
-
     // ==================== TRACEABILITY ====================
     public static final String TRACE_VIEW = "trace:view:all";
     public static final String TRACE_LOT = "trace:lot:all";
@@ -108,7 +101,6 @@ public final class PermissionConstants {
     public static final String RESOURCE_MOVEMENT = "movement";
     public static final String RESOURCE_LOCATION = "location";
     public static final String RESOURCE_PRODUCT = "product";
-    public static final String RESOURCE_QUALITY = "quality";
     public static final String RESOURCE_TRACE = "trace";
     public static final String RESOURCE_REPORT = "report";
     public static final String RESOURCE_AUDIT = "audit";

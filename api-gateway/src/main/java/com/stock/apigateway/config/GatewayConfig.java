@@ -40,11 +40,14 @@ public class GatewayConfig {
     @Value("${services.location-service.url}")
     private String locationServiceUrl;
 
-    @Value("${services.quality-service.url}")
-    private String qualityServiceUrl;
-
     @Value("${services.alert-service.url}")
     private String alertServiceUrl;
+
+    @Value("${services.purchase-service.url}")
+    private String purchaseServiceUrl;
+
+    @Value("${services.sales-service.url}")
+    private String salesServiceUrl;
 
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
@@ -125,19 +128,24 @@ public class GatewayConfig {
                                 .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri(locationServiceUrl))
 
-                // Quality Service - JWT only
-                .route("quality-service", r -> r
-                        .path("/api/quality/**", "/api/quality/controls/**", "/api/quality/attachments/**")
-                        .filters(f -> f
-                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
-                        .uri(qualityServiceUrl))
-
                 // Alert Service - JWT only
                 .route("alert-service", r -> r
                         .path("/api/alerts/**", "/api/notifications/**", "/api/notification-channels/**", "/api/notification-templates/**", "/api/rules/**")
                         .filters(f -> f
                                 .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri(alertServiceUrl))
+
+                // Purchase Service routes
+                .route("purchase-service", r -> r
+                        .path("/api/suppliers/**", "/api/purchase-orders/**")
+                        .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                        .uri(purchaseServiceUrl))
+
+                // Sales Service routes
+                .route("sales-service", r -> r
+                        .path("/api/customers/**", "/api/quotes/**", "/api/delivery-notes/**")
+                        .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                        .uri(salesServiceUrl))
 
                 .build();
     }

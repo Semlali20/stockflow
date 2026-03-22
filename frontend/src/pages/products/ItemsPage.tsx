@@ -171,7 +171,7 @@ export const ItemsPage = () => {
             onClick={() => { downloadCsv(API_ENDPOINTS.PRODUCTS.ITEMS_EXPORT_CSV, 'items.csv'); }}
             loading={isDownloading}
           >
-            Export CSV
+            {t('common.exportCsv')}
           </Button>
           <Button
             variant="outline"
@@ -179,7 +179,7 @@ export const ItemsPage = () => {
             icon={<Upload size={15} />}
             onClick={() => setIsImportModalOpen(true)}
           >
-            Import CSV
+            {t('common.importCsv')}
           </Button>
           <Button
             variant="outline"
@@ -187,7 +187,7 @@ export const ItemsPage = () => {
             icon={<FileText size={15} />}
             onClick={() => setIsReportModalOpen(true)}
           >
-            Report
+            {t('common.report')}
           </Button>
           <Button onClick={handleCreate} className="flex items-center gap-2">
             <Plus size={20} />
@@ -396,8 +396,8 @@ export const ItemsPage = () => {
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        title="Items"
-        description="Generate a report of all product items"
+        title={t('products.items.title')}
+        description={t('products.items.reportDescription')}
         columns={itemReportColumns}
         fetchData={async () => {
           const result = await productService.getItems({ page: 0, size: 10000 });

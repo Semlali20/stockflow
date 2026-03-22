@@ -728,7 +728,7 @@ export const AlertsPage: React.FC = () => {
                           )}
                           {parsedData.locationId && (
                             <div className="flex justify-between">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">{t('quality.details.info.location')}:</span>
+                              <span className="text-sm text-gray-600 dark:text-gray-400">{t('alerts.modal.location')}:</span>
                               <span className="text-sm font-medium text-gray-900 dark:text-white">
                                 {getLocationDisplayName(parsedData.locationId)}
                               </span>

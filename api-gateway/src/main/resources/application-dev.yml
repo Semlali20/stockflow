@@ -46,10 +46,12 @@ services:
     url: http://localhost:8084
   location-service:
     url: http://localhost:8085
-  quality-service:
-    url: http://localhost:8087
   alert-service:
     url: http://localhost:8088
+  purchase-service:
+    url: http://localhost:8089
+  sales-service:
+    url: http://localhost:8090
 
 server:
   port: 8080

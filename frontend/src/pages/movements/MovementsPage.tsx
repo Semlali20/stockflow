@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { movementService } from '@/services/movement.service';
 import { inventoryService } from '@/services/inventory.service';
-import { qualityService } from '@/services/quality.service';
 import { alertService } from '@/services/alert.service';
 import { Movement, MovementType, MovementStatus } from '@/types';
 import { toast } from 'react-hot-toast';
@@ -242,25 +241,6 @@ const MovementsPage = () => {
               console.error('Inventory update error:', err);
             }
           }
-          if (movement.type === MovementType.RECEIPT) {
-            try {
-              const firstLine = lines[0];
-              if (firstLine) {
-                await qualityService.createQualityControl({
-                  itemId: firstLine.itemId,
-                  locationId: firstLine.toLocationId,
-                  quantity: firstLine.actualQuantity,
-                  status: 'PENDING',
-                  priority: 'MEDIUM',
-                  inspectionType: 'RECEIVING',
-                  scheduledDate: new Date().toISOString(),
-                  notes: t('movements.alerts.autoQC', { reference: movement.referenceNumber }),
-                });
-              }
-            } catch (err) {
-              console.error('QC creation error:', err);
-            }
-          }
           toast.success(t('movements.messages.completionSuccess'));
         }
       } else {
@@ -321,10 +301,10 @@ const MovementsPage = () => {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800
                 text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400
                 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 text-sm font-medium"
-              title="Export CSV"
+              title={t('common.exportCsv')}
             >
               <Download className="w-4 h-4" />
-              Export CSV
+              {t('common.exportCsv')}
             </button>
 
             <button
@@ -332,10 +312,10 @@ const MovementsPage = () => {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800
                 text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400
                 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 text-sm font-medium"
-              title="Report"
+              title={t('common.report')}
             >
               <FileText className="w-4 h-4" />
-              Report
+              {t('common.report')}
             </button>
 
             <motion.button
@@ -372,7 +352,7 @@ const MovementsPage = () => {
                   {card.pulse && value > 0 && (
                     <span className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                      Live
+                      {t('common.live')}
                     </span>
                   )}
                 </div>
@@ -567,8 +547,8 @@ const MovementsPage = () => {
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        title="Movements"
-        description="Generate a report of all stock movements"
+        title={t('movements.title')}
+        description={t('movements.reportDescription')}
         columns={movementReportColumns}
         fetchData={async () => {
           return movements as unknown as Record<string, unknown>[];

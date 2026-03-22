@@ -48,10 +48,12 @@ services:
     url: ${MOVEMENT_SERVICE_URL:http://movement-service:8084}
   location-service:
     url: ${LOCATION_SERVICE_URL:http://location-service:8085}
-  quality-service:
-    url: ${QUALITY_SERVICE_URL:http://quality-service:8087}
   alert-service:
     url: ${ALERT_SERVICE_URL:http://alert-service:8088}
+  purchase-service:
+    url: ${PURCHASE_SERVICE_URL:http://purchase-service:8089}
+  sales-service:
+    url: ${SALES_SERVICE_URL:http://sales-service:8090}
 
 server:
   port: 8080

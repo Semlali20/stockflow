@@ -7,7 +7,8 @@ import { inventoryService } from '@/services/inventory.service';
 import { movementService } from '@/services/movement.service';
 import { alertService } from '@/services/alert.service';
 import { locationService } from '@/services/location.service';
-import { qualityService } from '@/services/quality.service';
+import { purchaseService } from '@/services/purchase.service';
+import { salesService } from '@/services/sales.service';
 import { apiClient } from '@/services/api';
 import { API_ENDPOINTS } from '@/config/constants';
 import type { Movement } from '@/types';
@@ -71,12 +72,6 @@ export interface DashboardStats {
   totalSites: number;
   totalWarehouses: number;
   totalLocations: number;
-  totalQualityControls: number;
-  pendingQualityControls: number;
-  passedQualityControls: number;
-  failedQualityControls: number;
-  totalQuarantines: number;
-  activeQuarantines: number;
   totalAlerts: number;
   activeAlerts: number;
   criticalAlerts: number;
@@ -87,6 +82,18 @@ export interface DashboardStats {
   activeUsers: number;
   pendingTasks: number;
   overdueTasks: number;
+  // Commercial stats
+  suppliers: number;
+  activeSuppliers: number;
+  purchaseOrders: number;
+  pendingOrders: number;
+  customers: number;
+  activeCustomers: number;
+  quotes: number;
+  pendingQuotes: number;
+  deliveryNotes: number;
+  pendingDeliveries: number;
+  totalStockValue: number;
 }
 
 export interface RecentMovement {
@@ -155,12 +162,16 @@ const EMPTY_STATS: DashboardStats = {
   totalMovements: 0, pendingMovements: 0, inProgressMovements: 0,
   completedMovements: 0, overdueMovements: 0,
   totalSites: 0, totalWarehouses: 0, totalLocations: 0,
-  totalQualityControls: 0, pendingQualityControls: 0, passedQualityControls: 0,
-  failedQualityControls: 0, totalQuarantines: 0, activeQuarantines: 0,
   totalAlerts: 0, activeAlerts: 0, criticalAlerts: 0, unacknowledgedAlerts: 0,
   alertsByType: {}, alertsByLevel: {},
   totalUsers: 0, activeUsers: 0,
   pendingTasks: 0, overdueTasks: 0,
+  suppliers: 0, activeSuppliers: 0,
+  purchaseOrders: 0, pendingOrders: 0,
+  customers: 0, activeCustomers: 0,
+  quotes: 0, pendingQuotes: 0,
+  deliveryNotes: 0, pendingDeliveries: 0,
+  totalStockValue: 0,
 };
 
 export const EMPTY_DASHBOARD: DashboardData = {
@@ -216,7 +227,6 @@ export const useDashboard = (userRoles: string[] = []) => {
     //  • inventory-service: GET /api/inventory|lots|serials           → List<T>  (plain array)
     //  • location-service:  GET /api/locations|sites|warehouses       → List<T>  (plain array)
     //  • movement-service:  GET /api/movements/**                     → Page<T>  (has totalElements)
-    //  • quality-service:   GET /api/quality/**                       → Page<T>  (has totalElements)
     //  • alert-service:     GET /api/alerts/**                        → PageResponse<T> (has totalElements)
     //
     //  countOf() handles all three cases transparently.
@@ -239,8 +249,6 @@ export const useDashboard = (userRoles: string[] = []) => {
       activeAlertsRes,
       unacknowledgedAlertsRes,
       alertStatsRes,
-      qcRes,
-      quarantineRes,
     ] = await Promise.all([
       // product-service returns plain List — no pagination params needed
       safe(() => productService.getItems()),
@@ -264,9 +272,6 @@ export const useDashboard = (userRoles: string[] = []) => {
       safe(() => alertService.getActiveAlerts({ size: 1 })),
       safe(() => alertService.getUnacknowledgedAlerts({ size: 1 })),
       safe(() => alertService.getAlertStatistics()),
-      // quality-service returns Page
-      safe(() => qualityService.getQualityControls({ size: 1 })),
-      safe(() => qualityService.getQuarantines({ size: 1 })),
     ]);
 
     // ── Batch 2: low stock + recent data ─────────────────────────────
@@ -324,12 +329,6 @@ export const useDashboard = (userRoles: string[] = []) => {
       totalSites:        countOf(sitesRes),
       totalWarehouses:   countOf(warehousesRes),
       totalLocations:    countOf(locationsRes),
-      totalQualityControls:   countOf(qcRes),
-      pendingQualityControls: 0,
-      passedQualityControls:  0,
-      failedQualityControls:  0,
-      totalQuarantines:  countOf(quarantineRes),
-      activeQuarantines: 0,
       totalAlerts:          countOf(alertsRes),
       activeAlerts:         countOf(activeAlertsRes),
       criticalAlerts:       alertStatsRes?.byLevel?.['EMERGENCY'] ?? 0,
@@ -340,7 +339,37 @@ export const useDashboard = (userRoles: string[] = []) => {
       activeUsers: countOf((activeUsersRes as any)?.data),
       pendingTasks: 0,
       overdueTasks: 0,
+      // Commercial stats — filled in below
+      suppliers: 0, activeSuppliers: 0,
+      purchaseOrders: 0, pendingOrders: 0,
+      customers: 0, activeCustomers: 0,
+      quotes: 0, pendingQuotes: 0,
+      deliveryNotes: 0, pendingDeliveries: 0,
+      totalStockValue: 0,
     };
+
+    // ── Batch 5: commercial stats (silent — dashboard must not break) ─
+    try {
+      const [suppRes, poRes, custRes, quoteRes, dnRes] = await Promise.allSettled([
+        purchaseService.getSuppliers({ size: 1 }),
+        purchaseService.getPurchaseOrders({ size: 1 }),
+        salesService.getCustomers({ size: 1 }),
+        salesService.getQuotes({ size: 1 }),
+        salesService.getDeliveryNotes({ size: 1 }),
+      ]);
+
+      const extract = (r: PromiseSettledResult<any>): number => {
+        if (r.status === 'rejected') return 0;
+        const d = r.value?.data;
+        return d?.totalElements ?? (Array.isArray(d) ? d.length : 0);
+      };
+
+      stats.suppliers     = extract(suppRes);
+      stats.purchaseOrders = extract(poRes);
+      stats.customers     = extract(custRes);
+      stats.quotes        = extract(quoteRes);
+      stats.deliveryNotes = extract(dnRes);
+    } catch { /* silent — commercial services may not be running */ }
 
     // ── Movement breakdown by type ────────────────────────────────────
     const movementsByType: MovementByType[] = movTypes.map((t, i) => ({
@@ -352,9 +381,8 @@ export const useDashboard = (userRoles: string[] = []) => {
     // ── Stock distribution ────────────────────────────────────────────
     const inStock = Math.max(0, stats.totalInventory - lowStockCount);
     const stockDistribution: StockDistribution[] = [
-      { name: 'In Stock',    value: inStock,                color: '#4CAF50' },
-      { name: 'Low Stock',   value: lowStockCount,          color: '#FFA726' },
-      { name: 'Quarantined', value: stats.totalQuarantines, color: '#EF5350' },
+      { name: 'In Stock',  value: inStock,       color: '#4CAF50' },
+      { name: 'Low Stock', value: lowStockCount, color: '#FFA726' },
     ].filter(d => d.value > 0);
 
     // ── Alert distribution ────────────────────────────────────────────

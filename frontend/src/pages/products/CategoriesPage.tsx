@@ -137,7 +137,7 @@ export const CategoriesPage = () => {
             onClick={() => downloadCsv(API_ENDPOINTS.PRODUCTS.CATEGORIES_EXPORT_CSV, 'categories.csv')}
             loading={isDownloading}
           >
-            Export CSV
+            {t('common.exportCsv')}
           </Button>
           <Button
             variant="outline"
@@ -145,7 +145,7 @@ export const CategoriesPage = () => {
             icon={<Upload size={15} />}
             onClick={() => setIsImportModalOpen(true)}
           >
-            Import CSV
+            {t('common.importCsv')}
           </Button>
           <Button
             variant="outline"
@@ -153,7 +153,7 @@ export const CategoriesPage = () => {
             icon={<FileText size={15} />}
             onClick={() => setIsReportModalOpen(true)}
           >
-            Report
+            {t('common.report')}
           </Button>
           <Button onClick={handleCreate} className="flex items-center gap-2">
             <Plus size={20} />
@@ -339,8 +339,8 @@ export const CategoriesPage = () => {
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        title="Categories"
-        description="Generate a report of all product categories"
+        title={t('products.categories.title')}
+        description={t('products.categories.reportDescription')}
         columns={categoryReportColumns}
         fetchData={async () => {
           const result = await productService.getCategories({ page: 0, size: 10000 });

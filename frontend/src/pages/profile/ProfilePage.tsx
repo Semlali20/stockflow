@@ -45,7 +45,6 @@ const ROLE_GRADIENTS: Record<string, string> = {
   ADMIN: 'from-amber-500 to-orange-500',
   MANAGER: 'from-indigo-500 to-blue-500',
   WAREHOUSE_MANAGER: 'from-cyan-500 to-teal-500',
-  QUALITY_MANAGER: 'from-emerald-500 to-green-500',
   SUPERVISOR: 'from-violet-500 to-purple-500',
   OPERATOR: 'from-pink-500 to-rose-500',
   PROCUREMENT: 'from-sky-500 to-blue-500',

@@ -42,7 +42,6 @@ public class AlertEmailTemplateSeeder implements ApplicationRunner {
         seedEmailChannel();
         seedLowStockTemplate();
         seedExpiryTemplate();
-        seedQualityTemplate();
         seedMovementTemplate();
         log.info("AlertEmailTemplateSeeder completed.");
     }
@@ -120,32 +119,6 @@ public class AlertEmailTemplateSeeder implements ApplicationRunner {
                 .language("en")
                 .isActive(true)
                 .requiredVariables("itemName,lotNumber,expiryDate,daysUntilExpiry,warehouseLocation,alertId,dashboardUrl")
-                .totalNotificationsSent(0L)
-                .build();
-
-        templateRepository.save(template);
-        log.info("Created template: {}", templateName);
-    }
-
-    private void seedQualityTemplate() {
-        String templateName = "Quality Alert Email";
-        if (templateRepository.existsByName(templateName)) {
-            log.debug("Template '{}' already exists, skipping.", templateName);
-            return;
-        }
-
-        String htmlBody = loadTemplateHtml("email-quality-alert");
-
-        NotificationTemplate template = NotificationTemplate.builder()
-                .name(templateName)
-                .subject("Quality Alert: {{itemName}} - Inspection Status: {{inspectionStatus}}")
-                .htmlBody(htmlBody)
-                .textBody("Quality Alert for {{itemName}}. Inspection Status: {{inspectionStatus}}, Disposition: {{disposition}}, Inspected by {{inspectedBy}} on {{inspectionDate}}. Alert ID: {{alertId}}.")
-                .channel(NotificationChannelType.EMAIL)
-                .templateType(AlertType.QUALITY)
-                .language("en")
-                .isActive(true)
-                .requiredVariables("itemName,inspectionStatus,disposition,inspectionDate,inspectedBy,alertId,dashboardUrl")
                 .totalNotificationsSent(0L)
                 .build();
 

@@ -47,7 +47,15 @@
     "confirm": "Confirm",
     "failed": "Failed",
     "success": "Success",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "actions": "Actions",
+    "allStatuses": "All Statuses",
+    "selectSupplier": "Select a supplier",
+    "exportCsv": "Export CSV",
+    "importCsv": "Import CSV",
+    "report": "Report",
+    "live": "Live",
+    "notes": "Notes"
   },
   "layout": {
     "quickAdd": "Quick Add",
@@ -74,12 +82,15 @@
     "sites": "Sites",
     "warehouses": "Warehouses",
     "movements": "Movements",
-    "quality": "Quality",
-    "controls": "Controls",
-    "quarantines": "Quarantines",
-    "attachments": "Attachments",
     "alerts": "Alerts",
-    "admin": "Admin"
+    "admin": "Admin",
+    "purchase": "Purchase",
+    "suppliers": "Suppliers",
+    "purchaseOrders": "Purchase Orders",
+    "sales": "Sales",
+    "customers": "Customers",
+    "quotes": "Quotes",
+    "deliveryNotes": "Delivery Notes"
   },
   "dashboard": {
     "systemOverview": "System Overview",
@@ -200,7 +211,15 @@
       "risk": "Risk",
       "critical": "Critical",
       "warning": "Warning"
-    }
+    },
+    "commercial": "Commercial Overview",
+    "suppliers": "Suppliers",
+    "purchaseOrders": "Purchase Orders",
+    "customers": "Customers",
+    "quotes": "Quotes",
+    "deliveryNotes": "Delivery Notes",
+    "stockValue": "Stock Value",
+    "stockValueDesc": "Valued at unit cost"
   },
   "products": {
     "items": {
@@ -223,6 +242,7 @@
       "noItemsFound": "No items found",
       "deleteTitle": "Delete Item",
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "reportDescription": "Generate a report of all product items",
       "messages": {
         "fetchError": "Failed to fetch items",
         "deleteSuccess": "Item deleted successfully",
@@ -376,6 +396,7 @@
       "noCategoriesFound": "No categories found",
       "deleteTitle": "Delete Category",
       "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "reportDescription": "Generate a report of all product categories",
       "messages": {
         "fetchError": "Failed to fetch categories",
         "deleteSuccess": "Category deleted successfully",
@@ -434,7 +455,31 @@
     "title": "Inventory Management",
     "subtitle": "Track and manage inventory levels across all locations",
     "refresh": "Refresh",
+    "exportCsv": "Export CSV",
+    "report": "Report",
     "newInventory": "New Inventory",
+    "reportModal": {
+      "title": "Generate {{title}} Report",
+      "selectFormat": "Select export format:",
+      "excel": "Excel (.xlsx)",
+      "excelDesc": "Best for data analysis and filtering",
+      "pdf": "PDF Document",
+      "pdfDesc": "Best for sharing and printing",
+      "csv": "CSV File",
+      "csvDesc": "Raw data for custom processing",
+      "generate": "Generate Report",
+      "generating": "Generating...",
+      "fetchingData": "Fetching data for report...",
+      "generatingReport": "Generating report...",
+      "success": "{{title}} report generated successfully!",
+      "error": "Failed to generate report. Please try again."
+    },
+    "autoRefresh": "Auto-refreshes every 30s • Last updated:",
+    "deleteTitle": "Delete Inventory Record",
+    "deleteMessage": "Are you sure you want to delete the inventory record for",
+    "reportDescription": "Generate a report of current inventory levels",
+    "loadingInventory": "Loading inventory...",
+    "justNow": "Just now",
     "stats": {
       "totalItems": "Total Items",
       "available": "Available",
@@ -586,6 +631,7 @@
         "supplier": "Supplier ID",
         "attributes": "Attributes (JSON)"
       },
+      "reportDescription": "Generate a report of all inventory lots",
       "messages": {
         "noLots": "No lots found",
         "fetchError": "Failed to fetch lots",
@@ -686,8 +732,7 @@
     "dateFormat": "Date Format",
     "timeFormat": "Time Format",
     "currency": "Currency",
-    "numberFormat": "Number Format"
-    ,
+    "numberFormat": "Number Format",
     "notificationsSubtitle": "Configure how and when you receive alerts",
     "emailNotifications": "Email Notifications",
     "emailNotificationsDesc": "Receive alerts and reports via email",
@@ -942,6 +987,7 @@
     "subtitle": "Track and manage all inbound, outbound, and transfer operations",
     "refresh": "Refresh",
     "newMovement": "New Movement",
+    "reportDescription": "Generate a report of all stock movements",
     "stats": {
       "total": "Total Movements",
       "draft": "Draft",
@@ -1005,255 +1051,6 @@
       "lowStockTitle": "Low Stock Alert",
       "lowStockMessage": "Item {{itemId}} is low ({{remaining}} remaining)",
       "autoQC": "Auto-created from movement {{reference}}"
-    }
-  },
-  "quality": {
-    "controls": {
-      "title": "Quality Controls",
-      "subtitle": "Manage quality control inspections and approvals",
-      "newQC": "Create Quality Control",
-      "searchPlaceholder": "Search by control number, item ID...",
-      "stats": {
-        "total": "Total Inspections",
-        "passed": "Passed",
-        "failed": "Failed",
-        "pending": "Pending"
-      },
-      "filters": {
-        "allStatuses": "All Statuses",
-        "allResults": "All Results",
-        "passedOnly": "Passed Only",
-        "failedOnly": "Failed Only",
-        "allTypes": "All Types",
-        "clearFilters": "Clear Filters"
-      },
-      "table": {
-        "controlNumber": "Control Number",
-        "type": "Type",
-        "status": "Status",
-        "result": "Result",
-        "quantity": "Quantity",
-        "defects": "Defects",
-        "date": "Date"
-      },
-      "empty": {
-        "title": "No quality controls found",
-        "description": "Create your first quality control inspection"
-      },
-      "actions": {
-        "approve": "Approve",
-        "reject": "Reject",
-        "viewDetails": "View Details"
-      },
-      "messages": {
-        "fetchError": "Failed to fetch quality controls",
-        "fetchItemsError": "Failed to load items",
-        "fetchLocationsError": "Failed to load locations",
-        "approveSuccess": "Quality control approved successfully",
-        "approveError": "Failed to approve quality control",
-        "rejectSuccess": "Quality control rejected",
-        "rejectError": "Failed to reject quality control",
-        "statusUpdateSuccess": "Status updated to {{status}}",
-        "statusUpdateError": "Failed to update status",
-        "deleteSuccess": "Quality control deleted successfully",
-        "deleteError": "Failed to delete quality control"
-      },
-      "delete": {
-        "title": "Delete Quality Control",
-        "confirm": "Are you sure you want to delete quality control \"{{number}}\"? This action cannot be undone."
-      },
-      "form": {
-        "createTitle": "Create Quality Control",
-        "editTitle": "Edit Quality Control",
-        "inspectorId": "Inspector ID",
-        "inspectorIdAuto": "Auto-detected from authentication",
-        "inspectorIdRequired": "REQUIRED",
-        "inspectorIdPlaceholder": "Enter your Inspector ID",
-        "inspectorIdManual": "Could not auto-load from authentication. Please enter manually.",
-        "basicInfo": "Basic Information",
-        "item": "Item / Product",
-        "selectItem": "Select an item",
-        "loadingItems": "Loading items...",
-        "sku": "SKU:",
-        "lot": "Lot / Batch Number",
-        "selectItemFirst": "Select an item first",
-        "loadingLots": "Loading lots...",
-        "noLots": "No lots available",
-        "selectLotOptional": "Select a lot (optional)",
-        "serial": "Serial Number",
-        "serialPlaceholder": "Optional serial number",
-        "quantity": "Quantity Inspected",
-        "quantityPlaceholder": "Enter quantity",
-        "type": "Inspection Type",
-        "typeIncoming": "Incoming Inspection",
-        "typeInProcess": "In-Process Inspection",
-        "typeFinal": "Final Inspection",
-        "typeRandom": "Random Audit",
-        "typeReturn": "Customer Return",
-        "typeProcess": "Process Inspection",
-        "status": "Status",
-        "statusPending": "Pending",
-        "statusInProgress": "In Progress",
-        "statusPassed": "Passed",
-        "statusFailed": "Failed",
-        "statusQuarantined": "Quarantined",
-        "statusConditional": "Conditional Accept",
-        "result": "Result",
-        "resultNotSet": "Not Set",
-        "resultAccept": "Accept",
-        "resultReject": "Reject",
-        "resultRework": "Rework",
-        "resultScrap": "Scrap",
-        "resultReturn": "Return to Supplier",
-        "resultReview": "Under Review",
-        "location": "Inspection Location",
-        "loadingLocations": "Loading locations...",
-        "selectLocationOptional": "Select a location (optional)",
-        "scheduledDate": "Scheduled Date",
-        "defectCount": "Defect Count",
-        "results": "Inspection Results",
-        "addTest": "Add Test",
-        "noResults": "No inspection results added yet. Click \"Add Test\" to add test parameters.",
-        "testNum": "Test #",
-        "testParameter": "Test Parameter",
-        "expectedValue": "Expected Value",
-        "actualValue": "Actual Value",
-        "uom": "Unit of Measure",
-        "minValue": "Min Value",
-        "maxValue": "Max Value",
-        "defectSeverity": "Defect Severity",
-        "remarks": "Remarks",
-        "notesPlaceholder": "Enter inspection notes...",
-        "correctiveActionsPlaceholder": "Enter corrective actions...",
-        "uploadFiles": "Upload files",
-        "uploadLimits": "PNG, JPG, PDF up to 10MB",
-        "selectedFiles": "Selected Files ({{count}})",
-        "testParameterPlaceholder": "e.g., Weight, Length",
-        "expectedValuePlaceholder": "Expected value",
-        "actualValuePlaceholder": "Actual value",
-        "uomPlaceholder": "kg, cm, etc."
-      },
-      "details": {
-        "title": "Quality Control Details",
-        "disposition": "Disposition",
-        "startInspection": "Start Inspection",
-        "markPassed": "Mark as Passed",
-        "markFailed": "Mark as Failed",
-        "quarantine": "Quarantine",
-        "reInspect": "Re-inspect",
-        "conditionalAccept": "Conditional Accept",
-        "approved": "Approved",
-        "approvedByOn": "by {{user}} on {{date}}",
-        "info": {
-          "itemId": "Item ID",
-          "inspectorId": "Inspector ID",
-          "location": "Location"
-        },
-        "quantities": {
-          "title": "Quantities",
-          "inspected": "Inspected",
-          "passed": "Passed",
-          "failed": "Failed",
-          "defects": "Defects",
-          "defectRate": "Defect Rate"
-        },
-        "impact": {
-          "title": "Inventory Adjustment Impact",
-          "passedTitle": "Items remain available in inventory",
-          "passedDesc": "{{qty}} units passed inspection and are available for use",
-          "failedTitle": "Items moved to damaged inventory",
-          "failedDesc": "{{qty}} units failed inspection and were deducted from available stock",
-          "quarTitle": "Items placed in quarantine",
-          "quarDesc": "{{qty}} units are quarantined and reserved from available stock",
-          "autoAdjustment": "Inventory adjustments are applied automatically when status changes"
-        },
-        "notesActions": "Notes & Actions",
-        "inspectorNotes": "Inspector Notes",
-        "correctiveActions": "Corrective Actions",
-        "attachments": "Attachments",
-        "timeline": {
-          "title": "Timeline",
-          "scheduled": "Scheduled",
-          "started": "Started",
-          "completed": "Completed",
-          "created": "Created",
-          "lastUpdated": "Last Updated"
-        }
-      }
-    },
-    "quarantines": {
-      "title": "Quarantines",
-      "subtitle": "Manage quarantined items and track their status",
-      "newQuarantine": "New Quarantine",
-      "stats": {
-        "total": "Total Quarantines",
-        "inProcess": "In Process",
-        "released": "Released",
-        "rejected": "Rejected"
-      },
-      "filters": {
-        "searchPlaceholder": "Search quarantines...",
-        "allStatuses": "All Statuses",
-        "allSeverities": "All Severities"
-      },
-      "table": {
-        "itemId": "Item ID",
-        "lotSerial": "Lot/Serial",
-        "quantity": "Quantity",
-        "reason": "Reason",
-        "severity": "Severity",
-        "status": "Status",
-        "expectedRelease": "Expected Release"
-      },
-      "empty": "No quarantines found",
-      "messages": {
-        "fetchError": "Failed to fetch quarantines",
-        "deleteSuccess": "Quarantine deleted successfully",
-        "deleteError": "Failed to delete quarantine",
-        "createNotImplemented": "Create functionality not yet implemented",
-        "editNotImplemented": "Edit functionality not yet implemented",
-        "detailNotImplemented": "Detail view not yet implemented"
-      },
-      "delete": {
-        "title": "Delete Quarantine",
-        "confirm": "Are you sure you want to delete this quarantine for item \"{{id}}\"? This action cannot be undone."
-      }
-    },
-    "attachments": {
-      "title": "Quality Attachments",
-      "subtitle": "Manage quality control and quarantine attachments",
-      "upload": "Upload Attachment",
-      "stats": {
-        "total": "Total Attachments",
-        "images": "Images",
-        "videos": "Videos",
-        "documents": "Documents",
-        "certificates": "Certificates"
-      },
-      "filters": {
-        "searchPlaceholder": "Search by file name or description...",
-        "allTypes": "All Types"
-      },
-      "table": {
-        "file": "File",
-        "type": "Type",
-        "size": "Size",
-        "description": "Description",
-        "uploadedBy": "Uploaded By",
-        "uploadedAt": "Uploaded At"
-      },
-      "empty": "No attachments found",
-      "noDescription": "No description",
-      "messages": {
-        "fetchError": "Failed to fetch attachments",
-        "deleteSuccess": "Attachment deleted successfully",
-        "deleteError": "Failed to delete attachment",
-        "urlError": "File URL not available"
-      },
-      "delete": {
-        "title": "Delete Attachment",
-        "confirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
-      }
     }
   },
   "alerts": {
@@ -1322,7 +1119,8 @@
       "created": "Created:",
       "acknowledged": "Acknowledged:",
       "resolved": "Resolved:",
-      "byUser": "by {{user}}"
+      "byUser": "by {{user}}",
+      "location": "Location"
     },
     "messages": {
       "ackSuccess": "Alert acknowledged",
@@ -1455,172 +1253,420 @@
       "saveError": "Failed to save preferences"
     }
   },
-    "users": {
-      "searchPlaceholder": "Search users...",
-      "createAccount": "Create Account",
-      "totalUsers": "Total Users",
-      "active": "Active",
-      "locked": "Locked",
-      "admins": "Admins",
-      "table": {
-        "user": "User",
-        "email": "Email",
-        "role": "Role",
-        "emailVerified": "Email Verified",
-        "status": "Status",
-        "lastLogin": "Last Login",
-        "actions": "Actions"
-      },
-      "noUsersFound": "No users found",
-      "actions": {
-        "deactivate": "Deactivate",
-        "activate": "Activate",
-        "unlock": "Unlock",
-        "lock": "Lock",
-        "delete": "Delete",
-        "activated": "\"{{username}}\" activated",
-        "deactivated": "\"{{username}}\" deactivated",
-        "locked": "\"{{username}}\" locked",
-        "unlocked": "\"{{username}}\" unlocked"
-      },
-      "delete": {
-        "title": "Delete Account",
-        "subtitle": "This action cannot be undone",
-        "warning": "You are about to permanently delete **@{{username}}**. All data associated with this account will be removed and access will be revoked immediately.",
-        "confirm": "Yes, Delete",
-        "deleting": "Deleting...",
-        "success": "Account \"@{{username}}\" has been deleted",
-        "error": "Failed to delete user"
-      }
+  "users": {
+    "searchPlaceholder": "Search users...",
+    "createAccount": "Create Account",
+    "totalUsers": "Total Users",
+    "active": "Active",
+    "locked": "Locked",
+    "admins": "Admins",
+    "table": {
+      "user": "User",
+      "email": "Email",
+      "role": "Role",
+      "emailVerified": "Email Verified",
+      "status": "Status",
+      "lastLogin": "Last Login",
+      "actions": "Actions"
     },
-    "audit": {
-      "title": "Audit Logs",
-      "allLogs": "All Logs",
-      "failedLogins": "Failed Logins",
-      "securityEvents": "Security Events",
-      "searchPlaceholder": "Search logs...",
-      "totalLogs": "Total Logs",
-      "successful": "Successful",
-      "failed": "Failed",
-      "uniqueUsers": "Unique Users",
-      "table": {
-        "timestamp": "Timestamp",
-        "user": "User",
-        "action": "Action",
-        "status": "Status",
-        "ipAddress": "IP Address",
-        "details": "Details"
-      },
-      "noLogsFound": "No audit logs found"
+    "noUsersFound": "No users found",
+    "actions": {
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "unlock": "Unlock",
+      "lock": "Lock",
+      "delete": "Delete",
+      "activated": "\"{{username}}\" activated",
+      "deactivated": "\"{{username}}\" deactivated",
+      "locked": "\"{{username}}\" locked",
+      "unlocked": "\"{{username}}\" unlocked"
     },
-    "permissions": {
-      "matrixTitle": "Role Permission Matrix",
-      "matrixSubtitle": "View permissions assigned to each system role. Permissions are role-based and enforced on the backend.",
-      "fullBadge": "Full",
-      "count": "{{count}} permissions",
-      "granted": "Granted",
-      "denied": "Denied",
-      "footer": "Permissions are enforced server-side. Changes to roles require a backend update and user re-login.",
-      "groups": {
-        "dashboard": "Dashboard",
-        "products": "Products",
-        "categories": "Categories",
-        "inventory": "Inventory",
-        "locations": "Locations",
-        "movements": "Movements",
-        "quality": "Quality",
-        "alerts": "Alerts",
-        "userManagement": "User Management",
-        "auditSettings": "Audit & Settings"
-      },
-      "labels": {
-        "viewDashboard": "View Dashboard",
-        "viewProducts": "View Products",
-        "createProducts": "Create Products",
-        "editProducts": "Edit Products",
-        "deleteProducts": "Delete Products",
-        "viewCategories": "View Categories",
-        "createCategories": "Create Categories",
-        "editCategories": "Edit Categories",
-        "deleteCategories": "Delete Categories",
-        "viewInventory": "View Inventory",
-        "createInventory": "Create Inventory",
-        "editInventory": "Edit Inventory",
-        "deleteInventory": "Delete Inventory",
-        "viewLots": "View Lots",
-        "createLots": "Create Lots",
-        "editLots": "Edit Lots",
-        "deleteLots": "Delete Lots",
-        "viewSerials": "View Serials",
-        "createSerials": "Create Serials",
-        "editSerials": "Edit Serials",
-        "deleteSerials": "Delete Serials",
-        "viewLocations": "View Locations",
-        "createLocations": "Create Locations",
-        "editLocations": "Edit Locations",
-        "deleteLocations": "Delete Locations",
-        "viewMovements": "View Movements",
-        "createMovements": "Create Movements",
-        "editMovements": "Edit Movements",
-        "deleteMovements": "Delete Movements",
-        "approveMovements": "Approve Movements",
-        "cancelMovements": "Cancel Movements",
-        "viewQuality": "View Quality Controls",
-        "createQuality": "Create QC Records",
-        "editQuality": "Edit QC Records",
-        "deleteQuality": "Delete QC Records",
-        "approveQuality": "Approve QC Results",
-        "manageQuarantine": "Manage Quarantines",
-        "viewAlerts": "View Alerts",
-        "manageAlerts": "Manage Alert Rules",
-        "deleteAlerts": "Delete Alerts",
-        "viewUsers": "View Users",
-        "createUsers": "Create Users",
-        "editUsers": "Edit Users",
-        "deleteUsers": "Delete Users",
-        "viewPermissions": "View Permissions",
-        "managePermissions": "Manage Permissions",
-        "viewAudit": "View Audit Logs",
-        "viewSettings": "View Settings",
-        "manageSettings": "Manage Settings"
-      }
-    },
-    "roles": {
-      "admin": {
-        "label": "Administrator",
-        "description": "Full access to all features and settings"
-      },
-      "manager": {
-        "label": "Manager",
-        "description": "Broad access except user & permission management"
-      },
-      "warehouseManager": {
-        "label": "Warehouse Manager",
-        "description": "Full warehouse, inventory and movement control"
-      },
-      "qualityManager": {
-        "label": "Quality Manager",
-        "description": "Quality control and quarantine management"
-      },
-      "supervisor": {
-        "label": "Supervisor",
-        "description": "Supervise operations, approve movements"
-      },
-      "operator": {
-        "label": "Operator",
-        "description": "Day-to-day operational tasks"
-      },
-      "procurement": {
-        "label": "Procurement",
-        "description": "Product and lot creation for purchasing"
-      },
-      "auditor": {
-        "label": "Auditor",
-        "description": "Read-only access plus audit logs"
-      },
-      "user": {
-        "label": "User",
-        "description": "Basic read-only access"
-      }
+    "delete": {
+      "title": "Delete Account",
+      "subtitle": "This action cannot be undone",
+      "warning": "You are about to permanently delete **@{{username}}**. All data associated with this account will be removed and access will be revoked immediately.",
+      "confirm": "Yes, Delete",
+      "deleting": "Deleting...",
+      "success": "Account \"@{{username}}\" has been deleted",
+      "error": "Failed to delete user"
     }
+  },
+  "audit": {
+    "title": "Audit Logs",
+    "allLogs": "All Logs",
+    "failedLogins": "Failed Logins",
+    "securityEvents": "Security Events",
+    "searchPlaceholder": "Search logs...",
+    "totalLogs": "Total Logs",
+    "successful": "Successful",
+    "failed": "Failed",
+    "uniqueUsers": "Unique Users",
+    "table": {
+      "timestamp": "Timestamp",
+      "user": "User",
+      "action": "Action",
+      "status": "Status",
+      "ipAddress": "IP Address",
+      "details": "Details"
+    },
+    "noLogsFound": "No audit logs found"
+  },
+  "permissions": {
+    "matrixTitle": "Role Permission Matrix",
+    "matrixSubtitle": "View permissions assigned to each system role. Permissions are role-based and enforced on the backend.",
+    "fullBadge": "Full",
+    "count": "{{count}} permissions",
+    "granted": "Granted",
+    "denied": "Denied",
+    "footer": "Permissions are enforced server-side. Changes to roles require a backend update and user re-login.",
+    "groups": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "categories": "Categories",
+      "inventory": "Inventory",
+      "locations": "Locations",
+      "movements": "Movements",
+      "alerts": "Alerts",
+      "userManagement": "User Management",
+      "auditSettings": "Audit & Settings"
+    },
+    "labels": {
+      "viewDashboard": "View Dashboard",
+      "viewProducts": "View Products",
+      "createProducts": "Create Products",
+      "editProducts": "Edit Products",
+      "deleteProducts": "Delete Products",
+      "viewCategories": "View Categories",
+      "createCategories": "Create Categories",
+      "editCategories": "Edit Categories",
+      "deleteCategories": "Delete Categories",
+      "viewInventory": "View Inventory",
+      "createInventory": "Create Inventory",
+      "editInventory": "Edit Inventory",
+      "deleteInventory": "Delete Inventory",
+      "viewLots": "View Lots",
+      "createLots": "Create Lots",
+      "editLots": "Edit Lots",
+      "deleteLots": "Delete Lots",
+      "viewSerials": "View Serials",
+      "createSerials": "Create Serials",
+      "editSerials": "Edit Serials",
+      "deleteSerials": "Delete Serials",
+      "viewLocations": "View Locations",
+      "createLocations": "Create Locations",
+      "editLocations": "Edit Locations",
+      "deleteLocations": "Delete Locations",
+      "viewMovements": "View Movements",
+      "createMovements": "Create Movements",
+      "editMovements": "Edit Movements",
+      "deleteMovements": "Delete Movements",
+      "approveMovements": "Approve Movements",
+      "cancelMovements": "Cancel Movements",
+      "viewAlerts": "View Alerts",
+      "manageAlerts": "Manage Alert Rules",
+      "deleteAlerts": "Delete Alerts",
+      "viewUsers": "View Users",
+      "createUsers": "Create Users",
+      "editUsers": "Edit Users",
+      "deleteUsers": "Delete Users",
+      "viewPermissions": "View Permissions",
+      "managePermissions": "Manage Permissions",
+      "viewAudit": "View Audit Logs",
+      "viewSettings": "View Settings",
+      "manageSettings": "Manage Settings"
+    }
+  },
+  "roles": {
+    "admin": {
+      "label": "Administrator",
+      "description": "Full access to all features and settings"
+    },
+    "manager": {
+      "label": "Manager",
+      "description": "Broad access except user & permission management"
+    },
+    "warehouseManager": {
+      "label": "Warehouse Manager",
+      "description": "Full warehouse, inventory and movement control"
+    },
+    "supervisor": {
+      "label": "Supervisor",
+      "description": "Supervise operations, approve movements"
+    },
+    "operator": {
+      "label": "Operator",
+      "description": "Day-to-day operational tasks"
+    },
+    "procurement": {
+      "label": "Procurement",
+      "description": "Product and lot creation for purchasing"
+    },
+    "auditor": {
+      "label": "Auditor",
+      "description": "Read-only access plus audit logs"
+    },
+    "user": {
+      "label": "User",
+      "description": "Basic read-only access"
+    }
+  },
+  "purchase": {
+    "title": "Purchase",
+    "suppliers": {
+      "title": "Suppliers",
+      "new": "New Supplier",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "contactPerson": "Contact Person",
+      "paymentTerms": "Payment Terms (days)",
+      "leadTime": "Lead Time (days)",
+      "status": "Status",
+      "notes": "Notes",
+      "deleteConfirm": "Are you sure you want to delete this supplier?",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "statusBlocked": "Blocked",
+      "allStatuses": "All Statuses",
+      "count": "suppliers",
+      "searchPlaceholder": "Search suppliers...",
+      "emptyState": "No suppliers found",
+      "created": "Supplier created",
+      "updated": "Supplier updated",
+      "deleted": "Supplier deleted",
+      "deleteFailed": "Failed to delete supplier",
+      "saveFailed": "Failed to save supplier"
+    },
+    "orders": {
+      "title": "Purchase Orders",
+      "new": "New Order",
+      "reference": "Reference",
+      "supplier": "Supplier",
+      "status": "Status",
+      "expectedDelivery": "Expected Delivery",
+      "totalAmount": "Total Amount",
+      "lines": "Lines",
+      "confirm": "Confirm",
+      "send": "Send",
+      "receive": "Receive",
+      "cancel": "Cancel",
+      "count": "orders",
+      "searchPlaceholder": "Search orders...",
+      "emptyState": "No purchase orders found",
+      "created": "Purchase order created",
+      "updated": "Purchase order updated",
+      "deleted": "Purchase order deleted",
+      "deleteFailed": "Failed to delete order",
+      "saveFailed": "Failed to save order",
+      "actionFailed": "Action failed",
+      "statusDraft": "Draft",
+      "statusConfirmed": "Confirmed",
+      "statusSent": "Sent",
+      "statusPartiallyReceived": "Partially Received",
+      "statusReceived": "Received",
+      "statusCancelled": "Cancelled",
+      "allSuppliers": "All Suppliers",
+      "confirmOrder": "Order confirmed",
+      "sentOrder": "Order sent",
+      "cancelOrder": "Order cancelled"
+    }
+  },
+  "sales": {
+    "title": "Sales",
+    "customers": {
+      "title": "Customers",
+      "new": "New Customer",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "contactPerson": "Contact Person",
+      "paymentTerms": "Payment Terms (days)",
+      "status": "Status",
+      "notes": "Notes",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "statusBlocked": "Blocked",
+      "allStatuses": "All Statuses",
+      "count": "customers",
+      "emptyState": "No customers found",
+      "created": "Customer created",
+      "updated": "Customer updated",
+      "deleted": "Customer deleted",
+      "deleteFailed": "Failed to delete customer",
+      "saveFailed": "Failed to save customer"
+    },
+    "quotes": {
+      "title": "Quotes",
+      "new": "New Quote",
+      "reference": "Reference",
+      "customer": "Customer",
+      "status": "Status",
+      "validUntil": "Valid Until",
+      "discount": "Discount (%)",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "send": "Send",
+      "accept": "Accept",
+      "reject": "Reject",
+      "convert": "Convert to Delivery",
+      "searchPlaceholder": "Search quotes...",
+      "emptyState": "No quotes found",
+      "allCustomers": "All Customers",
+      "selectCustomer": "Select a customer",
+      "created": "Quote created",
+      "updated": "Quote updated",
+      "deleted": "Quote deleted",
+      "saveFailed": "Failed to save quote",
+      "actionFailed": "Action failed",
+      "statusDraft": "Draft",
+      "statusSent": "Sent",
+      "statusAccepted": "Accepted",
+      "statusRejected": "Rejected",
+      "statusExpired": "Expired",
+      "statusConverted": "Converted",
+      "sent": "Quote sent",
+      "accepted": "Quote accepted",
+      "rejected": "Quote rejected",
+      "converted": "Quote converted to delivery note",
+      "itemName": "Item Name",
+      "sku": "SKU",
+      "qty": "Qty",
+      "unitPrice": "Unit Price",
+      "lineTotal": "Line Total",
+      "discountPct": "Discount %"
+    },
+    "deliveryNotes": {
+      "title": "Delivery Notes",
+      "new": "New Delivery Note",
+      "reference": "Reference",
+      "customer": "Customer",
+      "status": "Status",
+      "deliveryDate": "Delivery Date",
+      "deliveryAddress": "Delivery Address",
+      "validate": "Validate",
+      "ship": "Ship",
+      "deliver": "Deliver",
+      "cancel": "Cancel",
+      "searchPlaceholder": "Search delivery notes...",
+      "emptyState": "No delivery notes found",
+      "allCustomers": "All Customers",
+      "selectCustomer": "Select a customer",
+      "created": "Delivery note created",
+      "updated": "Delivery note updated",
+      "saveFailed": "Failed to save delivery note",
+      "actionFailed": "Action failed",
+      "cancelled": "Delivery note cancelled",
+      "validated": "Delivery note validated",
+      "shipped": "Delivery note shipped",
+      "delivered": "Delivered successfully",
+      "statusDraft": "Draft",
+      "statusValidated": "Validated",
+      "statusShipped": "Shipped",
+      "statusDelivered": "Delivered",
+      "statusCancelled": "Cancelled"
+    }
+  },
+  "quoteForm": {
+    "title": "New Quote",
+    "subtitle": "Create a new sales quotation with inventory items",
+    "basicInfo": "Basic Information",
+    "warehouse": "Warehouse / Inventory",
+    "selectWarehouse": "Select a warehouse",
+    "availableItems": "Available Inventory Items",
+    "noItemsInWarehouse": "No items found in this warehouse",
+    "quoteLines": "Quote Lines",
+    "noLines": "No items added yet. Select a warehouse and add items.",
+    "item": "Item",
+    "availableQty": "Available Qty",
+    "avail": "Avail",
+    "added": "Added",
+    "unitPrice": "Unit Price",
+    "exceedsStock": "Exceeds available stock",
+    "summary": "Quote Summary",
+    "linesCount": "{{count}} line(s)",
+    "stockWarning": "⚠ Some items exceed available stock",
+    "saveDraft": "Save as Draft",
+    "sendQuote": "Send Quote",
+    "generatePdf": "Generate PDF",
+    "selectCustomer": "Please select a customer",
+    "addItems": "Please add at least one item",
+    "itemAlreadyAdded": "This item is already in the quote",
+    "notesPlaceholder": "Additional notes...",
+    "errorLoadingItems": "Failed to load inventory items"
+  },
+  "deliveryForm": {
+    "title": "New Delivery Note",
+    "subtitle": "Create a delivery note linked to a quote or manually",
+    "linkQuote": "Link to Accepted Quote (Optional)",
+    "searchQuotePlaceholder": "Search by reference or ID...",
+    "linkButton": "Link",
+    "linkHint": "Link to an accepted quote to pre-fill items automatically",
+    "linkedQuote": "Linked Quote",
+    "unlinkQuote": "Unlink",
+    "quoteNotFound": "Quote not found",
+    "quoteNotAccepted": "Only ACCEPTED quotes can be linked",
+    "quoteLinkSuccess": "Quote linked successfully",
+    "quoteLinkError": "Failed to link quote",
+    "deliveryLines": "Delivery Lines",
+    "orderedQty": "Ordered Qty",
+    "deliveredQty": "Delivered Qty",
+    "save": "Save Delivery Note",
+    "addressPlaceholder": "Delivery address...",
+    "lineNotesPlaceholder": "Line notes...",
+    "addItemManually": "Add Item Manually",
+    "itemNamePlaceholder": "Item name...",
+    "itemSkuPlaceholder": "SKU (optional)...",
+    "lockedByQuote": "Locked by quote",
+    "active": "Active",
+    "inventoryHint": "Optional: select a warehouse to pick items from inventory",
+    "autoLoadedItems": "{{count}} items auto-loaded",
+    "hintSelectFromAbove": "Select items from the inventory panel above, or click \"Add Item Manually\"",
+    "hintManualOrInventory": "Select a warehouse above to pick items, or click \"Add Item Manually\"",
+    "searchCustomer": "Search customer..."
+  },
+  "purchaseForm": {
+    "title": "New Purchase Order",
+    "subtitle": "Create a purchase order with inventory-aware suggestions",
+    "selectSupplier": "Select a supplier",
+    "orderLines": "Order Lines",
+    "addLine": "Add Line",
+    "orderedQty": "Ordered Qty",
+    "lineTotal": "Total",
+    "totalLines": "Total Lines",
+    "itemNamePlaceholder": "Item name...",
+    "currentStock": "Current stock",
+    "lowStockSuggestions": "Low Stock Suggestions",
+    "threshold": "Threshold",
+    "noLowStockItems": "No items below threshold",
+    "availQty": "Available",
+    "addToOrder": "Add to order",
+    "saveOrder": "Save Order",
+    "fillAllItems": "Please fill in all item names"
+  },
+  "landing": {
+    "hero": {
+      "badge": "✨ New: Purchasing & Sales service now available",
+      "title": "Manage your inventory intelligently",
+      "subtitle": "The all-in-one SaaS platform for SMEs.",
+      "cta": "Start for free",
+      "demo": "See the demo"
+    },
+    "features": {
+      "title": "Everything you need"
+    },
+    "pricing": {
+      "title": "Simple, transparent pricing",
+      "popular": "Most popular"
+    },
+    "waitlist": {
+      "title": "Join the waitlist",
+      "subtitle": "Be among the first to access new features.",
+      "placeholder": "your@email.com",
+      "button": "Join",
+      "success": "✅ Thank you! You're on the list.",
+      "social": "Already 247 people on the list • No spam"
+    }
+  }
 }

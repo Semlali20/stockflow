@@ -466,113 +466,6 @@ export interface Location {
 }
 
 // ============================================
-// QUALITY TYPES
-// ============================================
-
-export interface QualityControl {
-  id: string;
-  inspectionNumber?: string;
-  controlNumber: string;
-  itemId: string;
-  item?: Item;
-  lotId?: string;
-  lot?: Lot;
-  serialNumber?: string;
-  quantityInspected: number;
-  inspectionType: string; // QCType enum values
-  status: string; // QCStatus enum values
-  result?: string; // Result/Disposition field for updates
-  qualityProfileId?: string;
-  samplingPlanId?: string;
-  inspectorId: string;
-  inspectionLocationId?: string;
-  scheduledDate?: string;
-  startTime?: string;
-  endTime?: string;
-  disposition?: string; // Disposition enum values
-  passedQuantity?: number;
-  failedQuantity?: number;
-  defectCount?: number;
-  defectRate?: number;
-  inspectorNotes?: string;
-  correctiveAction?: string;
-  quarantineId?: string;
-  approvedBy?: string;
-  approvedAt?: string;
-  inspectionResults?: InspectionResult[];
-  createdAt: string;
-  updatedAt: string;
-  createdBy?: string;
-  updatedBy?: string;
-  // Deprecated fields for backwards compatibility
-  passed?: boolean;
-  testedBy?: string;
-  testedDate?: string;
-  notes?: string;
-}
-
-export interface InspectionResult {
-  id?: string;
-  qualityControlId?: string;
-  testParameter: string;
-  expectedValue?: string;
-  actualValue?: string;
-  unitOfMeasure?: string;
-  minValue?: number;
-  maxValue?: number;
-  isPassed: boolean;
-  defectType?: string;
-  defectSeverity?: string; // CRITICAL, MAJOR, MINOR
-  remarks?: string;
-  sequenceOrder?: number;
-  createdAt?: string;
-}
-
-export interface Quarantine {
-  id: string;
-  quarantineNumber: string;
-  itemId: string;
-  item?: Item;
-  lotId?: string;
-  lot?: Lot;
-  serialId?: string;
-  serial?: Serial;
-  serialNumber?: string; // For backwards compatibility or display
-  locationId?: string;
-  location?: Location;
-  reason: string;
-  status: string;
-  severity: string; // LOW, MEDIUM, HIGH, CRITICAL
-  quantity: number;
-  expectedReleaseDate?: string;
-  quarantinedBy?: string;
-  quarantinedByName?: string;
-  quarantinedDate?: string;
-  releasedBy?: string;
-  releasedByName?: string;
-  releasedDate?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface QualityAttachment {
-  id: string;
-  qualityControlId?: string;
-  quarantineId?: string;
-  fileName: string;
-  fileUrl: string;
-  fileType: string;
-  attachmentType?: string; // IMAGE, VIDEO, DOCUMENT, CERTIFICATE
-  fileSize: number;
-  description?: string;
-  uploadedBy?: string;
-  uploadedByName?: string;
-  uploadedAt?: string;
-  createdAt: string;
-}
-
-// ============================================
 // ALERT TYPES
 // ============================================
 
@@ -762,6 +655,135 @@ export interface ErrorResponse {
   timestamp: string;
   path?: string;
   status?: number;
+}
+
+// ===== PURCHASE SERVICE TYPES =====
+
+export type SupplierStatus = 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
+export type PurchaseOrderStatus = 'DRAFT' | 'CONFIRMED' | 'SENT' | 'PARTIALLY_RECEIVED' | 'RECEIVED' | 'CANCELLED';
+
+export interface Supplier {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  contactPerson?: string;
+  paymentTermsDays?: number;
+  leadTimeDays?: number;
+  status: SupplierStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PurchaseOrderLine {
+  id: string;
+  itemId: string;
+  itemName: string;
+  itemSku?: string;
+  orderedQuantity: number;
+  receivedQuantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  remainingQuantity: number;
+  fullyReceived: boolean;
+  notes?: string;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  reference: string;
+  supplierId: string;
+  supplierName: string;
+  inventoryId?: string;
+  status: PurchaseOrderStatus;
+  expectedDeliveryDate?: string;
+  notes?: string;
+  totalAmount: number;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+  lines: PurchaseOrderLine[];
+}
+
+// ===== SALES SERVICE TYPES =====
+
+export type CustomerStatus = 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
+export type QuoteStatus = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED';
+export type DeliveryNoteStatus = 'DRAFT' | 'VALIDATED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+
+export interface Customer {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  contactPerson?: string;
+  paymentTermsDays?: number;
+  status: CustomerStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuoteLine {
+  id: string;
+  itemId: string;
+  itemName: string;
+  itemSku?: string;
+  quantity: number;
+  unitPrice: number;
+  discountPercent: number;
+  totalPrice: number;
+  notes?: string;
+}
+
+export interface Quote {
+  id: string;
+  reference: string;
+  customerId: string;
+  customerName: string;
+  inventoryId?: string;
+  status: QuoteStatus;
+  validUntil?: string;
+  notes?: string;
+  discountPercent: number;
+  subtotal: number;
+  totalAmount: number;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+  lines: QuoteLine[];
+}
+
+export interface DeliveryNoteLine {
+  id: string;
+  itemId: string;
+  itemName: string;
+  itemSku?: string;
+  orderedQuantity: number;
+  deliveredQuantity: number;
+  lotId?: string;
+  serialId?: string;
+  notes?: string;
+}
+
+export interface DeliveryNote {
+  id: string;
+  reference: string;
+  quoteId?: string;
+  customerId: string;
+  customerName: string;
+  inventoryId?: string;
+  status: DeliveryNoteStatus;
+  deliveryDate?: string;
+  deliveryAddress?: string;
+  notes?: string;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+  lines: DeliveryNoteLine[];
 }
 
 // ============================================

@@ -5,6 +5,7 @@ import { FileSpreadsheet, FileText, BarChart2, Loader } from 'lucide-react';
 import { generateExcelReport, generatePdfReport, ReportColumn, ReportFormat } from '@/utils/reportGenerator';
 import { cn } from '@/utils/cn';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -25,29 +26,30 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   fetchData,
   filename,
 }) => {
+  const { t } = useTranslation();
   const [selectedFormat, setSelectedFormat] = useState<ReportFormat>('excel');
   const [isGenerating, setIsGenerating] = useState(false);
 
   const formats: { key: ReportFormat; label: string; icon: React.ReactNode; description: string; color: string }[] = [
     {
       key: 'excel',
-      label: 'Excel (.xlsx)',
+      label: t('inventory.reportModal.excel'),
       icon: <FileSpreadsheet size={24} />,
-      description: 'Best for data analysis and filtering',
+      description: t('inventory.reportModal.excelDesc'),
       color: 'text-green-600 dark:text-green-400',
     },
     {
       key: 'pdf',
-      label: 'PDF Document',
+      label: t('inventory.reportModal.pdf'),
       icon: <FileText size={24} />,
-      description: 'Best for sharing and printing',
+      description: t('inventory.reportModal.pdfDesc'),
       color: 'text-red-600 dark:text-red-400',
     },
     {
       key: 'csv',
-      label: 'CSV File',
+      label: t('inventory.reportModal.csv'),
       icon: <BarChart2 size={24} />,
-      description: 'Raw data for custom processing',
+      description: t('inventory.reportModal.csvDesc'),
       color: 'text-blue-600 dark:text-blue-400',
     },
   ];
@@ -55,9 +57,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      toast.loading('Fetching data for report...', { id: 'report-gen' });
+      toast.loading(t('inventory.reportModal.fetchingData'), { id: 'report-gen' });
       const data = await fetchData();
-      toast.loading('Generating report...', { id: 'report-gen' });
+      toast.loading(t('inventory.reportModal.generatingReport'), { id: 'report-gen' });
 
       const config = {
         title,
@@ -76,10 +78,10 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         generateCsvReport(config);
       }
 
-      toast.success(`${title} report generated successfully!`, { id: 'report-gen' });
+      toast.success(t('inventory.reportModal.success', { title }), { id: 'report-gen' });
       onClose();
     } catch (err) {
-      toast.error('Failed to generate report. Please try again.', { id: 'report-gen' });
+      toast.error(t('inventory.reportModal.error'), { id: 'report-gen' });
       console.error('Report generation error:', err);
     } finally {
       setIsGenerating(false);
@@ -87,14 +89,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Generate ${title} Report`} size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('inventory.reportModal.title', { title })} size="md">
       <div className="space-y-5">
         {description && (
           <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
         )}
 
         <div>
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Select export format:</p>
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('inventory.reportModal.selectFormat')}</p>
           <div className="grid grid-cols-1 gap-3">
             {formats.map(fmt => (
               <button
@@ -129,7 +131,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
         <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
           <Button variant="secondary" onClick={onClose} disabled={isGenerating}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             variant="primary"
@@ -138,7 +140,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
             loading={isGenerating}
             disabled={isGenerating}
           >
-            {isGenerating ? 'Generating...' : 'Generate Report'}
+            {isGenerating ? t('inventory.reportModal.generating') : t('inventory.reportModal.generate')}
           </Button>
         </div>
       </div>

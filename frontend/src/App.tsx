@@ -9,6 +9,9 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { PERMISSIONS, type Permission } from '@/config/permissions';
 import { useTranslation } from 'react-i18next';
 
+// Landing Page
+import LandingPage from '@/pages/landing/LandingPage';
+
 // Auth Pages
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
@@ -35,14 +38,23 @@ import { LocationsPage } from '@/pages/locations/LocationsPage';
 
 // Movements Pages
 import MovementsPage from '@/pages/movements/MovementsPage';
+
+// Purchase Pages
+import SuppliersPage from '@/pages/purchase/SuppliersPage';
+import PurchaseOrdersPage from '@/pages/purchase/PurchaseOrdersPage';
+
+// Sales Pages
+import CustomersPage from '@/pages/sales/CustomersPage';
+import QuotesPage from '@/pages/sales/QuotesPage';
+import DeliveryNotesPage from '@/pages/sales/DeliveryNotesPage';
+import QuoteFormPage from '@/pages/sales/QuoteFormPage';
+import DeliveryNoteFormPage from '@/pages/sales/DeliveryNoteFormPage';
+
+// Purchase Form Page
+import PurchaseOrderFormPage from '@/pages/purchase/PurchaseOrderFormPage';
 // import { MovementLinesPage } from '@/pages/movements/MovementLinesPage';
 // import { MovementTasksPage } from '@/pages/movements/MovementTasksPage';
 
-
-// Quality Pages
-import { QualityControlsPage } from '@/pages/quality/QualityControlPage';
-import { QualityAttachmentsPage } from './pages/quality/QualityAttachmentsPage';
-import { QuarantinesPage } from './pages/quality/QuarantinesPage';
 
 // Alerts Pages
 import { AlertsPage } from '@/pages/Alerts/AlertsPage';
@@ -136,7 +148,15 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/landing" element={<LandingPage />} />
+        <Route
+          path="/"
+          element={
+            localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+              ? <Navigate to="/dashboard" replace />
+              : <LandingPage />
+          }
+        />
         
         {/* Protected Routes */}
         <Route
@@ -257,29 +277,71 @@ function App() {
      }
    /> */}
 
-        {/* Quality Routes */}
+        {/* Purchase Routes */}
         <Route
-          path="/quality/controls"
+          path="/purchase/suppliers"
           element={
-            <PermissionRoute permission={PERMISSIONS.QUALITY_VIEW}>
-              <MainLayout><QualityControlsPage /></MainLayout>
-            </PermissionRoute>
+            <ProtectedRoute>
+              <MainLayout><SuppliersPage /></MainLayout>
+            </ProtectedRoute>
           }
         />
         <Route
-          path="/quality/attachments"
+          path="/purchase/orders"
           element={
-            <PermissionRoute permission={PERMISSIONS.QUALITY_VIEW}>
-              <MainLayout><QualityAttachmentsPage /></MainLayout>
-            </PermissionRoute>
+            <ProtectedRoute>
+              <MainLayout><PurchaseOrdersPage /></MainLayout>
+            </ProtectedRoute>
           }
         />
         <Route
-          path="/quality/quarantines"
+          path="/purchase/orders/new"
           element={
-            <PermissionRoute permission={PERMISSIONS.QUARANTINE_MANAGE}>
-              <MainLayout><QuarantinesPage /></MainLayout>
-            </PermissionRoute>
+            <ProtectedRoute>
+              <MainLayout><PurchaseOrderFormPage /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Sales Routes */}
+        <Route
+          path="/sales/customers"
+          element={
+            <ProtectedRoute>
+              <MainLayout><CustomersPage /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sales/quotes"
+          element={
+            <ProtectedRoute>
+              <MainLayout><QuotesPage /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sales/quotes/new"
+          element={
+            <ProtectedRoute>
+              <MainLayout><QuoteFormPage /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sales/delivery-notes"
+          element={
+            <ProtectedRoute>
+              <MainLayout><DeliveryNotesPage /></MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sales/delivery-notes/new"
+          element={
+            <ProtectedRoute>
+              <MainLayout><DeliveryNoteFormPage /></MainLayout>
+            </ProtectedRoute>
           }
         />
 

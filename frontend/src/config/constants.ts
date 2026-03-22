@@ -74,16 +74,24 @@
       LOCATION_BY_ID: (id: string) => `/api/locations/${id}`,
     },
   
-    // Quality
-    QUALITY: {
-      QUALITY_CONTROLS: '/api/quality/controls', // ✅ NOT /api/quality-controls
-      QUALITY_CONTROL_BY_ID: (id: string) => `/api/quality/controls/${id}`,
-      QUARANTINE: '/api/quality/quarantine',
-      QUARANTINE_BY_ID: (id: string) => `/api/quality/quarantine/${id}`,
-      ATTACHMENTS: '/api/quality/attachments',
-      ATTACHMENT_BY_ID: (id: string) => `/api/quality/attachments/${id}`,
+    // Purchase
+    PURCHASE: {
+      SUPPLIERS: '/api/suppliers',
+      SUPPLIER_BY_ID: (id: string) => `/api/suppliers/${id}`,
+      PURCHASE_ORDERS: '/api/purchase-orders',
+      PURCHASE_ORDER_BY_ID: (id: string) => `/api/purchase-orders/${id}`,
     },
-  
+
+    // Sales
+    SALES: {
+      CUSTOMERS: '/api/customers',
+      CUSTOMER_BY_ID: (id: string) => `/api/customers/${id}`,
+      QUOTES: '/api/quotes',
+      QUOTE_BY_ID: (id: string) => `/api/quotes/${id}`,
+      DELIVERY_NOTES: '/api/delivery-notes',
+      DELIVERY_NOTE_BY_ID: (id: string) => `/api/delivery-notes/${id}`,
+    },
+
     // Alerts
     ALERTS: {
       ALERTS: '/api/alerts',
@@ -137,11 +145,17 @@
     LOCATIONS_SITES: '/locations/sites',
     LOCATIONS_WAREHOUSES: '/locations/warehouses',
     
-    // Quality
-    QUALITY: '/quality',
-    QUALITY_CONTROLS: '/quality/controls',
-    QUARANTINE: '/quality/quarantine',
-    
+    // Purchase
+    PURCHASE: '/purchase',
+    SUPPLIERS: '/purchase/suppliers',
+    PURCHASE_ORDERS: '/purchase/orders',
+
+    // Sales
+    SALES: '/sales',
+    CUSTOMERS: '/sales/customers',
+    QUOTES: '/sales/quotes',
+    DELIVERY_NOTES: '/sales/delivery-notes',
+
     // Alerts
     ALERTS: '/alerts',
     NOTIFICATIONS: '/alerts/notifications',

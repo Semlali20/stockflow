@@ -35,7 +35,6 @@ public class DataInitializer implements ApplicationRunner {
             {"USER",              "Default user role"},
             {"MANAGER",           "Broad access except user and permission management"},
             {"WAREHOUSE_MANAGER", "Full warehouse, inventory and movement control"},
-            {"QUALITY_MANAGER",   "Quality control and quarantine management"},
             {"SUPERVISOR",        "Supervise operations, approve movements"},
             {"OPERATOR",          "Day-to-day operational tasks"},
             {"PROCUREMENT",       "Product and lot creation for purchasing"},

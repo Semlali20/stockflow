@@ -51,10 +51,12 @@ services:
     url: http://movement-service:8084
   location-service:
     url: http://location-service:8085
-  quality-service:
-    url: http://quality-service:8087
   alert-service:
     url: http://alert-service:8088
+  purchase-service:
+    url: http://purchase-service:8089
+  sales-service:
+    url: http://sales-service:8090
 
 server:
   port: 8080

@@ -23,6 +23,7 @@ import { inventoryService } from '@/services/inventory.service';
 import { productService } from '@/services/product.service';
 import { locationService } from '@/services/location.service';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -88,6 +89,7 @@ interface EnrichedInventory extends Inventory {
 // ============================================================================
 
 export const InventoryPageEnhanced: React.FC = () => {
+  const { t } = useTranslation();
   const [inventories, setInventories] = useState<EnrichedInventory[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -178,7 +180,7 @@ export const InventoryPageEnhanced: React.FC = () => {
       setSerials(serialsMap);
     } catch (error) {
       console.error('Error fetching reference data:', error);
-      toast.error('Failed to load reference data');
+      toast.error(t('inventory.messages.refDataError'));
     }
   };
 
@@ -201,10 +203,10 @@ export const InventoryPageEnhanced: React.FC = () => {
 
         return {
           ...inv,
-          itemName: item?.name || 'Unknown Item',
+          itemName: item?.name || t('common.unknownItem'),
           itemSku: item?.sku || '',
-          warehouseName: warehouse?.name || 'Unknown Warehouse',
-          locationName: location?.code || 'Unknown Location',
+          warehouseName: warehouse?.name || t('common.unknownWarehouse'),
+          locationName: location?.code || t('common.unknownLocation'),
           lotNumber: lot?.lotNumber || '',
           serialNumber: serial?.serialNumber || '',
           minStockLevel: item?.minStockLevel || 0,
@@ -217,7 +219,7 @@ export const InventoryPageEnhanced: React.FC = () => {
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching inventories:', error);
-      toast.error('Failed to load inventories');
+      toast.error(t('inventory.messages.fetchError'));
       setInventories([]);
     } finally {
       setLoading(false);
@@ -245,22 +247,22 @@ export const InventoryPageEnhanced: React.FC = () => {
       critical: {
         color: 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700',
         icon: AlertCircle,
-        label: 'Critical',
+        label: t('inventory.stockLevel.critical'),
       },
       low: {
         color: 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700',
         icon: AlertTriangle,
-        label: 'Low Stock',
+        label: t('inventory.stockLevel.low'),
       },
       adequate: {
         color: 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700',
         icon: CheckCircle,
-        label: 'Adequate',
+        label: t('inventory.stockLevel.adequate'),
       },
       high: {
         color: 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700',
         icon: TrendingUp,
-        label: 'High Stock',
+        label: t('inventory.stockLevel.high'),
       },
     };
 
@@ -304,13 +306,13 @@ export const InventoryPageEnhanced: React.FC = () => {
 
     try {
       await inventoryService.deleteInventory(selectedInventory.id);
-      toast.success('Inventory deleted successfully');
+      toast.success(t('inventory.messages.deleteSuccess'));
       fetchInventories();
       setIsDeleteDialogOpen(false);
       setSelectedInventory(null);
     } catch (error) {
       console.error('Error deleting inventory:', error);
-      toast.error('Failed to delete inventory');
+      toast.error(t('inventory.messages.deleteError'));
     }
   };
 
@@ -354,10 +356,10 @@ export const InventoryPageEnhanced: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { color: string; label: string }> = {
-      AVAILABLE: { color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300', label: 'Available' },
-      RESERVED: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300', label: 'Reserved' },
-      QUARANTINED: { color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300', label: 'Quarantined' },
-      DAMAGED: { color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300', label: 'Damaged' },
+      AVAILABLE: { color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300', label: t('inventory.status.available') },
+      RESERVED: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300', label: t('inventory.status.reserved') },
+      QUARANTINED: { color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300', label: t('inventory.status.quarantined') },
+      DAMAGED: { color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300', label: t('inventory.status.damaged') },
     };
 
     const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300', label: status };
@@ -374,12 +376,12 @@ export const InventoryPageEnhanced: React.FC = () => {
   // ============================================================================
 
   const formatLastUpdated = () => {
-    if (!lastUpdated) return 'Never';
+    if (!lastUpdated) return t('common.never');
     const now = new Date();
     const diffMs = now.getTime() - lastUpdated.getTime();
     const diffSecs = Math.floor(diffMs / 1000);
 
-    if (diffSecs < 5) return 'Just now';
+    if (diffSecs < 5) return t('inventory.justNow');
     if (diffSecs < 60) return `${diffSecs}s ago`;
     const diffMins = Math.floor(diffSecs / 60);
     if (diffMins < 60) return `${diffMins}m ago`;
@@ -395,12 +397,12 @@ export const InventoryPageEnhanced: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Inventory Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('inventory.title')}</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Track and manage inventory levels across all locations
+            {t('inventory.subtitle')}
             {lastUpdated && (
               <span className="ml-2 text-xs">
-                • Auto-refreshes every 30s • Last updated: {formatLastUpdated()}
+                • {t('inventory.autoRefresh')} {formatLastUpdated()}
               </span>
             )}
           </p>
@@ -413,7 +415,7 @@ export const InventoryPageEnhanced: React.FC = () => {
             className="flex items-center gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('inventory.refresh')}
           </Button>
           <Button
             variant="outline"
@@ -422,7 +424,7 @@ export const InventoryPageEnhanced: React.FC = () => {
             onClick={() => downloadCsv(API_ENDPOINTS.INVENTORY.INVENTORY_EXPORT_CSV, 'inventory.csv')}
             loading={isDownloading}
           >
-            Export CSV
+            {t('inventory.exportCsv')}
           </Button>
           <Button
             variant="outline"
@@ -430,11 +432,11 @@ export const InventoryPageEnhanced: React.FC = () => {
             icon={<FileText size={15} />}
             onClick={() => setIsReportModalOpen(true)}
           >
-            Report
+            {t('inventory.report')}
           </Button>
           <Button onClick={handleCreate} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
-            New Inventory
+            {t('inventory.newInventory')}
           </Button>
         </div>
       </div>
@@ -454,7 +456,7 @@ export const InventoryPageEnhanced: React.FC = () => {
               <Package className="text-blue-700 dark:text-blue-300" size={20} />
             </div>
           </div>
-          <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Total Items</p>
+          <p className="text-sm font-medium text-blue-800 dark:text-blue-300">{t('inventory.stats.totalItems')}</p>
           <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">{stats.total}</p>
         </motion.div>
 
@@ -471,7 +473,7 @@ export const InventoryPageEnhanced: React.FC = () => {
               <CheckCircle className="text-green-700 dark:text-green-300" size={20} />
             </div>
           </div>
-          <p className="text-sm font-medium text-green-800 dark:text-green-300">Available</p>
+          <p className="text-sm font-medium text-green-800 dark:text-green-300">{t('inventory.stats.available')}</p>
           <p className="text-3xl font-bold text-green-900 dark:text-green-100">{stats.available}</p>
         </motion.div>
 
@@ -488,7 +490,7 @@ export const InventoryPageEnhanced: React.FC = () => {
               <Archive className="text-yellow-700 dark:text-yellow-300" size={20} />
             </div>
           </div>
-          <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Reserved</p>
+          <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">{t('inventory.stats.reserved')}</p>
           <p className="text-3xl font-bold text-yellow-900 dark:text-yellow-100">{stats.reserved}</p>
         </motion.div>
 
@@ -505,7 +507,7 @@ export const InventoryPageEnhanced: React.FC = () => {
               <PackageX className="text-red-700 dark:text-red-300" size={20} />
             </div>
           </div>
-          <p className="text-sm font-medium text-red-800 dark:text-red-300">Damaged</p>
+          <p className="text-sm font-medium text-red-800 dark:text-red-300">{t('inventory.stats.damaged')}</p>
           <p className="text-3xl font-bold text-red-900 dark:text-red-100">{stats.damaged}</p>
         </motion.div>
 
@@ -522,7 +524,7 @@ export const InventoryPageEnhanced: React.FC = () => {
               <AlertTriangle className="text-orange-700 dark:text-orange-300" size={20} />
             </div>
           </div>
-          <p className="text-sm font-medium text-orange-800 dark:text-orange-300">Low Stock</p>
+          <p className="text-sm font-medium text-orange-800 dark:text-orange-300">{t('inventory.stats.lowStock')}</p>
           <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{stats.lowStock}</p>
         </motion.div>
 
@@ -539,7 +541,7 @@ export const InventoryPageEnhanced: React.FC = () => {
               <AlertCircle className="text-rose-700 dark:text-rose-300" size={20} />
             </div>
           </div>
-          <p className="text-sm font-medium text-rose-800 dark:text-rose-300">Critical</p>
+          <p className="text-sm font-medium text-rose-800 dark:text-rose-300">{t('inventory.stats.critical')}</p>
           <p className="text-3xl font-bold text-rose-900 dark:text-rose-100">{stats.criticalStock}</p>
         </motion.div>
       </div>
@@ -556,7 +558,7 @@ export const InventoryPageEnhanced: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
             <Input
               type="text"
-              placeholder="Search by item, SKU, warehouse, or location..."
+              placeholder={t('inventory.filters.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-neutral-50 dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600"
@@ -569,11 +571,11 @@ export const InventoryPageEnhanced: React.FC = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="bg-neutral-50 dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600"
           >
-            <option value="">All Statuses</option>
-            <option value="AVAILABLE">Available</option>
-            <option value="RESERVED">Reserved</option>
-            <option value="QUARANTINED">Quarantined</option>
-            <option value="DAMAGED">Damaged</option>
+            <option value="">{t('inventory.filters.allStatuses')}</option>
+            <option value="AVAILABLE">{t('inventory.status.available')}</option>
+            <option value="RESERVED">{t('inventory.status.reserved')}</option>
+            <option value="QUARANTINED">{t('inventory.status.quarantined')}</option>
+            <option value="DAMAGED">{t('inventory.status.damaged')}</option>
           </Select>
 
           {/* Stock Level Filter */}
@@ -582,11 +584,11 @@ export const InventoryPageEnhanced: React.FC = () => {
             onChange={(e) => setFilterStockLevel(e.target.value)}
             className="bg-neutral-50 dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600"
           >
-            <option value="">All Stock Levels</option>
-            <option value="critical">Critical</option>
-            <option value="low">Low Stock</option>
-            <option value="adequate">Adequate</option>
-            <option value="high">High Stock</option>
+            <option value="">{t('inventory.filters.allStockLevels')}</option>
+            <option value="critical">{t('inventory.stockLevel.critical')}</option>
+            <option value="low">{t('inventory.stockLevel.low')}</option>
+            <option value="adequate">{t('inventory.stockLevel.adequate')}</option>
+            <option value="high">{t('inventory.stockLevel.high')}</option>
           </Select>
         </div>
       </motion.div>
@@ -600,7 +602,7 @@ export const InventoryPageEnhanced: React.FC = () => {
         {loading ? (
           <div className="flex flex-col justify-center items-center h-64">
             <RefreshCw className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">Loading inventory...</p>
+            <p className="text-gray-600 dark:text-gray-400">{t('inventory.loadingInventory')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -608,31 +610,31 @@ export const InventoryPageEnhanced: React.FC = () => {
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-neutral-900 dark:to-neutral-800">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Item
+                    {t('inventory.table.item')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    SKU
+                    {t('inventory.table.sku')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Location
+                    {t('inventory.table.location')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    On Hand
+                    {t('inventory.table.onHand')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Reserved
+                    {t('inventory.table.reserved')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Available
+                    {t('inventory.table.available')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Stock Level
+                    {t('inventory.table.stockLevel')}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Status
+                    {t('inventory.table.status')}
                   </th>
                   <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Actions
+                    {t('inventory.table.actions')}
                   </th>
                 </tr>
               </thead>
@@ -642,10 +644,10 @@ export const InventoryPageEnhanced: React.FC = () => {
                     <td colSpan={9} className="px-6 py-16 text-center">
                       <Package size={64} className="mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                       <p className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                        No inventory records found
+                        {t('inventory.messages.noRecords')}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Try adjusting your search or filters
+                        {t('inventory.messages.adjustFilters')}
                       </p>
                     </td>
                   </tr>
@@ -708,21 +710,21 @@ export const InventoryPageEnhanced: React.FC = () => {
                             <button
                               onClick={() => handleView(inventory)}
                               className="p-2 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
-                              title="View Details"
+                              title={t('common.view')}
                             >
                               <Eye size={18} />
                             </button>
                             <button
                               onClick={() => handleEdit(inventory)}
                               className="p-2 text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-all"
-                              title="Edit"
+                              title={t('common.edit')}
                             >
                               <Edit size={18} />
                             </button>
                             <button
                               onClick={() => handleDeleteClick(inventory)}
                               className="p-2 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                              title="Delete"
+                              title={t('common.delete')}
                             >
                               <Trash2 size={18} />
                             </button>
@@ -743,8 +745,8 @@ export const InventoryPageEnhanced: React.FC = () => {
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDelete}
-        title="Delete Inventory Record"
-        message={`Are you sure you want to delete the inventory record for "${selectedInventory?.itemName}"? This action cannot be undone.`}
+        title={t('inventory.deleteTitle')}
+        message={`${t('inventory.deleteMessage')} "${selectedInventory?.itemName}"? ${t('common.close')}`}
       />
 
       {/* TODO: Add Create/Edit/View Modals */}
@@ -752,8 +754,8 @@ export const InventoryPageEnhanced: React.FC = () => {
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        title="Inventory"
-        description="Generate a report of current inventory levels"
+        title={t('inventory.title')}
+        description={t('inventory.reportDescription')}
         columns={inventoryReportColumns}
         fetchData={async () => {
           return inventories as unknown as Record<string, unknown>[];

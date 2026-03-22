@@ -8,7 +8,6 @@ public enum RuleSeverity {
     OVERSTOCK("Surstock"),
     NEAR_EXPIRY("Expiration proche"),
     LOCATION_VIOLATION("Violation d'emplacement"),
-    QUALITY_ISSUE("Problème qualité"),
     SYSTEM_ERROR("Erreur système");
 
     private final String description;

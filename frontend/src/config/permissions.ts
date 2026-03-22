@@ -4,7 +4,6 @@ export const ROLES = {
   ADMIN: 'ADMIN',
   MANAGER: 'MANAGER',
   WAREHOUSE_MANAGER: 'WAREHOUSE_MANAGER',
-  QUALITY_MANAGER: 'QUALITY_MANAGER',
   SUPERVISOR: 'SUPERVISOR',
   OPERATOR: 'OPERATOR',
   PROCUREMENT: 'PROCUREMENT',
@@ -63,14 +62,6 @@ export const PERMISSIONS = {
   MOVEMENTS_APPROVE:      'movements:approve',
   MOVEMENTS_CANCEL:       'movements:cancel',
 
-  // Quality
-  QUALITY_VIEW:           'quality:view',
-  QUALITY_CREATE:         'quality:create',
-  QUALITY_EDIT:           'quality:edit',
-  QUALITY_DELETE:         'quality:delete',
-  QUALITY_APPROVE:        'quality:approve',
-  QUARANTINE_MANAGE:      'quarantine:manage',
-
   // Alerts
   ALERTS_VIEW:            'alerts:view',
   ALERTS_MANAGE:          'alerts:manage',
@@ -112,8 +103,6 @@ export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
     PERMISSIONS.LOCATIONS_VIEW, PERMISSIONS.LOCATIONS_CREATE, PERMISSIONS.LOCATIONS_EDIT,
     PERMISSIONS.MOVEMENTS_VIEW, PERMISSIONS.MOVEMENTS_CREATE, PERMISSIONS.MOVEMENTS_EDIT,
     PERMISSIONS.MOVEMENTS_APPROVE, PERMISSIONS.MOVEMENTS_CANCEL,
-    PERMISSIONS.QUALITY_VIEW, PERMISSIONS.QUALITY_CREATE, PERMISSIONS.QUALITY_EDIT, PERMISSIONS.QUALITY_APPROVE,
-    PERMISSIONS.QUARANTINE_MANAGE,
     PERMISSIONS.ALERTS_VIEW, PERMISSIONS.ALERTS_MANAGE,
     PERMISSIONS.USERS_VIEW,
     PERMISSIONS.AUDIT_VIEW,
@@ -134,21 +123,6 @@ export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
     PERMISSIONS.SETTINGS_VIEW,
   ],
 
-  QUALITY_MANAGER: [
-    PERMISSIONS.DASHBOARD_VIEW,
-    PERMISSIONS.PRODUCTS_VIEW,
-    PERMISSIONS.INVENTORY_VIEW,
-    PERMISSIONS.LOTS_VIEW,
-    PERMISSIONS.SERIALS_VIEW,
-    PERMISSIONS.LOCATIONS_VIEW,
-    PERMISSIONS.MOVEMENTS_VIEW,
-    PERMISSIONS.QUALITY_VIEW, PERMISSIONS.QUALITY_CREATE, PERMISSIONS.QUALITY_EDIT,
-    PERMISSIONS.QUALITY_DELETE, PERMISSIONS.QUALITY_APPROVE,
-    PERMISSIONS.QUARANTINE_MANAGE,
-    PERMISSIONS.ALERTS_VIEW, PERMISSIONS.ALERTS_MANAGE,
-    PERMISSIONS.SETTINGS_VIEW,
-  ],
-
   SUPERVISOR: [
     PERMISSIONS.DASHBOARD_VIEW,
     PERMISSIONS.PRODUCTS_VIEW,
@@ -159,7 +133,6 @@ export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
     PERMISSIONS.LOCATIONS_VIEW,
     PERMISSIONS.MOVEMENTS_VIEW, PERMISSIONS.MOVEMENTS_CREATE, PERMISSIONS.MOVEMENTS_EDIT,
     PERMISSIONS.MOVEMENTS_APPROVE,
-    PERMISSIONS.QUALITY_VIEW,
     PERMISSIONS.ALERTS_VIEW,
     PERMISSIONS.SETTINGS_VIEW,
   ],
@@ -172,7 +145,6 @@ export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
     PERMISSIONS.SERIALS_VIEW,
     PERMISSIONS.LOCATIONS_VIEW,
     PERMISSIONS.MOVEMENTS_VIEW, PERMISSIONS.MOVEMENTS_CREATE,
-    PERMISSIONS.QUALITY_VIEW,
     PERMISSIONS.ALERTS_VIEW,
     PERMISSIONS.SETTINGS_VIEW,
   ],
@@ -198,7 +170,6 @@ export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
     PERMISSIONS.SERIALS_VIEW,
     PERMISSIONS.LOCATIONS_VIEW,
     PERMISSIONS.MOVEMENTS_VIEW,
-    PERMISSIONS.QUALITY_VIEW,
     PERMISSIONS.ALERTS_VIEW,
     PERMISSIONS.AUDIT_VIEW,
     PERMISSIONS.SETTINGS_VIEW,
@@ -293,18 +264,6 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    label: 'permissions.groups.quality',
-    icon: 'CheckCircle',
-    permissions: [
-      { key: PERMISSIONS.QUALITY_VIEW,    label: 'permissions.labels.viewQuality' },
-      { key: PERMISSIONS.QUALITY_CREATE,  label: 'permissions.labels.createQuality' },
-      { key: PERMISSIONS.QUALITY_EDIT,    label: 'permissions.labels.editQuality' },
-      { key: PERMISSIONS.QUALITY_DELETE,  label: 'permissions.labels.deleteQuality' },
-      { key: PERMISSIONS.QUALITY_APPROVE, label: 'permissions.labels.approveQuality' },
-      { key: PERMISSIONS.QUARANTINE_MANAGE, label: 'permissions.labels.manageQuarantine' },
-    ],
-  },
-  {
     label: 'permissions.groups.alerts',
     icon: 'Bell',
     permissions: [
@@ -361,12 +320,6 @@ export const ROLE_META: Record<RoleName, { label: string; color: string; bg: str
     color: 'text-cyan-700 dark:text-cyan-400',
     bg: 'bg-cyan-100 dark:bg-cyan-900/30',
     description: 'roles.warehouseManager.description',
-  },
-  QUALITY_MANAGER: {
-    label: 'roles.qualityManager.label',
-    color: 'text-green-700 dark:text-green-400',
-    bg: 'bg-green-100 dark:bg-green-900/30',
-    description: 'roles.qualityManager.description',
   },
   SUPERVISOR: {
     label: 'roles.supervisor.label',

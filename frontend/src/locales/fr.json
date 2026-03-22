@@ -43,7 +43,18 @@
     "never": "Jamais",
     "rejectionReason": "Raison du refus",
     "create": "Créer",
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "confirm": "Confirmer",
+    "failed": "Échec",
+    "success": "Succès",
+    "actions": "Actions",
+    "allStatuses": "Tous les statuts",
+    "selectSupplier": "Sélectionner un fournisseur",
+    "exportCsv": "Exporter CSV",
+    "importCsv": "Importer CSV",
+    "report": "Rapport",
+    "live": "En direct",
+    "notes": "Notes"
   },
   "layout": {
     "quickAdd": "Ajout rapide",
@@ -72,12 +83,15 @@
     "sites": "Sites",
     "warehouses": "Entrepôts",
     "movements": "Mouvements",
-    "quality": "Qualité",
-    "controls": "Contrôles",
-    "quarantines": "Quarantaines",
-    "attachments": "Pièces jointes",
     "alerts": "Alertes",
-    "admin": "Admin"
+    "admin": "Admin",
+    "purchase": "Achat",
+    "suppliers": "Fournisseurs",
+    "purchaseOrders": "Bons de commande",
+    "sales": "Vente",
+    "customers": "Clients",
+    "quotes": "Devis",
+    "deliveryNotes": "Bons de livraison"
   },
   "dashboard": {
     "systemOverview": "Aperçu du Système",
@@ -198,7 +212,15 @@
       "risk": "Risque",
       "critical": "Critique",
       "warning": "Alerte"
-    }
+    },
+    "commercial": "Vue Commerciale",
+    "suppliers": "Fournisseurs",
+    "purchaseOrders": "Bons de commande",
+    "customers": "Clients",
+    "quotes": "Devis",
+    "deliveryNotes": "Bons de livraison",
+    "stockValue": "Valeur du Stock",
+    "stockValueDesc": "Valorisation au coût unitaire"
   },
   "products": {
     "items": {
@@ -221,6 +243,7 @@
       "noItemsFound": "Aucun article trouvé",
       "deleteTitle": "Supprimer l'article",
       "deleteConfirm": "Voulez-vous vraiment supprimer « {{name}} » ? Cette action est irréversible.",
+      "reportDescription": "Générer un rapport de tous les articles",
       "messages": {
         "fetchError": "Échec de la récupération des articles",
         "deleteSuccess": "Article supprimé avec succès",
@@ -374,6 +397,7 @@
       "noCategoriesFound": "Aucune catégorie trouvée",
       "deleteTitle": "Supprimer la catégorie",
       "deleteConfirm": "Voulez-vous vraiment supprimer « {{name}} » ? Cette action est irréversible.",
+      "reportDescription": "Générer un rapport de toutes les catégories",
       "messages": {
         "fetchError": "Échec de la récupération des catégories",
         "deleteSuccess": "Catégorie supprimée avec succès",
@@ -432,7 +456,31 @@
     "title": "Gestion des stocks",
     "subtitle": "Suivez et gérez les niveaux de stock dans tous les emplacements",
     "refresh": "Rafraîchir",
+    "exportCsv": "Exporter CSV",
+    "report": "Rapport",
     "newInventory": "Nouvel inventaire",
+    "reportModal": {
+      "title": "Générer un rapport {{title}}",
+      "selectFormat": "Sélectionner le format d'export :",
+      "excel": "Excel (.xlsx)",
+      "excelDesc": "Idéal pour l'analyse et le filtrage des données",
+      "pdf": "Document PDF",
+      "pdfDesc": "Idéal pour le partage et l'impression",
+      "csv": "Fichier CSV",
+      "csvDesc": "Données brutes pour traitement personnalisé",
+      "generate": "Générer le rapport",
+      "generating": "Génération...",
+      "fetchingData": "Récupération des données...",
+      "generatingReport": "Génération du rapport...",
+      "success": "Rapport {{title}} généré avec succès !",
+      "error": "Échec de la génération du rapport. Veuillez réessayer."
+    },
+    "autoRefresh": "Actualisation automatique toutes les 30s • Dernière mise à jour :",
+    "deleteTitle": "Supprimer l'enregistrement d'inventaire",
+    "deleteMessage": "Êtes-vous sûr de vouloir supprimer l'enregistrement d'inventaire pour",
+    "reportDescription": "Générer un rapport des niveaux de stock actuels",
+    "loadingInventory": "Chargement de l'inventaire...",
+    "justNow": "À l'instant",
     "stats": {
       "totalItems": "Articles totaux",
       "available": "Disponible",
@@ -584,6 +632,7 @@
         "supplier": "ID Fournisseur",
         "attributes": "Attributs (JSON)"
       },
+      "reportDescription": "Générer un rapport de tous les lots d'inventaire",
       "messages": {
         "noLots": "Aucun lot trouvé",
         "fetchError": "Échec de la récupération des lots",
@@ -939,6 +988,7 @@
     "subtitle": "Suivez et gérez toutes les opérations entrantes, sortantes et de transfert",
     "refresh": "Rafraîchir",
     "newMovement": "Nouveau Mouvement",
+    "reportDescription": "Générer un rapport de tous les mouvements de stock",
     "stats": {
       "total": "Total Mouvements",
       "draft": "Brouillon",
@@ -1002,256 +1052,6 @@
       "lowStockTitle": "Alerte de Stock Bas",
       "lowStockMessage": "L'article {{itemId}} est bas ({{remaining}} restant)",
       "autoQC": "Créé automatiquement à partir du mouvement {{reference}}"
-    }
-  },
-  "quality": {
-    "controls": {
-      "title": "Contrôles Qualité",
-      "subtitle": "Gérer les inspections et approbations de contrôle qualité",
-      "newQC": "Créer un contrôle qualité",
-      "searchPlaceholder": "Rechercher par numéro de contrôle, ID d'article...",
-      "stats": {
-        "total": "Total des inspections",
-        "passed": "Réussies",
-        "failed": "Échouées",
-        "pending": "En attente"
-      },
-      "filters": {
-        "allStatuses": "Tous les statuts",
-        "allResults": "Tous les résultats",
-        "passedOnly": "Uniquement réussis",
-        "failedOnly": "Uniquement échoués",
-        "allTypes": "Tous les types",
-        "clearFilters": "Effacer les filtres"
-      },
-      "table": {
-        "controlNumber": "Numéro de contrôle",
-        "type": "Type",
-        "status": "Statut",
-        "result": "Résultat",
-        "quantity": "Quantité",
-        "defects": "Défauts",
-        "date": "Date"
-      },
-      "empty": {
-        "title": "Aucun contrôle qualité trouvé",
-        "description": "Créez votre première inspection de contrôle qualité"
-      },
-      "actions": {
-        "approve": "Approuver",
-        "reject": "Rejeter",
-        "viewDetails": "Voir les détails"
-      },
-      "messages": {
-        "fetchError": "Échec de la récupération des contrôles qualité",
-        "fetchItemsError": "Échec du chargement des articles",
-        "fetchLocationsError": "Échec du chargement des emplacements",
-        "approveSuccess": "Contrôle qualité approuvé avec succès",
-        "approveError": "Échec de l'approbation du contrôle qualité",
-        "rejectSuccess": "Contrôle qualité rejeté",
-        "rejectError": "Échec du rejet du contrôle qualité",
-        "statusUpdateSuccess": "Statut mis à jour à {{status}}",
-        "statusUpdateError": "Échec de la mise à jour du statut",
-        "deleteSuccess": "Contrôle qualité supprimé avec succès",
-        "deleteError": "Échec de la suppression du contrôle qualité"
-      },
-      "delete": {
-        "title": "Supprimer le contrôle qualité",
-        "confirm": "Êtes-vous sûr de vouloir supprimer le contrôle qualité \"{{number}}\" ? Cette action est irréversible."
-      },
-      "form": {
-        "createTitle": "Créer un contrôle qualité",
-        "editTitle": "Modifier le contrôle qualité",
-        "inspectorId": "ID de l'inspecteur",
-        "inspectorIdAuto": "Détecté automatiquement",
-        "inspectorIdRequired": "REQUIS",
-        "inspectorIdPlaceholder": "Entrez votre ID d'inspecteur",
-        "inspectorIdManual": "Impossible de charger automatiquement. Veuillez entrer manuellement.",
-        "basicInfo": "Informations de base",
-        "item": "Article / Produit",
-        "selectItem": "Sélectionnez un article",
-        "loadingItems": "Chargement des articles...",
-        "sku": "SKU :",
-        "lot": "Lot / Numéro de lot",
-        "selectItemFirst": "Sélectionnez d'abord un article",
-        "loadingLots": "Chargement des lots...",
-        "noLots": "Aucun lot disponible",
-        "selectLotOptional": "Sélectionnez un lot (optionnel)",
-        "serial": "Numéro de série",
-        "serialPlaceholder": "Numéro de série optionnel",
-        "quantity": "Quantité inspectée",
-        "quantityPlaceholder": "Entrez la quantité",
-        "type": "Type d'inspection",
-        "typeIncoming": "Inspection à la réception",
-        "typeInProcess": "Inspection en cours de fabrication",
-        "typeFinal": "Inspection finale",
-        "typeRandom": "Audit aléatoire",
-        "typeReturn": "Retour client",
-        "typeProcess": "Inspection de processus",
-        "status": "Statut",
-        "statusPending": "En attente",
-        "statusInProgress": "En cours",
-        "statusPassed": "Réussi",
-        "statusFailed": "Échoué",
-        "statusQuarantined": "En quarantaine",
-        "statusConditional": "Acceptation conditionnelle",
-        "result": "Résultat",
-        "resultNotSet": "Non défini",
-        "resultAccept": "Accepter",
-        "resultReject": "Rejeter",
-        "resultRework": "Remise en état",
-        "resultScrap": "Mise au rebut",
-        "resultReturn": "Retour au fournisseur",
-        "resultReview": "En cours de révision",
-        "location": "Emplacement de l'inspection",
-        "loadingLocations": "Chargement des emplacements...",
-        "selectLocationOptional": "Sélectionnez un emplacement (optionnel)",
-        "scheduledDate": "Date prévue",
-        "defectCount": "Nombre de défauts",
-        "results": "Résultats de l'inspection",
-        "addTest": "Ajouter un test",
-        "noResults": "Aucun résultat d'inspection ajouté. Cliquez sur \"Ajouter un test\" pour ajouter des paramètres.",
-        "testNum": "Test n°",
-        "testParameter": "Paramètre de test",
-        "expectedValue": "Valeur attendue",
-        "actualValue": "Valeur réelle",
-        "uom": "Unité de mesure",
-        "minValue": "Valeur min",
-        "maxValue": "Valeur max",
-        "defectSeverity": "Gravité du défaut",
-        "remarks": "Remarques",
-        "notesPlaceholder": "Entrez les notes d'inspection...",
-        "correctiveActionsPlaceholder": "Entrez les actions correctives...",
-        "uploadFiles": "Téléverser des fichiers",
-        "uploadLimits": "PNG, JPG, PDF jusqu'à 10 Mo",
-        "selectedFiles": "Fichiers sélectionnés ({{count}})",
-        "testParameterPlaceholder": "ex: Poids, Longueur",
-        "expectedValuePlaceholder": "Valeur attendue",
-        "actualValuePlaceholder": "Valeur réelle",
-        "uomPlaceholder": "kg, cm, etc."
-      },
-      "details": {
-        "title": "Détails du contrôle qualité",
-        "disposition": "Disposition",
-        "startInspection": "Démarrer l'inspection",
-        "markPassed": "Marquer comme réussi",
-        "markFailed": "Marquer comme échoué",
-        "quarantine": "Mise en quarantaine",
-        "reInspect": "Réinspecter",
-        "conditionalAccept": "Acceptation conditionnelle",
-        "approved": "Approuvé",
-        "approvedByOn": "par {{user}} le {{date}}",
-        "info": {
-          "itemId": "ID de l'article",
-          "inspectorId": "ID de l'inspecteur",
-          "location": "Emplacement"
-        },
-        "quantities": {
-          "title": "Quantités",
-          "inspected": "Inspecté",
-          "passed": "Réussi",
-          "failed": "Échoué",
-          "defects": "Défauts",
-          "defectRate": "Taux de défauts"
-        },
-        "impact": {
-          "title": "Impact sur l'ajustement des stocks",
-          "passedTitle": "Les articles restent disponibles en stock",
-          "passedDesc": "{{qty}} unités ont réussi l'inspection et sont disponibles",
-          "failedTitle": "Articles déplacés vers le stock endommagé",
-          "failedDesc": "{{qty}} unités ont échoué et ont été déduites du stock disponible",
-          "quarTitle": "Articles placés en quarantaine",
-          "quarDesc": "{{qty}} unités sont en quarantaine et réservées",
-          "autoAdjustment": "Les ajustements de stock sont appliqués automatiquement lors du changement de statut"
-        },
-        "notesActions": "Notes et Actions",
-        "inspectorNotes": "Notes de l'inspecteur",
-        "correctiveActions": "Actions correctives",
-        "attachments": "Pièces jointes",
-        "timeline": {
-          "title": "Chronologie",
-          "scheduled": "Prévu",
-          "started": "Démarré",
-          "completed": "Terminé",
-          "created": "Créé",
-          "lastUpdated": "Dernière mise à jour"
-        }
-      }
-    },
-    "quarantines": {
-      "title": "Quarantaines",
-      "subtitle": "Gérer les articles en quarantaine et suivre leur statut",
-      "newQuarantine": "Nouvelle quarantaine",
-      "stats": {
-        "total": "Total des quarantaines",
-        "inProcess": "En cours",
-        "released": "Libéré",
-        "rejected": "Rejeté"
-      },
-      "filters": {
-        "searchPlaceholder": "Rechercher des quarantaines...",
-        "allStatuses": "Tous les statuts",
-        "allSeverities": "Toutes les gravités"
-      },
-      "table": {
-        "itemId": "ID de l'article",
-        "lotSerial": "Lot/Série",
-        "quantity": "Quantité",
-        "reason": "Raison",
-        "severity": "Gravité",
-        "status": "Statut",
-        "expectedRelease": "Libération prévue"
-      },
-      "empty": "Aucune quarantaine trouvée",
-      "messages": {
-        "fetchError": "Échec de la récupération des quarantaines",
-        "deleteSuccess": "Quarantaine supprimée avec succès",
-        "deleteError": "Échec de la suppression de la quarantaine",
-        "createNotImplemented": "Fonctionnalité de création pas encore implémentée",
-        "editNotImplemented": "Fonctionnalité de modification pas encore implémentée",
-        "detailNotImplemented": "Vue détaillée pas encore implémentée"
-      },
-      "delete": {
-        "title": "Supprimer la quarantaine",
-        "confirm": "Êtes-vous sûr de vouloir supprimer cette quarantaine pour l'article \"{{id}}\" ? Cette action est irréversible."
-      }
-    },
-    "attachments": {
-      "title": "Pièces jointes qualité",
-      "subtitle": "Gérer les pièces jointes des contrôles qualité et quarantaines",
-      "upload": "Téléverser une pièce jointe",
-      "stats": {
-        "total": "Total des pièces jointes",
-        "images": "Images",
-        "videos": "Vidéos",
-        "documents": "Documents",
-        "certificates": "Certificats"
-      },
-      "filters": {
-        "searchPlaceholder": "Rechercher par nom de fichier ou description...",
-        "allTypes": "Tous les types"
-      },
-      "table": {
-        "file": "Fichier",
-        "type": "Type",
-        "size": "Taille",
-        "description": "Description",
-        "uploadedBy": "Téléversé par",
-        "uploadedAt": "Téléversé le"
-      },
-      "empty": "Aucune pièce jointe trouvée",
-      "noDescription": "Aucune description",
-      "messages": {
-        "fetchError": "Échec de la récupération des pièces jointes",
-        "deleteSuccess": "Pièce jointe supprimée avec succès",
-        "deleteError": "Échec de la suppression de la pièce jointe",
-        "urlError": "URL du fichier non disponible",
-        "uploadNotImplemented": "La fonctionnalité de téléversement n'est pas encore implémentée"
-      },
-      "delete": {
-        "title": "Supprimer la pièce jointe",
-        "confirm": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cette action est irréversible."
-      }
     }
   },
   "alerts": {
@@ -1320,7 +1120,8 @@
       "created": "Créée :",
       "acknowledged": "Acquittée :",
       "resolved": "Résolue :",
-      "byUser": "par {{user}}"
+      "byUser": "par {{user}}",
+      "location": "Emplacement"
     },
     "messages": {
       "ackSuccess": "Alerte acquittée",
@@ -1453,174 +1254,420 @@
       "saveError": "Échec de l'enregistrement des préférences"
     }
   },
-    "users": {
-      "searchPlaceholder": "Rechercher des utilisateurs...",
-      "createAccount": "Créer un compte",
-      "totalUsers": "Utilisateurs totaux",
-      "active": "Actif",
-      "locked": "Verrouillé",
-      "admins": "Administrateurs",
-      "table": {
-        "user": "Utilisateur",
-        "email": "E-mail",
-        "role": "Rôle",
-        "emailVerified": "E-mail vérifié",
-        "status": "Statut",
-        "lastLogin": "Dernière connexion",
-        "actions": "Actions"
-      },
-      "noUsersFound": "Aucun utilisateur trouvé",
-      "actions": {
-        "deactivate": "Désactiver",
-        "activate": "Activer",
-        "unlock": "Déverrouiller",
-        "lock": "Verrouiller",
-        "delete": "Supprimer",
-        "activated": "\"{{username}}\" activé",
-        "deactivated": "\"{{username}}\" désactivé",
-        "locked": "\"{{username}}\" verrouillé",
-        "unlocked": "\"{{username}}\" déverrouillé"
-      },
-      "delete": {
-        "title": "Supprimer le compte",
-        "subtitle": "Cette action est irréversible",
-        "warning": "Vous êtes sur le point de supprimer définitivement **@{{username}}**. Toutes les données associées à ce compte seront supprimées et l'accès sera révoqué immédiatement.",
-        "confirm": "Oui, supprimer",
-        "deleting": "Suppression...",
-        "success": "Le compte \"@{{username}}\" a été supprimé",
-        "error": "Échec de la suppression de l'utilisateur"
-      }
+  "users": {
+    "searchPlaceholder": "Rechercher des utilisateurs...",
+    "createAccount": "Créer un compte",
+    "totalUsers": "Utilisateurs totaux",
+    "active": "Actif",
+    "locked": "Verrouillé",
+    "admins": "Administrateurs",
+    "table": {
+      "user": "Utilisateur",
+      "email": "E-mail",
+      "role": "Rôle",
+      "emailVerified": "E-mail vérifié",
+      "status": "Statut",
+      "lastLogin": "Dernière connexion",
+      "actions": "Actions"
     },
-    "audit": {
-      "title": "Journaux d'audit",
-      "allLogs": "Tous les journaux",
-      "failedLogins": "Connexions échouées",
-      "securityEvents": "Événements de sécurité",
-      "searchPlaceholder": "Rechercher dans les journaux...",
-      "totalLogs": "Total Journaux",
-      "successful": "Réussi",
-      "failed": "Échoué",
-      "uniqueUsers": "Utilisateurs uniques",
-      "table": {
-        "timestamp": "Horodatage",
-        "user": "Utilisateur",
-        "action": "Action",
-        "status": "Statut",
-        "ipAddress": "Adresse IP",
-        "details": "Détails"
-      },
-      "noLogsFound": "Aucun journal d'audit trouvé"
+    "noUsersFound": "Aucun utilisateur trouvé",
+    "actions": {
+      "deactivate": "Désactiver",
+      "activate": "Activer",
+      "unlock": "Déverrouiller",
+      "lock": "Verrouiller",
+      "delete": "Supprimer",
+      "activated": "\"{{username}}\" activé",
+      "deactivated": "\"{{username}}\" désactivé",
+      "locked": "\"{{username}}\" verrouillé",
+      "unlocked": "\"{{username}}\" déverrouillé"
     },
-    "permissions": {
-      "matrixTitle": "Matrice des autorisations de rôle",
-      "matrixSubtitle": "Afficher les autorisations attribuées à chaque rôle du système. Les autorisations sont basées sur les rôles et appliquées sur le serveur.",
-      "fullBadge": "Complet",
-      "count": "{{count}} autorisations",
-      "granted": "Accordé",
-      "denied": "Refusé",
-      "footer": "Les autorisations sont appliquées côté serveur. Les modifications de rôles nécessitent une mise à jour du serveur et une nouvelle connexion de l'utilisateur.",
-      "groups": {
-        "dashboard": "Tableau de bord",
-        "products": "Produits",
-        "categories": "Catégories",
-        "inventory": "Inventaire",
-        "locations": "Emplacements",
-        "movements": "Mouvements",
-        "quality": "Qualité",
-        "alerts": "Alertes",
-        "userManagement": "Gestion des utilisateurs",
-        "auditSettings": "Audit et Paramètres"
-      },
-      "labels": {
-        "viewDashboard": "Affichage du tableau de bord",
-        "viewProducts": "Affichage des produits",
-        "createProducts": "Création de produits",
-        "editProducts": "Modification de produits",
-        "deleteProducts": "Suppression de produits",
-        "viewCategories": "Affichage des catégories",
-        "createCategories": "Création de catégories",
-        "editCategories": "Modification de catégories",
-        "deleteCategories": "Suppression de catégories",
-        "viewInventory": "Affichage de l'inventaire",
-        "createInventory": "Création d'inventaire",
-        "editInventory": "Modification d'inventaire",
-        "deleteInventory": "Suppression d'inventaire",
-        "viewLots": "Affichage des lots",
-        "createLots": "Création de lots",
-        "editLots": "Modification de lots",
-        "deleteLots": "Suppression de lots",
-        "viewSerials": "Affichage des séries",
-        "createSerials": "Création de numéros de série",
-        "editSerials": "Modification de numéros de série",
-        "deleteSerials": "Suppression de numéros de série",
-        "viewLocations": "Affichage des emplacements",
-        "createLocations": "Création d'emplacements",
-        "editLocations": "Modification d'emplacements",
-        "deleteLocations": "Suppression d'emplacements",
-        "viewMovements": "Affichage des mouvements",
-        "createMovements": "Création de mouvements",
-        "editMovements": "Modification de mouvements",
-        "deleteMovements": "Suppression de mouvements",
-        "approveMovements": "Approbation des mouvements",
-        "cancelMovements": "Annulation des mouvements",
-        "viewQuality": "Affichage des contrôles qualité",
-        "createQuality": "Création de fiches CQ",
-        "editQuality": "Modification de fiches CQ",
-        "deleteQuality": "Suppression de fiches CQ",
-        "approveQuality": "Approbation des résultats CQ",
-        "manageQuarantine": "Gestion des quarantaines",
-        "viewAlerts": "Affichage des alertes",
-        "manageAlerts": "Gestion des règles d'alerte",
-        "deleteAlerts": "Suppression d'alertes",
-        "viewUsers": "Affichage des utilisateurs",
-        "createUsers": "Création d'utilisateurs",
-        "editUsers": "Modification d'utilisateurs",
-        "deleteUsers": "Suppression d'utilisateurs",
-        "viewPermissions": "Affichage des autorisations",
-        "managePermissions": "Gestion des autorisations",
-        "viewAudit": "Affichage des journaux d'audit",
-        "viewSettings": "Affichage des paramètres",
-        "manageSettings": "Gestion des paramètres"
-      }
+    "delete": {
+      "title": "Supprimer le compte",
+      "subtitle": "Cette action est irréversible",
+      "warning": "Vous êtes sur le point de supprimer définitivement **@{{username}}**. Toutes les données associées à ce compte seront supprimées et l'accès sera révoqué immédiatement.",
+      "confirm": "Oui, supprimer",
+      "deleting": "Suppression...",
+      "success": "Le compte \"@{{username}}\" a été supprimé",
+      "error": "Échec de la suppression de l'utilisateur"
+    }
+  },
+  "audit": {
+    "title": "Journaux d'audit",
+    "allLogs": "Tous les journaux",
+    "failedLogins": "Connexions échouées",
+    "securityEvents": "Événements de sécurité",
+    "searchPlaceholder": "Rechercher dans les journaux...",
+    "totalLogs": "Total Journaux",
+    "successful": "Réussi",
+    "failed": "Échoué",
+    "uniqueUsers": "Utilisateurs uniques",
+    "table": {
+      "timestamp": "Horodatage",
+      "user": "Utilisateur",
+      "action": "Action",
+      "status": "Statut",
+      "ipAddress": "Adresse IP",
+      "details": "Détails"
     },
-    "roles": {
-      "admin": {
-        "label": "Administrateur",
-        "description": "Accès complet à toutes les fonctionnalités"
-      },
-      "manager": {
-        "label": "Manager",
-        "description": "Accès large sauf gestion utilisateurs et autorisations"
-      },
-      "warehouseManager": {
-        "label": "Manager d'Entrepôt",
-        "description": "Contrôle complet de l'entrepôt et des stocks"
-      },
-      "qualityManager": {
-        "label": "Manager Qualité",
-        "description": "Gestion du contrôle qualité et des quarantaines"
-      },
-      "supervisor": {
-        "label": "Superviseur",
-        "description": "Supervision des opérations et approbation"
-      },
-      "operator": {
-        "label": "Opérateur",
-        "description": "Tâches opérationnelles quotidiennes"
-      },
-      "procurement": {
-        "label": "Approvisionnement",
-        "description": "Création de produits et lots pour l'achat"
-      },
-      "auditor": {
-        "label": "Auditeur",
-        "description": "Accès en lecture seule plus journaux d'audit"
-      },
-      "user": {
-        "label": "Utilisateur",
-        "description": "Accès de base en lecture seule"
-      }
+    "noLogsFound": "Aucun journal d'audit trouvé"
+  },
+  "permissions": {
+    "matrixTitle": "Matrice des autorisations de rôle",
+    "matrixSubtitle": "Afficher les autorisations attribuées à chaque rôle du système. Les autorisations sont basées sur les rôles et appliquées sur le serveur.",
+    "fullBadge": "Complet",
+    "count": "{{count}} autorisations",
+    "granted": "Accordé",
+    "denied": "Refusé",
+    "footer": "Les autorisations sont appliquées côté serveur. Les modifications de rôles nécessitent une mise à jour du serveur et une nouvelle connexion de l'utilisateur.",
+    "groups": {
+      "dashboard": "Tableau de bord",
+      "products": "Produits",
+      "categories": "Catégories",
+      "inventory": "Inventaire",
+      "locations": "Emplacements",
+      "movements": "Mouvements",
+      "alerts": "Alertes",
+      "userManagement": "Gestion des utilisateurs",
+      "auditSettings": "Audit et Paramètres"
+    },
+    "labels": {
+      "viewDashboard": "Affichage du tableau de bord",
+      "viewProducts": "Affichage des produits",
+      "createProducts": "Création de produits",
+      "editProducts": "Modification de produits",
+      "deleteProducts": "Suppression de produits",
+      "viewCategories": "Affichage des catégories",
+      "createCategories": "Création de catégories",
+      "editCategories": "Modification de catégories",
+      "deleteCategories": "Suppression de catégories",
+      "viewInventory": "Affichage de l'inventaire",
+      "createInventory": "Création d'inventaire",
+      "editInventory": "Modification d'inventaire",
+      "deleteInventory": "Suppression d'inventaire",
+      "viewLots": "Affichage des lots",
+      "createLots": "Création de lots",
+      "editLots": "Modification de lots",
+      "deleteLots": "Suppression de lots",
+      "viewSerials": "Affichage des séries",
+      "createSerials": "Création de numéros de série",
+      "editSerials": "Modification de numéros de série",
+      "deleteSerials": "Suppression de numéros de série",
+      "viewLocations": "Affichage des emplacements",
+      "createLocations": "Création d'emplacements",
+      "editLocations": "Modification d'emplacements",
+      "deleteLocations": "Suppression d'emplacements",
+      "viewMovements": "Affichage des mouvements",
+      "createMovements": "Création de mouvements",
+      "editMovements": "Modification de mouvements",
+      "deleteMovements": "Suppression de mouvements",
+      "approveMovements": "Approbation des mouvements",
+      "cancelMovements": "Annulation des mouvements",
+      "viewAlerts": "Affichage des alertes",
+      "manageAlerts": "Gestion des règles d'alerte",
+      "deleteAlerts": "Suppression d'alertes",
+      "viewUsers": "Affichage des utilisateurs",
+      "createUsers": "Création d'utilisateurs",
+      "editUsers": "Modification d'utilisateurs",
+      "deleteUsers": "Suppression d'utilisateurs",
+      "viewPermissions": "Affichage des autorisations",
+      "managePermissions": "Gestion des autorisations",
+      "viewAudit": "Affichage des journaux d'audit",
+      "viewSettings": "Affichage des paramètres",
+      "manageSettings": "Gestion des paramètres"
+    }
+  },
+  "roles": {
+    "admin": {
+      "label": "Administrateur",
+      "description": "Accès complet à toutes les fonctionnalités"
+    },
+    "manager": {
+      "label": "Manager",
+      "description": "Accès large sauf gestion utilisateurs et autorisations"
+    },
+    "warehouseManager": {
+      "label": "Manager d'Entrepôt",
+      "description": "Contrôle complet de l'entrepôt et des stocks"
+    },
+    "supervisor": {
+      "label": "Superviseur",
+      "description": "Supervision des opérations et approbation"
+    },
+    "operator": {
+      "label": "Opérateur",
+      "description": "Tâches opérationnelles quotidiennes"
+    },
+    "procurement": {
+      "label": "Approvisionnement",
+      "description": "Création de produits et lots pour l'achat"
+    },
+    "auditor": {
+      "label": "Auditeur",
+      "description": "Accès en lecture seule plus journaux d'audit"
+    },
+    "user": {
+      "label": "Utilisateur",
+      "description": "Accès de base en lecture seule"
+    }
+  },
+  "purchase": {
+    "title": "Achat",
+    "suppliers": {
+      "title": "Fournisseurs",
+      "new": "Nouveau fournisseur",
+      "name": "Nom",
+      "email": "Email",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "contactPerson": "Contact",
+      "paymentTerms": "Délai de paiement (jours)",
+      "leadTime": "Délai de livraison (jours)",
+      "status": "Statut",
+      "notes": "Notes",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce fournisseur ?",
+      "statusActive": "Actif",
+      "statusInactive": "Inactif",
+      "statusBlocked": "Bloqué",
+      "allStatuses": "Tous les statuts",
+      "count": "fournisseurs",
+      "searchPlaceholder": "Rechercher des fournisseurs...",
+      "emptyState": "Aucun fournisseur trouvé",
+      "created": "Fournisseur créé",
+      "updated": "Fournisseur mis à jour",
+      "deleted": "Fournisseur supprimé",
+      "deleteFailed": "Échec de la suppression",
+      "saveFailed": "Échec de l'enregistrement"
+    },
+    "orders": {
+      "title": "Bons de commande",
+      "new": "Nouveau bon de commande",
+      "reference": "Référence",
+      "supplier": "Fournisseur",
+      "status": "Statut",
+      "expectedDelivery": "Livraison prévue",
+      "totalAmount": "Montant total",
+      "lines": "Lignes",
+      "confirm": "Confirmer",
+      "send": "Envoyer",
+      "receive": "Réceptionner",
+      "cancel": "Annuler",
+      "count": "commandes",
+      "searchPlaceholder": "Rechercher des commandes...",
+      "emptyState": "Aucun bon de commande trouvé",
+      "created": "Bon de commande créé",
+      "updated": "Bon de commande mis à jour",
+      "deleted": "Bon de commande supprimé",
+      "deleteFailed": "Échec de la suppression",
+      "saveFailed": "Échec de l'enregistrement",
+      "actionFailed": "Échec de l'action",
+      "statusDraft": "Brouillon",
+      "statusConfirmed": "Confirmé",
+      "statusSent": "Envoyé",
+      "statusPartiallyReceived": "Partiellement reçu",
+      "statusReceived": "Reçu",
+      "statusCancelled": "Annulé",
+      "allSuppliers": "Tous les fournisseurs",
+      "confirmOrder": "Commande confirmée",
+      "sentOrder": "Commande envoyée",
+      "cancelOrder": "Commande annulée"
+    }
+  },
+  "sales": {
+    "title": "Vente",
+    "customers": {
+      "title": "Clients",
+      "new": "Nouveau client",
+      "name": "Nom",
+      "email": "Email",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "contactPerson": "Contact",
+      "paymentTerms": "Délai de paiement (jours)",
+      "status": "Statut",
+      "notes": "Notes",
+      "statusActive": "Actif",
+      "statusInactive": "Inactif",
+      "statusBlocked": "Bloqué",
+      "allStatuses": "Tous les statuts",
+      "count": "clients",
+      "emptyState": "Aucun client trouvé",
+      "created": "Client créé",
+      "updated": "Client mis à jour",
+      "deleted": "Client supprimé",
+      "deleteFailed": "Échec de la suppression",
+      "saveFailed": "Échec de l'enregistrement"
+    },
+    "quotes": {
+      "title": "Devis",
+      "new": "Nouveau devis",
+      "reference": "Référence",
+      "customer": "Client",
+      "status": "Statut",
+      "validUntil": "Valable jusqu'au",
+      "discount": "Remise (%)",
+      "subtotal": "Sous-total",
+      "total": "Total",
+      "send": "Envoyer",
+      "accept": "Accepter",
+      "reject": "Rejeter",
+      "convert": "Convertir en BL",
+      "searchPlaceholder": "Rechercher des devis...",
+      "emptyState": "Aucun devis trouvé",
+      "allCustomers": "Tous les clients",
+      "selectCustomer": "Sélectionner un client",
+      "created": "Devis créé",
+      "updated": "Devis mis à jour",
+      "deleted": "Devis supprimé",
+      "saveFailed": "Échec de l'enregistrement",
+      "actionFailed": "Échec de l'action",
+      "statusDraft": "Brouillon",
+      "statusSent": "Envoyé",
+      "statusAccepted": "Accepté",
+      "statusRejected": "Rejeté",
+      "statusExpired": "Expiré",
+      "statusConverted": "Converti",
+      "sent": "Devis envoyé",
+      "accepted": "Devis accepté",
+      "rejected": "Devis rejeté",
+      "converted": "Devis converti en bon de livraison",
+      "itemName": "Nom de l'article",
+      "sku": "SKU",
+      "qty": "Qté",
+      "unitPrice": "Prix unitaire",
+      "lineTotal": "Total ligne",
+      "discountPct": "Remise %"
+    },
+    "deliveryNotes": {
+      "title": "Bons de livraison",
+      "new": "Nouveau BL",
+      "reference": "Référence",
+      "customer": "Client",
+      "status": "Statut",
+      "deliveryDate": "Date de livraison",
+      "deliveryAddress": "Adresse de livraison",
+      "validate": "Valider",
+      "ship": "Expédier",
+      "deliver": "Livrer",
+      "cancel": "Annuler",
+      "searchPlaceholder": "Rechercher des bons de livraison...",
+      "emptyState": "Aucun bon de livraison trouvé",
+      "allCustomers": "Tous les clients",
+      "selectCustomer": "Sélectionner un client",
+      "created": "Bon de livraison créé",
+      "updated": "Bon de livraison mis à jour",
+      "saveFailed": "Échec de l'enregistrement",
+      "actionFailed": "Échec de l'action",
+      "cancelled": "Bon de livraison annulé",
+      "validated": "Bon de livraison validé",
+      "shipped": "Bon de livraison expédié",
+      "delivered": "Livré avec succès",
+      "statusDraft": "Brouillon",
+      "statusValidated": "Validé",
+      "statusShipped": "Expédié",
+      "statusDelivered": "Livré",
+      "statusCancelled": "Annulé"
+    }
+  },
+  "quoteForm": {
+    "title": "Nouveau Devis",
+    "subtitle": "Créer un devis de vente avec les articles de l'inventaire",
+    "basicInfo": "Informations de base",
+    "warehouse": "Entrepôt / Inventaire",
+    "selectWarehouse": "Sélectionner un entrepôt",
+    "availableItems": "Articles disponibles en inventaire",
+    "noItemsInWarehouse": "Aucun article trouvé dans cet entrepôt",
+    "quoteLines": "Lignes du devis",
+    "noLines": "Aucun article ajouté. Sélectionnez un entrepôt et ajoutez des articles.",
+    "item": "Article",
+    "availableQty": "Qté disponible",
+    "avail": "Dispo",
+    "added": "Ajouté",
+    "unitPrice": "Prix unitaire",
+    "exceedsStock": "Dépasse le stock disponible",
+    "summary": "Résumé du devis",
+    "linesCount": "{{count}} ligne(s)",
+    "stockWarning": "⚠ Certains articles dépassent le stock disponible",
+    "saveDraft": "Enregistrer en brouillon",
+    "sendQuote": "Envoyer le devis",
+    "generatePdf": "Générer PDF",
+    "selectCustomer": "Veuillez sélectionner un client",
+    "addItems": "Veuillez ajouter au moins un article",
+    "itemAlreadyAdded": "Cet article est déjà dans le devis",
+    "notesPlaceholder": "Notes supplémentaires...",
+    "errorLoadingItems": "Échec du chargement des articles"
+  },
+  "deliveryForm": {
+    "title": "Nouveau Bon de Livraison",
+    "subtitle": "Créer un bon de livraison lié à un devis ou manuellement",
+    "linkQuote": "Lier à un devis accepté (optionnel)",
+    "searchQuotePlaceholder": "Rechercher par référence ou ID...",
+    "linkButton": "Lier",
+    "linkHint": "Liez à un devis accepté pour pré-remplir automatiquement les articles",
+    "linkedQuote": "Devis lié",
+    "unlinkQuote": "Dissocier",
+    "quoteNotFound": "Devis non trouvé",
+    "quoteNotAccepted": "Seuls les devis ACCEPTÉS peuvent être liés",
+    "quoteLinkSuccess": "Devis lié avec succès",
+    "quoteLinkError": "Impossible de lier le devis",
+    "deliveryLines": "Lignes de livraison",
+    "orderedQty": "Qté commandée",
+    "deliveredQty": "Qté livrée",
+    "save": "Enregistrer le bon de livraison",
+    "addressPlaceholder": "Adresse de livraison...",
+    "lineNotesPlaceholder": "Notes de ligne...",
+    "addItemManually": "Ajouter un article manuellement",
+    "itemNamePlaceholder": "Nom de l'article...",
+    "itemSkuPlaceholder": "SKU (optionnel)...",
+    "lockedByQuote": "Verrouillé par le devis",
+    "active": "Actif",
+    "inventoryHint": "Optionnel : sélectionnez un entrepôt pour choisir des articles",
+    "autoLoadedItems": "{{count}} articles chargés automatiquement",
+    "hintSelectFromAbove": "Sélectionnez des articles dans le panneau ci-dessus ou cliquez « Ajouter manuellement »",
+    "hintManualOrInventory": "Sélectionnez un entrepôt ci-dessus ou cliquez « Ajouter manuellement »",
+    "searchCustomer": "Rechercher un client..."
+  },
+  "purchaseForm": {
+    "title": "Nouveau Bon de Commande",
+    "subtitle": "Créer une commande d'achat avec suggestions d'inventaire",
+    "selectSupplier": "Sélectionner un fournisseur",
+    "orderLines": "Lignes de commande",
+    "addLine": "Ajouter une ligne",
+    "orderedQty": "Qté commandée",
+    "lineTotal": "Total",
+    "totalLines": "Total lignes",
+    "itemNamePlaceholder": "Nom de l'article...",
+    "currentStock": "Stock actuel",
+    "lowStockSuggestions": "Suggestions stock faible",
+    "threshold": "Seuil",
+    "noLowStockItems": "Aucun article sous le seuil",
+    "availQty": "Disponible",
+    "addToOrder": "Ajouter à la commande",
+    "saveOrder": "Enregistrer la commande",
+    "fillAllItems": "Veuillez remplir tous les noms d'articles"
+  },
+  "landing": {
+    "hero": {
+      "badge": "✨ Nouveau : Service Achats & Ventes disponible",
+      "title": "Gérez votre stock intelligemment",
+      "subtitle": "La plateforme SaaS tout-en-un pour les PME.",
+      "cta": "Commencer gratuitement",
+      "demo": "Voir la démo"
+    },
+    "features": {
+      "title": "Tout ce dont vous avez besoin"
+    },
+    "pricing": {
+      "title": "Des tarifs simples et transparents",
+      "popular": "Le plus populaire"
+    },
+    "waitlist": {
+      "title": "Rejoignez la liste d'attente",
+      "subtitle": "Soyez parmi les premiers.",
+      "placeholder": "votre@email.com",
+      "button": "Rejoindre",
+      "success": "✅ Merci ! Vous êtes sur la liste.",
+      "social": "Déjà 247 personnes sur la liste • Pas de spam"
     }
   }
-
-
+}

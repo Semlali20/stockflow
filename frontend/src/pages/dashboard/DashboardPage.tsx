@@ -6,12 +6,13 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   Package, Warehouse, ArrowLeftRight, Bell,
-  ShieldCheck, AlertTriangle, Users, MapPin, Layers,
-  ClipboardCheck, RefreshCw, Activity,
+  AlertTriangle, Users, MapPin, Layers,
+  RefreshCw, Activity,
   CheckCircle, XCircle, Clock, AlertOctagon,
   Box, Archive, Truck, Settings, Eye, ChevronRight,
   Hash, ShoppingCart, BarChart2, Zap, Star,
   AlertCircle, ArrowUpRight, ArrowDownRight,
+  Building2, UserCheck, FileText, Wallet,
 } from 'lucide-react';
 import {
   AreaChart, Area,
@@ -298,7 +299,6 @@ const ChartTooltip = ({ active, payload, label }: any) => {
 const getRoleInfo = (roles: string[], t: any) => {
   if (hasRole(roles, 'ADMIN'))            return { label: t('dashboard.roles.administrator'),     color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300', icon: Star };
   if (hasRole(roles, 'WAREHOUSE_MANAGER'))return { label: t('dashboard.roles.warehouseManager'), color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',         icon: Warehouse };
-  if (hasRole(roles, 'QUALITY_MANAGER','QUALITY')) return { label: t('dashboard.roles.qualityManager'), color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300', icon: ShieldCheck };
   if (hasRole(roles, 'MANAGER'))          return { label: t('dashboard.roles.manager'),           color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300',  icon: BarChart2 };
   if (hasRole(roles, 'SUPERVISOR'))       return { label: t('dashboard.roles.supervisor'),        color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',  icon: Eye };
   if (hasRole(roles, 'OPERATOR'))         return { label: t('dashboard.roles.operator'),          color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',  icon: Zap };
@@ -322,15 +322,14 @@ const getQuickActions = (roles: string[], t: any): QuickActionDef[] => {
   const all: QuickActionDef[] = [
     { label: t('dashboard.services.inventory'),    icon: Box,          to: '/inventory/Inventories',  gradient: 'from-blue-500 to-indigo-600' },
     { label: t('dashboard.services.movements'),    icon: ArrowLeftRight, to: '/movements',            gradient: 'from-violet-500 to-purple-600' },
-    { label: t('dashboard.panels.recentAlerts'),       icon: Bell,          to: '/alerts',                gradient: 'from-red-500 to-rose-600' },
+    { label: t('dashboard.panels.recentAlerts'),   icon: Bell,          to: '/alerts',                gradient: 'from-red-500 to-rose-600' },
+    { label: t('dashboard.suppliers'),             icon: Building2,     to: '/purchase/suppliers',    gradient: 'from-purple-500 to-violet-600' },
+    { label: t('dashboard.customers'),             icon: UserCheck,     to: '/sales/customers',       gradient: 'from-teal-500 to-cyan-600' },
   ];
 
   if (hasRole(roles, 'ADMIN', 'MANAGER', 'WAREHOUSE_MANAGER')) {
     all.push({ label: t('dashboard.services.products'),    icon: Package,   to: '/products/items',          gradient: 'from-emerald-500 to-teal-600' });
     all.push({ label: t('dashboard.roles.warehouseManager'),  icon: Warehouse, to: '/locations/warehouses',    gradient: 'from-amber-500 to-orange-600' });
-  }
-  if (hasRole(roles, 'ADMIN', 'QUALITY', 'SUPERVISOR')) {
-    all.push({ label: t('dashboard.services.qcControls'), icon: ShieldCheck, to: '/quality/controls',      gradient: 'from-pink-500 to-rose-600' });
   }
   if (hasRole(roles, 'ADMIN')) {
     all.push({ label: t('dashboard.panels.totalLots'),        icon: Archive,   to: '/inventory/lots',          gradient: 'from-cyan-500 to-sky-600' });
@@ -379,7 +378,6 @@ const InventorySnapshot = ({ stats, t }: { stats: any; t: any }) => {
   const bars = [
     { label: t('dashboard.snapshot.inStock'),    value: Math.max(0, total - stats.lowStockItems), color: 'bg-emerald-500', pct: Math.round((Math.max(0, total - stats.lowStockItems) / total) * 100) },
     { label: t('dashboard.snapshot.lowStock'),   value: stats.lowStockItems,      color: 'bg-amber-500',  pct: Math.round((stats.lowStockItems / total) * 100) },
-    { label: t('dashboard.snapshot.quarantined'), value: stats.totalQuarantines,   color: 'bg-red-500',    pct: Math.round((stats.totalQuarantines / total) * 100) },
   ];
   return (
     <div className="space-y-3">
@@ -545,11 +543,10 @@ export const DashboardPage = () => {
   );
 
   const donutData = useMemo(() => {
-    const inStock = Math.max(0, stats.totalInventory - stats.lowStockItems - stats.totalQuarantines);
+    const inStock = Math.max(0, stats.totalInventory - stats.lowStockItems);
     const d = [
-      { name: t('dashboard.snapshot.inStock'),    value: inStock,              fill: '#10B981' },
-      { name: t('dashboard.snapshot.lowStock'),   value: stats.lowStockItems,  fill: '#F59E0B' },
-      { name: t('dashboard.snapshot.quarantined'), value: stats.totalQuarantines, fill: '#EF4444' },
+      { name: t('dashboard.snapshot.inStock'),  value: inStock,             fill: '#10B981' },
+      { name: t('dashboard.snapshot.lowStock'), value: stats.lowStockItems, fill: '#F59E0B' },
     ].filter(x => x.value > 0);
     return d;
   }, [stats, t]);
@@ -675,17 +672,6 @@ export const DashboardPage = () => {
           delay={0.2}
         />
         <KpiCard
-          title={t('dashboard.kpi.qcControls')}
-          value={fmt(stats.totalQualityControls)}
-          subtitle={t('dashboard.kpi.quarantinedCount', { total: fmt(stats.totalQuarantines) })}
-          icon={ShieldCheck}
-          gradient="from-pink-500 to-rose-600"
-          bgLight="bg-pink-50 dark:bg-pink-900/30"
-          textAccent="text-pink-600 dark:text-pink-400"
-          onClick={() => navigate('/quality/controls')}
-          delay={0.25}
-        />
-        <KpiCard
           title={t('dashboard.kpi.locations')}
           value={fmt(stats.totalLocations)}
           subtitle={t('dashboard.kpi.warehousesSitesCount', { warehouses: fmt(stats.totalWarehouses), sites: fmt(stats.totalSites) })}
@@ -696,6 +682,88 @@ export const DashboardPage = () => {
           onClick={() => navigate('/locations/warehouses')}
           delay={0.3}
         />
+      </div>
+
+      {/* ══════════════════════════════════════════════════
+          VUE COMMERCIALE — Purchase & Sales KPI cards
+      ══════════════════════════════════════════════════ */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+            {t('dashboard.commercial')}
+          </span>
+          <div className="flex-1 h-px bg-neutral-100 dark:bg-neutral-700" />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          {/* Stock Valorisé */}
+          <KpiCard
+            title={t('dashboard.stockValue')}
+            value={stats.totalStockValue > 0
+              ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(stats.totalStockValue)
+              : '—'}
+            subtitle={t('dashboard.stockValueDesc')}
+            icon={Wallet}
+            gradient="from-emerald-500 to-green-600"
+            bgLight="bg-emerald-50 dark:bg-emerald-900/30"
+            textAccent="text-emerald-600 dark:text-emerald-400"
+            delay={0.05}
+          />
+          {/* Fournisseurs */}
+          <KpiCard
+            title={t('dashboard.suppliers')}
+            value={fmt(stats.suppliers)}
+            icon={Building2}
+            gradient="from-purple-500 to-violet-600"
+            bgLight="bg-purple-50 dark:bg-purple-900/30"
+            textAccent="text-purple-600 dark:text-purple-400"
+            onClick={() => navigate('/purchase/suppliers')}
+            delay={0.1}
+          />
+          {/* Bons de commande */}
+          <KpiCard
+            title={t('dashboard.purchaseOrders')}
+            value={fmt(stats.purchaseOrders)}
+            icon={ShoppingCart}
+            gradient="from-orange-500 to-amber-600"
+            bgLight="bg-orange-50 dark:bg-orange-900/30"
+            textAccent="text-orange-600 dark:text-orange-400"
+            onClick={() => navigate('/purchase/orders')}
+            delay={0.15}
+          />
+          {/* Clients */}
+          <KpiCard
+            title={t('dashboard.customers')}
+            value={fmt(stats.customers)}
+            icon={UserCheck}
+            gradient="from-teal-500 to-cyan-600"
+            bgLight="bg-teal-50 dark:bg-teal-900/30"
+            textAccent="text-teal-600 dark:text-teal-400"
+            onClick={() => navigate('/sales/customers')}
+            delay={0.2}
+          />
+          {/* Devis */}
+          <KpiCard
+            title={t('dashboard.quotes')}
+            value={fmt(stats.quotes)}
+            icon={FileText}
+            gradient="from-blue-500 to-indigo-600"
+            bgLight="bg-blue-50 dark:bg-blue-900/30"
+            textAccent="text-blue-600 dark:text-blue-400"
+            onClick={() => navigate('/sales/quotes')}
+            delay={0.25}
+          />
+          {/* Bons de livraison */}
+          <KpiCard
+            title={t('dashboard.deliveryNotes')}
+            value={fmt(stats.deliveryNotes)}
+            icon={Truck}
+            gradient="from-green-500 to-emerald-600"
+            bgLight="bg-green-50 dark:bg-green-900/30"
+            textAccent="text-green-600 dark:text-green-400"
+            onClick={() => navigate('/sales/delivery-notes')}
+            delay={0.3}
+          />
+        </div>
       </div>
 
       {/* ══════════════════════════════════════════════════
@@ -793,19 +861,56 @@ export const DashboardPage = () => {
           delay={0.2}
         >
           {movTypeData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={210}>
-              <BarChart data={movTypeData} margin={{ top: 0, right: 5, left: -20, bottom: 0 }} barSize={36}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
-                <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="count" name="Count" radius={[8, 8, 0, 0]}>
-                  {movTypeData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={210}>
+                <BarChart data={movTypeData} margin={{ top: 4, right: 5, left: -20, bottom: 0 }} barSize={38}>
+                  <defs>
+                    {movTypeData.map((entry, i) => (
+                      <linearGradient key={i} id={`barGrad${i}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%"   stopColor={entry.color} stopOpacity={1} />
+                        <stop offset="100%" stopColor={entry.color} stopOpacity={0.65} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    content={({ active, payload, label }: any) => {
+                      if (!active || !payload?.length) return null;
+                      const entry = payload[0];
+                      return (
+                        <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-xl p-3 text-sm">
+                          <p className="font-semibold text-neutral-700 dark:text-neutral-300 mb-1">{label}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ background: entry.fill ?? entry.color }} />
+                            <span className="text-neutral-500 dark:text-neutral-400">Mouvements:</span>
+                            <span className="font-bold text-neutral-900 dark:text-neutral-100">
+                              {new Intl.NumberFormat('fr-FR').format(entry.value)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Bar dataKey="count" name="Mouvements" radius={[8, 8, 0, 0]}>
+                    {movTypeData.map((entry, i) => (
+                      <Cell key={i} fill={`url(#barGrad${i})`} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              {/* Legend with colored dots */}
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-700">
+                {movTypeData.map((entry, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: entry.color }} />
+                    <span>{entry.name}</span>
+                    <span className="font-semibold text-neutral-700 dark:text-neutral-300">({fmt(entry.count)})</span>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
             <EmptyFeed message={t('dashboard.empty.noMovementData')} />
           )}
@@ -1011,7 +1116,6 @@ export const DashboardPage = () => {
             <SystemTile label={t('dashboard.services.categories')}  value={stats.totalCategories}     icon={Layers}        color="bg-indigo-500"  to="/products/categories" />
             <SystemTile label={t('dashboard.services.inventory')}   value={stats.totalInventory}      icon={Box}           color="bg-teal-500"    to="/inventory/Inventories" />
             <SystemTile label={t('dashboard.services.movements')}   value={stats.totalMovements}      icon={ArrowLeftRight} color="bg-violet-500" to="/movements" />
-            <SystemTile label={t('dashboard.services.qcControls')} value={stats.totalQualityControls} icon={ClipboardCheck} color="bg-pink-500"  to="/quality/controls" />
             <SystemTile label={t('dashboard.services.locations')}   value={stats.totalLocations}      icon={MapPin}        color="bg-cyan-500"    to="/locations/locations" />
           </div>
 
@@ -1034,37 +1138,6 @@ export const DashboardPage = () => {
                 </div>
               ))}
             </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* ══════════════════════════════════════════════════
-          ROW 8 — Quality & Quarantine (admin/quality roles)
-      ══════════════════════════════════════════════════ */}
-      {hasRole(roles, 'ADMIN', 'MANAGER', 'QUALITY_MANAGER', 'QUALITY', 'SUPERVISOR') && (
-        stats.totalQualityControls > 0 || stats.totalQuarantines > 0
-      ) && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700/60 shadow-sm p-5"
-        >
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{t('dashboard.panels.qualityAndQuarantine')}</h3>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{t('dashboard.panels.qualityAndQuarantineDesc')}</p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              { label: t('dashboard.panels.qcTotal'),    value: stats.totalQualityControls,  icon: ClipboardCheck, color: 'bg-indigo-500',  to: '/quality/controls' },
-              { label: t('dashboard.panels.pendingQC'),  value: stats.pendingQualityControls,icon: Clock,          color: 'bg-amber-500',   to: '/quality/controls' },
-              { label: t('dashboard.panels.passed'),      value: stats.passedQualityControls, icon: CheckCircle,    color: 'bg-emerald-500', to: '/quality/controls' },
-              { label: t('dashboard.panels.failed'),      value: stats.failedQualityControls, icon: XCircle,        color: 'bg-red-500',     to: '/quality/controls' },
-              { label: t('dashboard.panels.quarantines'), value: stats.totalQuarantines,      icon: AlertTriangle,  color: 'bg-orange-500',  to: '/quality/quarantines' },
-              { label: t('dashboard.panels.activeQuar'),value: stats.activeQuarantines,     icon: AlertOctagon,   color: 'bg-rose-600',    to: '/quality/quarantines' },
-            ].map((t_item) => (
-              <SystemTile key={t_item.label} label={t_item.label} value={t_item.value} icon={t_item.icon} color={t_item.color} to={t_item.to} />
-            ))}
           </div>
         </motion.div>
       )}

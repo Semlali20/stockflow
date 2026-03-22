@@ -69,18 +69,23 @@ class ApiClient {
           }
         }
 
-        // Handle other errors
+        // Handle other errors — skip toast if request was marked silent
+        if ((error.config as any)?.silent) {
+          return Promise.reject(error);
+        }
+
         if (error.response) {
           const message = (error.response.data as any)?.message || error.message || 'An error occurred';
-          
-          // Don't show toast for 401 (handled above) or if it's a validation error
+
+          // Don't show toast for 401 (handled above) or validation errors
           if (error.response.status !== 401 && error.response.status !== 422) {
-            toast.error(message);
+            const toastId = `http-error-${error.response.status}`;
+            toast.error(message, { id: toastId });
           }
         } else if (error.request) {
-          toast.error('Network error. Please check your connection.');
+          toast.error('Network error. Please check your connection.', { id: 'network-error' });
         } else {
-          toast.error('An unexpected error occurred.');
+          toast.error('An unexpected error occurred.', { id: 'unexpected-error' });
         }
 
         return Promise.reject(error);

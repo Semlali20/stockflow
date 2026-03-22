@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Boxes, Layers, Tag, Box, Barcode,
   Move, MapPin, Map, Building2, CheckCircle, Menu, X,
   Bell, Settings, Shield, Package, ChevronDown, Users,
+  ShoppingCart, TrendingUp, Truck, FileText, UserCheck,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -71,12 +72,20 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: 'nav.quality',
-    icon: CheckCircle,
+    label: 'nav.purchase',
+    icon: ShoppingCart,
     items: [
-      { name: 'nav.controls',    href: '/quality/controls',    icon: CheckCircle, permission: PERMISSIONS.QUALITY_VIEW },
-      { name: 'nav.quarantines', href: '/quality/quarantines', icon: Shield,      permission: PERMISSIONS.QUARANTINE_MANAGE },
-      { name: 'nav.attachments', href: '/quality/attachments', icon: Package,     permission: PERMISSIONS.QUALITY_VIEW },
+      { name: 'nav.suppliers', href: '/purchase/suppliers', icon: Truck },
+      { name: 'nav.purchaseOrders', href: '/purchase/orders', icon: ShoppingCart },
+    ],
+  },
+  {
+    label: 'nav.sales',
+    icon: TrendingUp,
+    items: [
+      { name: 'nav.customers', href: '/sales/customers', icon: UserCheck },
+      { name: 'nav.quotes', href: '/sales/quotes', icon: FileText },
+      { name: 'nav.deliveryNotes', href: '/sales/delivery-notes', icon: TrendingUp },
     ],
   },
   {
