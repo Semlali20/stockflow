@@ -149,7 +149,21 @@
       "Bash(sed -n '45,55p' locales/fr.json)",
       "Bash(sed -n '45,55p' locales/ar.json)",
       "Bash(python3 -c \"import sys,json; lines=[json.loads\\(l\\) for l in sys.stdin if l.strip\\(\\)]; [print\\(m.get\\(''''role'''',''''''''\\),'''':'''',str\\(m.get\\(''''content'''',''''''''\\)\\)[:200]\\) for m in lines[-20:] if isinstance\\(m,dict\\) and ''''role'''' in m]\")",
-      "Bash(grep -E \"\\\\.\\(java|yml|yaml\\)$\")"
+      "Bash(grep -E \"\\\\.\\(java|yml|yaml\\)$\")",
+      "Bash(grep -r \"spring.datasource\\\\|spring.jpa\" 'C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova' --include=*.yml --include=*.yaml --include=*.properties)",
+      "Bash($base = \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova\" Get-Content \"$base\\\\location-service\\\\src\\\\main\\\\java\\\\com\\\\stock\\\\locationservice\\\\entity\\\\Site.java\")",
+      "Bash(for service:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/Legion/Downloads/stock-management-suspicious-goldstine - Copy/stock-management-suspicious-goldstine/.claude/worktrees/zealous-tereshkova/$service/src/main/**)",
+      "Bash(python3 -c \":*)",
+      "Bash(del \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova\\\\product-service\\\\src\\\\main\\\\resources\\\\data.sql\")",
+      "Bash(del \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova\\\\inventory-service\\\\src\\\\main\\\\resources\\\\data.sql\")",
+      "Bash(del \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova\\\\location-service\\\\src\\\\main\\\\resources\\\\data.sql\")",
+      "Bash(del \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova\\\\movement-service\\\\src\\\\main\\\\resources\\\\data.sql\")",
+      "Bash(del \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova\\\\purchase-service\\\\src\\\\main\\\\resources\\\\data.sql\")",
+      "Bash(grep -E \"\\\\.\\(java\\)$\")",
+      "Bash(find 'C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova\\\\frontend\\\\src' -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
+      "Bash(dir /b \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova\")"
     ],
     "deny": [],
     "ask": []

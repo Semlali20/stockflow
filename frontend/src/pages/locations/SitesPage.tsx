@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
+import { SiteFormModal } from '@/components/sites/SiteFormModal';
 import { Site } from '@/types';
 
 export const SitesPage: React.FC = () => {
@@ -24,6 +25,8 @@ export const SitesPage: React.FC = () => {
   
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
 
   useEffect(() => {
     fetchSites();
@@ -41,6 +44,18 @@ export const SitesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreateClick = () => {
+    setSelectedSite(null);
+    setFormMode('create');
+    setIsFormModalOpen(true);
+  };
+
+  const handleEditClick = (site: Site) => {
+    setSelectedSite(site);
+    setFormMode('edit');
+    setIsFormModalOpen(true);
   };
 
   const handleDeleteClick = (site: Site) => {
@@ -105,7 +120,7 @@ export const SitesPage: React.FC = () => {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             {t('common.refresh')}
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button onClick={handleCreateClick} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
             {t('locations.sites.newSite')}
           </Button>
@@ -217,7 +232,7 @@ export const SitesPage: React.FC = () => {
                     <td className="px-6 py-4">{getStatusBadge(site.status)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
+                        <button onClick={() => handleEditClick(site)} className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
                         <button onClick={() => handleDeleteClick(site)} className="p-2 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                       </div>
                     </td>
@@ -235,6 +250,14 @@ export const SitesPage: React.FC = () => {
         onConfirm={handleDelete}
         title={t('locations.sites.delete.title')}
         message={t('locations.sites.delete.confirm', { name: selectedSite?.name || '' })}
+      />
+
+      <SiteFormModal
+        isOpen={isFormModalOpen}
+        onClose={() => setIsFormModalOpen(false)}
+        onSuccess={fetchSites}
+        mode={formMode}
+        site={selectedSite}
       />
     </div>
   );

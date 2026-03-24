@@ -8,7 +8,7 @@ import {
   Bell,
   Menu,
   Package,
-  Sparkles,
+  Sun,
   Moon,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -124,10 +124,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             className="p-2.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors relative group"
           >
             {theme === 'light' && <Moon className="w-5 h-5 text-neutral-600" />}
-            {theme === 'dark' && <Sparkles className="w-5 h-5 text-indigo-400" />}
-            <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold bg-neutral-900 text-white px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-              → {THEME_LABELS[THEME_NEXT[theme] as keyof typeof THEME_LABELS]}
-            </span>
+            {theme === 'dark' && <Sun className="w-5 h-5 text-yellow-400" />}
           </motion.button>
 
           {/* Notifications */}

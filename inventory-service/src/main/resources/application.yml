@@ -6,6 +6,22 @@ spring:
     multipart:
       max-file-size: 50MB
       max-request-size: 52MB
+  datasource:
+    url: jdbc:postgresql://localhost:5433/inventory_db
+    username: inventory_user
+    password: inventory_pass
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  sql:
+    init:
+      mode: always
 
 server:
   port: 8086

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
+import { WarehouseFormModal } from '@/components/warehouses/WarehouseFormModal';
 import { Warehouse as WarehouseType, Site } from '@/types';
 
 export const WarehousesPage: React.FC = () => {
@@ -26,6 +27,8 @@ export const WarehousesPage: React.FC = () => {
   
   const [selectedWarehouse, setSelectedWarehouse] = useState<WarehouseType | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
 
   useEffect(() => {
     fetchInitialData();
@@ -50,6 +53,18 @@ export const WarehousesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreateClick = () => {
+    setSelectedWarehouse(null);
+    setFormMode('create');
+    setIsFormModalOpen(true);
+  };
+
+  const handleEditClick = (warehouse: WarehouseType) => {
+    setSelectedWarehouse(warehouse);
+    setFormMode('edit');
+    setIsFormModalOpen(true);
   };
 
   const handleDeleteClick = (warehouse: WarehouseType) => {
@@ -114,7 +129,7 @@ export const WarehousesPage: React.FC = () => {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             {t('common.refresh')}
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button onClick={handleCreateClick} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
             {t('locations.warehouses.newWarehouse')}
           </Button>
@@ -220,7 +235,7 @@ export const WarehousesPage: React.FC = () => {
                     <td className="px-6 py-4">{getStatusBadge(wh.status)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
+                        <button onClick={() => handleEditClick(wh)} className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
                         <button onClick={() => handleDeleteClick(wh)} className="p-2 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                       </div>
                     </td>
@@ -238,6 +253,14 @@ export const WarehousesPage: React.FC = () => {
         onConfirm={handleDelete}
         title={t('locations.warehouses.delete.title')}
         message={t('locations.warehouses.delete.confirm', { name: selectedWarehouse?.name || '' })}
+      />
+
+      <WarehouseFormModal
+        isOpen={isFormModalOpen}
+        onClose={() => setIsFormModalOpen(false)}
+        onSuccess={fetchInitialData}
+        mode={formMode}
+        warehouse={selectedWarehouse}
       />
     </div>
   );

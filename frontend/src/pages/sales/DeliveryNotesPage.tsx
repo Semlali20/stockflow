@@ -6,8 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Search, RefreshCw, Truck, X, ChevronDown,
-  Eye, Edit2, CheckCircle2, XCircle, Package,
+  Eye, Edit2, CheckCircle2, XCircle, Package, Download,
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { salesService } from '@/services/sales.service';
 import { DeliveryNote, DeliveryNoteStatus, Customer } from '@/types';
 import { toast } from 'react-hot-toast';
@@ -445,6 +447,151 @@ const DeliveryNotesPage = () => {
   useEffect(() => { fetchNotes(); }, [statusFilter, customerFilter]);
   useEffect(() => { fetchCustomers(); }, []);
 
+  const generateDeliveryNotePDF = (note: DeliveryNote) => {
+    const doc = new jsPDF();
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+
+    // ── Decorative background shapes (left side) ──
+    doc.setFillColor(154, 208, 170);
+    doc.ellipse(8, 105, 22, 68, 'F');
+    doc.setFillColor(140, 185, 225);
+    doc.ellipse(18, 155, 18, 52, 'F');
+    doc.setFillColor(200, 225, 150);
+    doc.ellipse(5, 195, 14, 38, 'F');
+    doc.setFillColor(154, 208, 170);
+    doc.ellipse(10, 240, 10, 28, 'F');
+
+    // ── Title ──
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(28);
+    doc.setTextColor(26, 58, 108);
+    doc.text('BON DE LIVRAISON', 14, 27);
+
+    // ── Company name ──
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(70, 70, 70);
+    doc.text('TechSupply Maroc', 14, 35);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text('Casablanca, Maroc', 14, 40);
+
+    // ── Top separator ──
+    doc.setDrawColor(26, 58, 108);
+    doc.setLineWidth(0.5);
+    doc.line(14, 46, W - 14, 46);
+
+    // ── Info columns ──
+    const infoY = 53;
+    // Left — customer
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(26, 58, 108);
+    doc.text('LIVRÉ À', 14, infoY);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(50, 50, 50);
+    doc.text(note.customerName, 14, infoY + 6);
+    if (note.deliveryAddress) {
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text(note.deliveryAddress, 14, infoY + 12);
+    }
+
+    // Right — document details
+    const dX = W - 75;
+    const vX = W - 14;
+    let dY = infoY;
+    const row = (label: string, value: string) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(26, 58, 108);
+      doc.text(label, dX, dY);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(50, 50, 50);
+      doc.text(value, vX, dY, { align: 'right' });
+      dY += 7;
+    };
+    row('BON N°', note.reference);
+    row('DATE', new Date(note.createdAt).toLocaleDateString('fr-FR'));
+    if (note.deliveryDate) row('LIVRAISON', new Date(note.deliveryDate).toLocaleDateString('fr-FR'));
+    row('STATUT', note.status);
+
+    // ── Second separator ──
+    doc.setDrawColor(26, 58, 108);
+    doc.setLineWidth(0.5);
+    doc.line(14, 87, W - 14, 87);
+
+    // ── Table ──
+    autoTable(doc, {
+      startY: 92,
+      head: [['DÉSIGNATION', 'QTÉ COMMANDÉE', 'QTÉ LIVRÉE', 'REMARQUES']],
+      body: (note.lines || []).map(l => [
+        l.itemName,
+        l.orderedQuantity.toString(),
+        l.deliveredQuantity.toString(),
+        l.notes ?? '',
+      ]),
+      headStyles: { fillColor: [26, 58, 108], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, halign: 'center' },
+      bodyStyles: { fontSize: 8.5, textColor: [50, 50, 50] },
+      alternateRowStyles: { fillColor: [235, 242, 255] },
+      columnStyles: {
+        1: { halign: 'center', cellWidth: 36 },
+        2: { halign: 'center', cellWidth: 32 },
+        3: { cellWidth: 40 },
+      },
+      styles: { lineColor: [200, 215, 235], lineWidth: 0.2 },
+      margin: { left: 14, right: 14 },
+    });
+
+    const finalY = (doc as any).lastAutoTable?.finalY ?? 150;
+
+    // ── Summary box ──
+    const totalOrdered = (note.lines || []).reduce((s, l) => s + l.orderedQuantity, 0);
+    const totalDelivered = (note.lines || []).reduce((s, l) => s + l.deliveredQuantity, 0);
+
+    let sY = finalY + 9;
+    const sX = W - 80;
+    const sVX = W - 14;
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('Total articles commandés', sX, sY);
+    doc.text(totalOrdered.toString(), sVX, sY, { align: 'right' });
+
+    sY += 6;
+    doc.setDrawColor(26, 58, 108);
+    doc.setLineWidth(0.3);
+    doc.line(sX, sY, sVX, sY);
+
+    sY += 7;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 58, 108);
+    doc.text('TOTAL LIVRÉ', sX, sY);
+    doc.text(totalDelivered.toString(), sVX, sY, { align: 'right' });
+
+    // ── Footer ──
+    doc.setDrawColor(26, 58, 108);
+    doc.setLineWidth(0.4);
+    doc.line(14, H - 33, W - 14, H - 33);
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 58, 108);
+    doc.text('CONDITIONS ET MODALITÉS DE LIVRAISON', 14, H - 26);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text('Merci de vérifier la marchandise à la réception et de signaler toute anomalie.', 14, H - 20);
+    doc.text('Pour toute réclamation, contactez notre service logistique.', 14, H - 14);
+
+    doc.save(`bon-livraison-${note.reference}.pdf`);
+  };
+
   const filtered = useMemo(() =>
     notes.filter(n =>
       !searchTerm ||
@@ -588,6 +735,10 @@ const DeliveryNotesPage = () => {
                         {/* View */}
                         <button onClick={() => { setSelectedNote(note); setIsDetailOpen(true); }} className="p-1.5 rounded-lg text-neutral-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title={t('common.view')}>
                           <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        {/* Download PDF */}
+                        <button onClick={() => generateDeliveryNotePDF(note)} className="p-1.5 rounded-lg text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title="Download PDF">
+                          <Download className="w-3.5 h-3.5" />
                         </button>
                         {/* Edit (DRAFT) */}
                         {note.status === 'DRAFT' && (

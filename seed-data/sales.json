@@ -1,0 +1,431 @@
+{
+  "meta": {
+    "company": "TechSupply SARL",
+    "description": "Customers, quotes and delivery notes",
+    "generated": "2026-03-22",
+    "totals": { "customers": 10, "quotes": 10, "deliveryNotes": 7 }
+  },
+
+  "customers": [
+    { "id": "CUST-001", "name": "Maroc Telecom",        "type": "CORPORATE", "email": "achats@iam.ma",              "phone": "+212 537 71 11 11", "address": "Avenue Annakhil, Hay Riad, Rabat 10000",            "taxId": "001025765", "creditLimit": 500000, "paymentTerms": "NET30", "active": true  },
+    { "id": "CUST-002", "name": "Orange Maroc",          "type": "CORPORATE", "email": "procurement@orange.ma",      "phone": "+212 522 09 09 09", "address": "Bd Sidi Mohammed Ben Abdellah, Casablanca 20000",    "taxId": "003987654", "creditLimit": 400000, "paymentTerms": "NET30", "active": true  },
+    { "id": "CUST-003", "name": "Inwi",                  "type": "CORPORATE", "email": "buy@inwi.ma",                "phone": "+212 520 60 00 00", "address": "Route de Nouasser, Casablanca 20240",                "taxId": "007654321", "creditLimit": 350000, "paymentTerms": "NET45", "active": true  },
+    { "id": "CUST-004", "name": "BMCE Bank",             "type": "CORPORATE", "email": "logistique@bmcebank.ma",     "phone": "+212 522 46 46 46", "address": "140 Avenue Hassan II, Casablanca 20000",             "taxId": "002345678", "creditLimit": 600000, "paymentTerms": "NET30", "active": true  },
+    { "id": "CUST-005", "name": "Attijariwafa Bank",     "type": "CORPORATE", "email": "achats@attijariwafa.com",    "phone": "+212 522 29 88 88", "address": "2 Boulevard Moulay Youssef, Casablanca 20000",       "taxId": "005678901", "creditLimit": 750000, "paymentTerms": "NET45", "active": true  },
+    { "id": "CUST-006", "name": "CIH Bank",              "type": "CORPORATE", "email": "procurement@cihbank.ma",     "phone": "+212 522 47 17 17", "address": "187 Av. des FAR, Casablanca 20000",                  "taxId": "006789012", "creditLimit": 200000, "paymentTerms": "NET30", "active": true  },
+    { "id": "CUST-007", "name": "Technozone Maroc",      "type": "RESELLER",  "email": "commandes@technozone.ma",    "phone": "+212 535 74 11 22", "address": "Zone Commerciale Atlas, Fès 30000",                  "taxId": "009012345", "creditLimit": 150000, "paymentTerms": "NET15", "active": true  },
+    { "id": "CUST-008", "name": "Société Générale Maroc","type": "CORPORATE", "email": "it.procurement@sgmaroc.com", "phone": "+212 522 43 88 88", "address": "55 Boulevard Abdelmoumen, Casablanca 20000",         "taxId": "008901234", "creditLimit": 500000, "paymentTerms": "NET30", "active": true  },
+    { "id": "CUST-009", "name": "Al Barid Bank",         "type": "CORPORATE", "email": "achats@albaridbank.ma",      "phone": "+212 537 71 23 45", "address": "Av. Mohammed V, Rabat 10000",                        "taxId": "004567890", "creditLimit": 250000, "paymentTerms": "NET30", "active": true  },
+    { "id": "CUST-010", "name": "CNSS",                  "type": "GOVERNMENT","email": "dsi@cnss.ma",                "phone": "+212 522 29 99 00", "address": "649 Boulevard Mohammed V, Casablanca 20000",         "taxId": "GOUV-CNSS", "creditLimit": 300000, "paymentTerms": "NET60", "active": true  }
+  ],
+
+  "quotes": [
+
+    {
+      "id": "Q-001",
+      "reference": "DEVIS-2026-001",
+      "customerId": "CUST-001",
+      "customerName": "Maroc Telecom",
+      "inventoryId": "INV-001",
+      "warehouseId": "WH-001",
+      "status": "CONVERTED",
+      "issueDate": "2026-02-08",
+      "validUntil": "2026-03-08",
+      "discountPercent": 3,
+      "notes": "Commande urgente pour équipement commercial. Livraison à Rabat.",
+      "createdBy": "Hassan Bennani",
+      "subtotal": 35597,
+      "discountAmount": 1067.91,
+      "totalAmount": 34529.09,
+      "convertedToDeliveryNoteId": "DN-001",
+      "lines": [
+        { "lineId": "Q-001-L1", "productId": "PROD-001", "productName": "Samsung Galaxy A54 5G", "variantId": "PROD-001-V1", "variantName": "128GB/Black",         "qty": 5,  "unitPrice": 3299, "total": 16495, "stockAvailableAtQuote": 20 },
+        { "lineId": "Q-001-L2", "productId": "PROD-004", "productName": "Dell Inspiron 15 3520", "variantId": "PROD-004-V2", "variantName": "8GB/512GB SSD/Silver","qty": 2,  "unitPrice": 6499, "total": 12998, "stockAvailableAtQuote": 12 },
+        { "lineId": "Q-001-L3", "productId": "PROD-010", "productName": "Sony WH-1000XM5",       "variantId": "PROD-010-V1", "variantName": "Black",               "qty": 3,  "unitPrice": 2699, "total": 8097,  "stockAvailableAtQuote": 25, "discountApplied": "3% client discount" }
+      ]
+    },
+
+    {
+      "id": "Q-002",
+      "reference": "DEVIS-2026-002",
+      "customerId": "CUST-002",
+      "customerName": "Orange Maroc",
+      "inventoryId": "INV-002",
+      "warehouseId": "WH-001",
+      "status": "CONVERTED",
+      "issueDate": "2026-02-20",
+      "validUntil": "2026-03-20",
+      "discountPercent": 0,
+      "notes": "Câbles et coques pour revendeurs Orange Maroc en agence.",
+      "createdBy": "Fatima Zahra El Idrissi",
+      "subtotal": 2480,
+      "discountAmount": 0,
+      "totalAmount": 2480,
+      "convertedToDeliveryNoteId": "DN-002",
+      "lines": [
+        { "lineId": "Q-002-L1", "productId": "PROD-013", "productName": "USB-C Braided Cable",    "qty": 10, "unitPrice": 99,  "total": 990,  "stockAvailableAtQuote": 100 },
+        { "lineId": "Q-002-L2", "productId": "PROD-016", "productName": "iPhone 14 Silicone Case","qty": 10, "unitPrice": 149, "total": 1490, "stockAvailableAtQuote": 60  }
+      ]
+    },
+
+    {
+      "id": "Q-003",
+      "reference": "DEVIS-2026-003",
+      "customerId": "CUST-003",
+      "customerName": "Inwi",
+      "inventoryId": "INV-001",
+      "warehouseId": "WH-001",
+      "status": "CONVERTED",
+      "issueDate": "2026-02-25",
+      "validUntil": "2026-03-25",
+      "discountPercent": 5,
+      "notes": "Pack téléphonie + connectivité pour agences Inwi.",
+      "createdBy": "Hassan Bennani",
+      "subtotal": 17283,
+      "discountAmount": 864.15,
+      "totalAmount": 16418.85,
+      "convertedToDeliveryNoteId": "DN-003",
+      "lines": [
+        { "lineId": "Q-003-L1", "productId": "PROD-002", "productName": "Apple iPhone 14",  "variantId": "PROD-002-V1", "variantName": "128GB/Midnight", "qty": 2,  "unitPrice": 7599, "total": 15198, "stockAvailableAtQuote": 15 },
+        { "lineId": "Q-003-L2", "productId": "PROD-007", "productName": "Apple iPad 10th",  "variantId": "PROD-007-V1", "variantName": "Wi-Fi 64GB/Silver","qty": 1, "unitPrice": 4299, "total": 4299,  "stockAvailableAtQuote": 10 },
+        { "lineId": "Q-003-L3", "productId": "PROD-014", "productName": "HDMI 4K Cable 3m", "variantId": "PROD-014-V3", "variantName": "3m / Black",      "qty": 15, "unitPrice": 129,  "total": 1935,  "stockAvailableAtQuote": 80 }
+      ]
+    },
+
+    {
+      "id": "Q-004",
+      "reference": "DEVIS-2026-004",
+      "customerId": "CUST-004",
+      "customerName": "BMCE Bank",
+      "inventoryId": "INV-001",
+      "warehouseId": "WH-001",
+      "status": "CONVERTED",
+      "issueDate": "2026-03-01",
+      "validUntil": "2026-03-31",
+      "discountPercent": 2,
+      "notes": "Équipement IT pour nouvelles agences BMCE — Casablanca et périphérie.",
+      "createdBy": "Hassan Bennani",
+      "subtotal": 21677,
+      "discountAmount": 433.54,
+      "totalAmount": 21243.46,
+      "convertedToDeliveryNoteId": "DN-004",
+      "lines": [
+        { "lineId": "Q-004-L1", "productId": "PROD-005", "productName": "HP Pavilion 14-dv2",   "qty": 3,  "unitPrice": 5299,  "total": 15897, "stockAvailableAtQuote": 8  },
+        { "lineId": "Q-004-L2", "productId": "PROD-011", "productName": "JBL Flip 6",            "qty": 8,  "unitPrice": 1199,  "total": 9592,  "stockAvailableAtQuote": 30 },
+        { "lineId": "Q-004-L3", "productId": "PROD-024", "productName": "SanDisk 128GB USB 3.0", "qty": 20, "unitPrice": 149,   "total": 2980,  "stockAvailableAtQuote": 50 }
+      ]
+    },
+
+    {
+      "id": "Q-005",
+      "reference": "DEVIS-2026-005",
+      "customerId": "CUST-005",
+      "customerName": "Attijariwafa Bank",
+      "inventoryId": "INV-001",
+      "warehouseId": "WH-001",
+      "status": "CONVERTED",
+      "issueDate": "2026-03-05",
+      "validUntil": "2026-04-05",
+      "discountPercent": 4,
+      "notes": "Smartphones et protections pour dotation commerciale Attijariwafa.",
+      "createdBy": "Fatima Zahra El Idrissi",
+      "subtotal": 10294,
+      "discountAmount": 411.76,
+      "totalAmount": 9882.24,
+      "convertedToDeliveryNoteId": "DN-005",
+      "lines": [
+        { "lineId": "Q-005-L1", "productId": "PROD-003", "productName": "Xiaomi Redmi Note 12",  "qty": 4, "unitPrice": 1799, "total": 7196, "stockAvailableAtQuote": 15 },
+        { "lineId": "Q-005-L2", "productId": "PROD-008", "productName": "Samsung Galaxy Tab A8", "qty": 2, "unitPrice": 2299, "total": 4598, "stockAvailableAtQuote": 12 },
+        { "lineId": "Q-005-L3", "productId": "PROD-017", "productName": "Samsung A54 Hybrid Case","qty": 6, "unitPrice": 99,  "total": 594,  "stockAvailableAtQuote": 40 }
+      ]
+    },
+
+    {
+      "id": "Q-006",
+      "reference": "DEVIS-2026-006",
+      "customerId": "CUST-006",
+      "customerName": "CIH Bank",
+      "inventoryId": "INV-002",
+      "warehouseId": "WH-001",
+      "status": "ACCEPTED",
+      "issueDate": "2026-03-10",
+      "validUntil": "2026-04-10",
+      "discountPercent": 0,
+      "notes": "Équipement périphériques IT pour DSI CIH Bank. Attente confirmation livraison.",
+      "createdBy": "Hassan Bennani",
+      "subtotal": 8194,
+      "discountAmount": 0,
+      "totalAmount": 8194,
+      "convertedToDeliveryNoteId": null,
+      "stockReservationId": "RSV-Q006",
+      "lines": [
+        { "lineId": "Q-006-L1", "productId": "PROD-025", "productName": "Logitech MX Master 3S",  "qty": 6, "unitPrice": 899, "total": 5394, "stockAvailableAtQuote": 15, "quantityReserved": 6 },
+        { "lineId": "Q-006-L2", "productId": "PROD-026", "productName": "Keychron K2 Keyboard",   "qty": 4, "unitPrice": 699, "total": 2796, "stockAvailableAtQuote": 10, "quantityReserved": 4 }
+      ]
+    },
+
+    {
+      "id": "Q-007",
+      "reference": "DEVIS-2026-007",
+      "customerId": "CUST-007",
+      "customerName": "Technozone Maroc",
+      "inventoryId": "INV-002",
+      "warehouseId": "WH-001",
+      "status": "SENT",
+      "issueDate": "2026-03-12",
+      "validUntil": "2026-04-12",
+      "discountPercent": 5,
+      "notes": "Câbles et chargeurs pour revendeur Fès. En attente de validation client.",
+      "createdBy": "Fatima Zahra El Idrissi",
+      "subtotal": 2690,
+      "discountAmount": 134.50,
+      "totalAmount": 2555.50,
+      "convertedToDeliveryNoteId": null,
+      "lines": [
+        { "lineId": "Q-007-L1", "productId": "PROD-013", "productName": "USB-C Braided Cable", "qty": 8, "unitPrice": 99,  "total": 792, "stockAvailableAtQuote": 85 },
+        { "lineId": "Q-007-L2", "productId": "PROD-015", "productName": "65W GaN Charger",     "qty": 5, "unitPrice": 349, "total": 1745,"stockAvailableAtQuote": 50 }
+      ]
+    },
+
+    {
+      "id": "Q-008",
+      "reference": "DEVIS-2026-008",
+      "customerId": "CUST-008",
+      "customerName": "Société Générale Maroc",
+      "inventoryId": "INV-005",
+      "warehouseId": "WH-001",
+      "status": "DRAFT",
+      "issueDate": "2026-03-18",
+      "validUntil": "2026-04-18",
+      "discountPercent": 0,
+      "notes": "Demande d'équipement imprimantes + réseau pour Société Générale. À valider.",
+      "createdBy": "Hassan Bennani",
+      "subtotal": 7892,
+      "discountAmount": 0,
+      "totalAmount": 7892,
+      "convertedToDeliveryNoteId": null,
+      "lines": [
+        { "lineId": "Q-008-L1", "productId": "PROD-027", "productName": "HP LaserJet M110we",    "qty": 3, "unitPrice": 1299, "total": 3897, "stockAvailableAtQuote": 5  },
+        { "lineId": "Q-008-L2", "productId": "PROD-019", "productName": "TP-Link Archer AX3000", "qty": 5, "unitPrice": 799,  "total": 3995, "stockAvailableAtQuote": 19 }
+      ]
+    },
+
+    {
+      "id": "Q-009",
+      "reference": "DEVIS-2026-009",
+      "customerId": "CUST-009",
+      "customerName": "Al Barid Bank",
+      "inventoryId": "INV-001",
+      "warehouseId": "WH-001",
+      "status": "REJECTED",
+      "issueDate": "2026-02-15",
+      "validUntil": "2026-03-15",
+      "discountPercent": 0,
+      "notes": "Demande de 20 Samsung A54 — rejetée par client (prix non-compétitif selon retour client).",
+      "createdBy": "Fatima Zahra El Idrissi",
+      "rejectionReason": "Customer found lower price at competitor. Requested 10% discount not approved.",
+      "subtotal": 65980,
+      "discountAmount": 0,
+      "totalAmount": 65980,
+      "convertedToDeliveryNoteId": null,
+      "lines": [
+        { "lineId": "Q-009-L1", "productId": "PROD-001", "productName": "Samsung Galaxy A54 5G", "qty": 20, "unitPrice": 3299, "total": 65980, "stockAvailableAtQuote": 20 }
+      ]
+    },
+
+    {
+      "id": "Q-010",
+      "reference": "DEVIS-2026-010",
+      "customerId": "CUST-010",
+      "customerName": "CNSS",
+      "inventoryId": "INV-002",
+      "warehouseId": "WH-001",
+      "status": "EXPIRED",
+      "issueDate": "2026-01-15",
+      "validUntil": "2026-02-15",
+      "discountPercent": 0,
+      "notes": "Devis expiré — stockage externe CNSS. Client n'a pas répondu dans les délais.",
+      "createdBy": "Fatima Zahra El Idrissi",
+      "subtotal": 17970,
+      "discountAmount": 0,
+      "totalAmount": 17970,
+      "convertedToDeliveryNoteId": null,
+      "lines": [
+        { "lineId": "Q-010-L1", "productId": "PROD-022", "productName": "WD Elements 1TB HDD", "qty": 30, "unitPrice": 599, "total": 17970, "stockAvailableAtQuote": 0, "note": "⚠️ Stock was 0 at time — goods not yet received (PO-004 pending)" }
+      ]
+    }
+
+  ],
+
+  "deliveryNotes": [
+
+    {
+      "id": "DN-001",
+      "reference": "BL-2026-001",
+      "quoteId": "Q-001",
+      "quoteReference": "DEVIS-2026-001",
+      "customerId": "CUST-001",
+      "customerName": "Maroc Telecom",
+      "inventoryId": "INV-001",
+      "warehouseId": "WH-001",
+      "status": "DELIVERED",
+      "deliveryDate": "2026-02-20",
+      "deliveryAddress": "Direction Régionale Maroc Telecom, Av. Hassan II, Rabat 10000",
+      "notes": "Livraison en main propre. Signature requise. Réf PO client: MT-2026-0892.",
+      "createdBy": "Hassan Bennani",
+      "movementId": "MOV-005",
+      "lines": [
+        { "lineId": "DN-001-L1", "productId": "PROD-001", "productName": "Samsung Galaxy A54 5G", "qty": 5,  "unitPrice": 3299, "total": 16495, "trackingType": "SERIAL", "serials": ["R58T316YAZB","R58T317ZBCD","R58T318ACEF","R58T319BDGH","R58T320CEJK"] },
+        { "lineId": "DN-001-L2", "productId": "PROD-004", "productName": "Dell Inspiron 15 3520", "qty": 2,  "unitPrice": 6499, "total": 12998, "trackingType": "SERIAL", "serials": ["DEL-INS15-CNAXFJ","DEL-INS15-CNBXFK"] },
+        { "lineId": "DN-001-L3", "productId": "PROD-010", "productName": "Sony WH-1000XM5",       "qty": 3,  "unitPrice": 2699, "total": 8097,  "trackingType": "QUANTITY" }
+      ],
+      "subtotal": 37590,
+      "totalAmount": 36461.13
+    },
+
+    {
+      "id": "DN-002",
+      "reference": "BL-2026-002",
+      "quoteId": "Q-002",
+      "quoteReference": "DEVIS-2026-002",
+      "customerId": "CUST-002",
+      "customerName": "Orange Maroc",
+      "inventoryId": "INV-002",
+      "warehouseId": "WH-001",
+      "status": "DELIVERED",
+      "deliveryDate": "2026-03-01",
+      "deliveryAddress": "Orange Maroc — Logistique Centrale, Bd Sidi M. Ben Abdellah, Casablanca",
+      "notes": "Livraison standard. Colis étiquetés avec ref. agence.",
+      "createdBy": "Fatima Zahra El Idrissi",
+      "movementId": "MOV-006",
+      "lines": [
+        { "lineId": "DN-002-L1", "productId": "PROD-013", "productName": "USB-C Braided Cable",    "qty": 10, "unitPrice": 99,  "total": 990,  "trackingType": "LOT", "lotNumber": "LOT-001" },
+        { "lineId": "DN-002-L2", "productId": "PROD-016", "productName": "iPhone 14 Silicone Case","qty": 10, "unitPrice": 149, "total": 1490, "trackingType": "QUANTITY" }
+      ],
+      "subtotal": 2480,
+      "totalAmount": 2480
+    },
+
+    {
+      "id": "DN-003",
+      "reference": "BL-2026-003",
+      "quoteId": "Q-003",
+      "quoteReference": "DEVIS-2026-003",
+      "customerId": "CUST-003",
+      "customerName": "Inwi",
+      "inventoryId": "INV-001",
+      "warehouseId": "WH-001",
+      "status": "DELIVERED",
+      "deliveryDate": "2026-03-05",
+      "deliveryAddress": "Inwi — Direction des achats, Route de Nouasser, Casablanca",
+      "notes": "Téléphonie + connectivité. Bon de livraison signé + PV de réception.",
+      "createdBy": "Hassan Bennani",
+      "movementId": "MOV-007",
+      "lines": [
+        { "lineId": "DN-003-L1", "productId": "PROD-002", "productName": "Apple iPhone 14",   "qty": 2,  "unitPrice": 7599, "total": 15198, "trackingType": "SERIAL", "serials": ["F2LNXQ3C7P6S","F2LNXQ3C7Q5T"] },
+        { "lineId": "DN-003-L2", "productId": "PROD-007", "productName": "Apple iPad 10th",   "qty": 1,  "unitPrice": 4299, "total": 4299,  "trackingType": "SERIAL", "serials": ["IPD10-A2696-010"] },
+        { "lineId": "DN-003-L3", "productId": "PROD-014", "productName": "HDMI 4K Cable 3m",  "qty": 15, "unitPrice": 129,  "total": 1935,  "trackingType": "LOT", "lotNumber": "LOT-002" }
+      ],
+      "subtotal": 21432,
+      "totalAmount": 16418.85
+    },
+
+    {
+      "id": "DN-004",
+      "reference": "BL-2026-004",
+      "quoteId": "Q-004",
+      "quoteReference": "DEVIS-2026-004",
+      "customerId": "CUST-004",
+      "customerName": "BMCE Bank",
+      "inventoryId": "INV-001",
+      "warehouseId": "WH-001",
+      "status": "SHIPPED",
+      "deliveryDate": "2026-03-12",
+      "deliveryAddress": "BMCE Bank — Siège Social, 140 Av. Hassan II, Casablanca",
+      "notes": "En transit — suivi transporter: TR-MAROC-20260312-881.",
+      "createdBy": "Hassan Bennani",
+      "movementId": "MOV-008",
+      "lines": [
+        { "lineId": "DN-004-L1", "productId": "PROD-005", "productName": "HP Pavilion 14-dv2",   "qty": 3,  "unitPrice": 5299,  "total": 15897, "trackingType": "SERIAL", "serials": ["HP-PAV14-5CG24A006","HP-PAV14-5CG24A007","HP-PAV14-5CG24A008"] },
+        { "lineId": "DN-004-L2", "productId": "PROD-011", "productName": "JBL Flip 6",            "qty": 8,  "unitPrice": 1199,  "total": 9592,  "trackingType": "LOT", "lotNumber": "LOT-008" },
+        { "lineId": "DN-004-L3", "productId": "PROD-024", "productName": "SanDisk 128GB USB 3.0", "qty": 20, "unitPrice": 149,   "total": 2980,  "trackingType": "LOT", "lotNumber": "LOT-006" }
+      ],
+      "subtotal": 28469,
+      "totalAmount": 21243.46
+    },
+
+    {
+      "id": "DN-005",
+      "reference": "BL-2026-005",
+      "quoteId": "Q-005",
+      "quoteReference": "DEVIS-2026-005",
+      "customerId": "CUST-005",
+      "customerName": "Attijariwafa Bank",
+      "inventoryId": "INV-001",
+      "warehouseId": "WH-001",
+      "status": "VALIDATED",
+      "deliveryDate": "2026-03-25",
+      "deliveryAddress": "Attijariwafa Bank — Direction des Achats, 2 Bd Moulay Youssef, Casablanca",
+      "notes": "Livraison programmée 25 mars 2026. En attente de sortie physique.",
+      "createdBy": "Fatima Zahra El Idrissi",
+      "movementId": null,
+      "lines": [
+        { "lineId": "DN-005-L1", "productId": "PROD-003", "productName": "Xiaomi Redmi Note 12",  "qty": 4, "unitPrice": 1799, "total": 7196,  "trackingType": "SERIAL" },
+        { "lineId": "DN-005-L2", "productId": "PROD-008", "productName": "Samsung Galaxy Tab A8", "qty": 2, "unitPrice": 2299, "total": 4598,  "trackingType": "SERIAL" },
+        { "lineId": "DN-005-L3", "productId": "PROD-017", "productName": "Samsung A54 Hybrid Case","qty": 6, "unitPrice": 99,  "total": 594,   "trackingType": "QUANTITY" }
+      ],
+      "subtotal": 12388,
+      "totalAmount": 9882.24
+    },
+
+    {
+      "id": "DN-006",
+      "reference": "BL-2026-006",
+      "quoteId": null,
+      "quoteReference": null,
+      "customerId": "CUST-007",
+      "customerName": "Technozone Maroc",
+      "inventoryId": "INV-002",
+      "warehouseId": "WH-001",
+      "isManualEntry": true,
+      "status": "DELIVERED",
+      "deliveryDate": "2026-03-18",
+      "deliveryAddress": "Technozone Maroc — Point de vente Casablanca, Mall Anfa Place",
+      "notes": "Vente directe comptoir — aucun devis associé. Paiement espèces.",
+      "createdBy": "Fatima Zahra El Idrissi",
+      "movementId": "MOV-009",
+      "lines": [
+        { "lineId": "DN-006-L1", "productId": "PROD-017", "productName": "Samsung A54 Hybrid Case","qty": 2, "unitPrice": 99,   "total": 198,  "trackingType": "QUANTITY" },
+        { "lineId": "DN-006-L2", "productId": "PROD-013", "productName": "USB-C Braided Cable",    "qty": 5, "unitPrice": 99,   "total": 495,  "trackingType": "LOT", "lotNumber": "LOT-001" },
+        { "lineId": "DN-006-L3", "productId": "PROD-011", "productName": "JBL Flip 6",             "qty": 1, "unitPrice": 1199, "total": 1199, "trackingType": "LOT", "lotNumber": "LOT-008" }
+      ],
+      "subtotal": 1892,
+      "totalAmount": 1892
+    },
+
+    {
+      "id": "DN-007",
+      "reference": "BL-2026-007",
+      "quoteId": null,
+      "quoteReference": null,
+      "customerId": "CUST-009",
+      "customerName": "Al Barid Bank",
+      "inventoryId": "INV-005",
+      "warehouseId": "WH-001",
+      "isManualEntry": true,
+      "status": "DELIVERED",
+      "deliveryDate": "2026-03-20",
+      "deliveryAddress": "Al Barid Bank — Agence Av. Mohammed V, Rabat 10000",
+      "notes": "Livraison urgente hors devis pour agence Rabat. Facture proforma émise.",
+      "createdBy": "Youssef Tazi",
+      "movementId": null,
+      "lines": [
+        { "lineId": "DN-007-L1", "productId": "PROD-019", "productName": "TP-Link Archer AX3000", "qty": 1, "unitPrice": 799, "total": 799, "trackingType": "QUANTITY" },
+        { "lineId": "DN-007-L2", "productId": "PROD-024", "productName": "SanDisk 128GB USB 3.0", "qty": 3, "unitPrice": 149, "total": 447, "trackingType": "LOT", "lotNumber": "LOT-006" }
+      ],
+      "subtotal": 1246,
+      "totalAmount": 1246
+    }
+
+  ]
+}

@@ -2,11 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, FileText, Save, ArrowLeft, Link, PenLine } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, Link, PenLine } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { salesService } from '@/services/sales.service';
 import { inventoryService } from '@/services/inventory.service';
 import { locationService } from '@/services/location.service';
@@ -44,13 +42,30 @@ export const DeliveryNoteFormPage = () => {
 
   // Data
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [customerSearch, setCustomerSearch] = useState('');
+
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [inventoryItems, setInventoryItems] = useState<Inventory[]>([]);
   const [linkedQuote, setLinkedQuote] = useState<Quote | null>(null);
+  const [linkedWarehouseName, setLinkedWarehouseName] = useState('');
   const [lines, setLines] = useState<DeliveryLine[]>([]);
 
-  // UI state
+  // When inventory items load (after quote link), resolve warehouse name from first item's warehouseId
+  useEffect(() => {
+    if (linkedQuote && inventoryItems.length > 0 && !linkedWarehouseName) {
+      const wid = inventoryItems[0].warehouseId;
+      if (wid) {
+        const wh = warehouses.find(w => w.id === wid);
+        if (wh) {
+          setLinkedWarehouseName(wh.name);
+        } else {
+          locationService.getWarehouseById(wid)
+            .then(w => setLinkedWarehouseName(w?.name || ''))
+            .catch(() => {});
+        }
+      }
+    }
+  }, [inventoryItems]);
+
   // UI state
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [loadingWarehouses, setLoadingWarehouses] = useState(false);
@@ -115,10 +130,13 @@ export const DeliveryNoteFormPage = () => {
       setQuoteId(found.id);
       setCustomerId(found.customerId);
       setCustomerName(found.customerName);
-      // Auto-set inventory from quote and DEACTIVATE dropdown
-      if ((found as any).inventoryId) {
-        setInventoryId((found as any).inventoryId);
-        loadInventoryItems((found as any).inventoryId);
+      // Auto-set warehouse from quote if present
+      if (found.inventoryId) {
+        setInventoryId(found.inventoryId);
+        loadInventoryItems(found.inventoryId);
+        // warehouse name resolved reactively via useEffect on inventoryItems
+        const local = warehouses.find(w => w.id === found.inventoryId);
+        if (local) setLinkedWarehouseName(local.name);
       }
       setLines(found.lines.map(l => ({
         itemId: l.itemId,
@@ -144,6 +162,7 @@ export const DeliveryNoteFormPage = () => {
     setQuoteSearch('');
     setInventoryId('');
     setInventoryItems([]);
+    setLinkedWarehouseName('');
     setLines([]);
     setIsManualMode(true);
   };
@@ -221,29 +240,6 @@ export const DeliveryNoteFormPage = () => {
     }
   };
 
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text(t('sales.deliveryNotes.title'), 14, 22);
-    doc.setFontSize(11);
-    doc.text(`${t('sales.deliveryNotes.customer')}: ${customerName}`, 14, 35);
-    if (deliveryDate) doc.text(`${t('sales.deliveryNotes.deliveryDate')}: ${deliveryDate}`, 14, 42);
-    if (deliveryAddress) doc.text(`${t('sales.deliveryNotes.deliveryAddress')}: ${deliveryAddress}`, 14, 49);
-    if (linkedQuote) doc.text(`${t('deliveryForm.linkedQuote')}: ${linkedQuote.reference}`, 14, 56);
-
-    autoTable(doc, {
-      startY: 65,
-      head: [[t('quoteForm.item'), t('deliveryForm.orderedQty'), t('deliveryForm.deliveredQty')]],
-      body: lines.map(l => [l.itemName, l.orderedQuantity, l.deliveredQuantity]),
-    });
-
-    doc.save(`delivery-note-${Date.now()}.pdf`);
-  };
-
-  const filteredCustomers = customers.filter(c =>
-    !customerSearch || c.name.toLowerCase().includes(customerSearch.toLowerCase())
-  );
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Header */}
@@ -258,9 +254,6 @@ export const DeliveryNoteFormPage = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" icon={<FileText size={16} />} onClick={generatePDF} disabled={lines.length === 0}>
-            {t('quoteForm.generatePdf')}
-          </Button>
           <Button icon={<Save size={16} />} onClick={handleSave} loading={saving} disabled={saving}>
             {t('deliveryForm.save')}
           </Button>
@@ -336,7 +329,7 @@ export const DeliveryNoteFormPage = () => {
           <h2 className="text-lg font-semibold mb-4">{t('quoteForm.basicInfo')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-            {/* Customer — searchable dropdown */}
+            {/* Customer — select dropdown */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('sales.deliveryNotes.customer')} *
@@ -347,35 +340,19 @@ export const DeliveryNoteFormPage = () => {
                   <span className="text-xs text-gray-400 ml-auto">{t('deliveryForm.lockedByQuote')}</span>
                 </div>
               ) : (
-                <div className="relative">
-                  <Input
-                    placeholder={t('deliveryForm.searchCustomer')}
-                    value={customerSearch || customerName}
-                    onChange={e => {
-                      setCustomerSearch(e.target.value);
-                      if (!e.target.value) { setCustomerId(''); setCustomerName(''); }
-                    }}
-                    disabled={loadingCustomers}
-                    className="w-full"
-                  />
-                  {customerSearch && filteredCustomers.length > 0 && (
-                    <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto">
-                      {filteredCustomers.slice(0, 10).map(c => (
-                        <button
-                          key={c.id}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 hover:text-blue-700"
-                          onClick={() => {
-                            setCustomerId(c.id);
-                            setCustomerName(c.name);
-                            setCustomerSearch('');
-                          }}
-                        >
-                          {c.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <Select
+                  value={customerId}
+                  onChange={e => {
+                    const c = customers.find(c => c.id === e.target.value);
+                    setCustomerId(e.target.value);
+                    setCustomerName(c?.name || '');
+                  }}
+                  className="w-full"
+                  disabled={loadingCustomers}
+                >
+                  <option value="">{t('sales.quotes.selectCustomer')}</option>
+                  {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </Select>
               )}
             </div>
 
@@ -387,22 +364,26 @@ export const DeliveryNoteFormPage = () => {
               <Input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} />
             </div>
 
-            {/* Inventory Dropdown — ACTIVE when no quote, DISABLED when quote linked */}
+            {/* Inventory Dropdown — ACTIVE when no quote, locked when quote linked */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('quoteForm.warehouse')}
               </label>
-              <Select
-                value={inventoryId}
-                onChange={e => handleWarehouseChange(e.target.value)}
-                className="w-full"
-                disabled={loadingWarehouses || !!linkedQuote}
-              >
-                <option value="">{t('quoteForm.selectWarehouse')}</option>
-                {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-              </Select>
-              {linkedQuote && (
-                <p className="text-xs text-amber-500 mt-1">{t('deliveryForm.lockedByQuote')}</p>
+              {linkedQuote ? (
+                <div className="flex items-center gap-2 border border-gray-200 bg-gray-50 rounded-md px-3 py-2 text-sm text-gray-700">
+                  <span>{linkedWarehouseName || '—'}</span>
+                  <span className="text-xs text-amber-500 ml-auto">{t('deliveryForm.lockedByQuote')}</span>
+                </div>
+              ) : (
+                <Select
+                  value={inventoryId}
+                  onChange={e => handleWarehouseChange(e.target.value)}
+                  className="w-full"
+                  disabled={loadingWarehouses}
+                >
+                  <option value="">{t('quoteForm.selectWarehouse')}</option>
+                  {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                </Select>
               )}
             </div>
 

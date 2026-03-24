@@ -1,0 +1,284 @@
+{
+  "meta": {
+    "company": "TechSupply SARL",
+    "description": "Sites, warehouses and storage locations",
+    "generated": "2026-03-22",
+    "totals": { "sites": 2, "warehouses": 4, "locations": 15 }
+  },
+
+  "sites": [
+    {
+      "id": "SITE-001",
+      "name": "Casablanca Distribution Center",
+      "code": "CDC",
+      "city": "Casablanca",
+      "country": "MA",
+      "address": "Zone Industrielle Ain Sebaa, Rue 14, Casablanca 20250",
+      "phone": "+212 522 345 678",
+      "email": "cdc@techsupply.ma",
+      "active": true,
+      "isPrimary": true
+    },
+    {
+      "id": "SITE-002",
+      "name": "Rabat Regional Hub",
+      "code": "RRH",
+      "city": "Rabat",
+      "country": "MA",
+      "address": "Zone d'Activités Économiques, Route de Salé, Rabat 10000",
+      "phone": "+212 537 456 789",
+      "email": "rrh@techsupply.ma",
+      "active": true,
+      "isPrimary": false
+    }
+  ],
+
+  "warehouses": [
+    {
+      "id": "WH-001",
+      "siteId": "SITE-001",
+      "name": "Casablanca Main Warehouse",
+      "code": "CAS-MAIN",
+      "type": "MAIN",
+      "address": "Zone Industrielle Ain Sebaa, Bâtiment A, Casablanca 20250",
+      "surface_m2": 2500,
+      "capacity_pallets": 800,
+      "active": true,
+      "manager": "Hassan Bennani"
+    },
+    {
+      "id": "WH-002",
+      "siteId": "SITE-001",
+      "name": "Casablanca Returns Warehouse",
+      "code": "CAS-RET",
+      "type": "RETURNS",
+      "address": "Zone Industrielle Ain Sebaa, Bâtiment B, Casablanca 20250",
+      "surface_m2": 400,
+      "capacity_pallets": 120,
+      "active": true,
+      "manager": "Fatima Zahra El Idrissi"
+    },
+    {
+      "id": "WH-003",
+      "siteId": "SITE-002",
+      "name": "Rabat Main Warehouse",
+      "code": "RAB-MAIN",
+      "type": "MAIN",
+      "address": "Zone d'Activités Économiques, Entrepôt 5, Rabat 10000",
+      "surface_m2": 900,
+      "capacity_pallets": 280,
+      "active": true,
+      "manager": "Youssef Tazi"
+    },
+    {
+      "id": "WH-004",
+      "siteId": "SITE-002",
+      "name": "Rabat Overflow Storage",
+      "code": "RAB-OVF",
+      "type": "OVERFLOW",
+      "address": "Zone d'Activités Économiques, Entrepôt 7, Rabat 10000",
+      "surface_m2": 350,
+      "capacity_pallets": 100,
+      "active": true,
+      "manager": "Youssef Tazi"
+    }
+  ],
+
+  "locations": [
+    {
+      "id": "LOC-001",
+      "warehouseId": "WH-001",
+      "name": "Zone A – Shelf A1 (Smartphones)",
+      "code": "CAS-A-A1",
+      "zone": "A",
+      "aisle": "A",
+      "shelf": "1",
+      "level": "1",
+      "type": "SHELF",
+      "capacity": 200,
+      "active": true
+    },
+    {
+      "id": "LOC-002",
+      "warehouseId": "WH-001",
+      "name": "Zone A – Shelf A2 (Laptops & Tablets)",
+      "code": "CAS-A-A2",
+      "zone": "A",
+      "aisle": "A",
+      "shelf": "2",
+      "level": "1",
+      "type": "SHELF",
+      "capacity": 80,
+      "active": true
+    },
+    {
+      "id": "LOC-003",
+      "warehouseId": "WH-001",
+      "name": "Zone A – Shelf A3 (Audio Equipment)",
+      "code": "CAS-A-A3",
+      "zone": "A",
+      "aisle": "A",
+      "shelf": "3",
+      "level": "1",
+      "type": "SHELF",
+      "capacity": 150,
+      "active": true
+    },
+    {
+      "id": "LOC-004",
+      "warehouseId": "WH-001",
+      "name": "Zone B – Shelf B1 (Cables & Accessories)",
+      "code": "CAS-B-B1",
+      "zone": "B",
+      "aisle": "B",
+      "shelf": "1",
+      "level": "1",
+      "type": "SHELF",
+      "capacity": 500,
+      "active": true
+    },
+    {
+      "id": "LOC-005",
+      "warehouseId": "WH-001",
+      "name": "Zone B – Shelf B2 (Cases & Protection)",
+      "code": "CAS-B-B2",
+      "zone": "B",
+      "aisle": "B",
+      "shelf": "2",
+      "level": "1",
+      "type": "SHELF",
+      "capacity": 400,
+      "active": true
+    },
+    {
+      "id": "LOC-006",
+      "warehouseId": "WH-001",
+      "name": "Zone B – Shelf B3 (Storage & Peripherals)",
+      "code": "CAS-B-B3",
+      "zone": "B",
+      "aisle": "B",
+      "shelf": "3",
+      "level": "1",
+      "type": "SHELF",
+      "capacity": 300,
+      "active": true
+    },
+    {
+      "id": "LOC-007",
+      "warehouseId": "WH-001",
+      "name": "Zone C – Networking & Smart Home",
+      "code": "CAS-C-C1",
+      "zone": "C",
+      "aisle": "C",
+      "shelf": "1",
+      "level": "1",
+      "type": "SHELF",
+      "capacity": 200,
+      "active": true
+    },
+    {
+      "id": "LOC-008",
+      "warehouseId": "WH-001",
+      "name": "Receiving Dock (Staging Area)",
+      "code": "CAS-RECV",
+      "zone": "DOCK",
+      "aisle": null,
+      "shelf": null,
+      "level": null,
+      "type": "STAGING",
+      "capacity": 100,
+      "active": true
+    },
+    {
+      "id": "LOC-009",
+      "warehouseId": "WH-001",
+      "name": "Shipping Dock (Outbound)",
+      "code": "CAS-SHIP",
+      "zone": "DOCK",
+      "aisle": null,
+      "shelf": null,
+      "level": null,
+      "type": "STAGING",
+      "capacity": 80,
+      "active": true
+    },
+    {
+      "id": "LOC-010",
+      "warehouseId": "WH-002",
+      "name": "Returns Shelf R1 (Awaiting Inspection)",
+      "code": "RET-R1",
+      "zone": "RETURNS",
+      "aisle": "R",
+      "shelf": "1",
+      "level": "1",
+      "type": "RETURNS",
+      "capacity": 80,
+      "active": true
+    },
+    {
+      "id": "LOC-011",
+      "warehouseId": "WH-002",
+      "name": "Defective Zone D1 (Quarantine)",
+      "code": "RET-D1",
+      "zone": "DEFECTIVE",
+      "aisle": "D",
+      "shelf": "1",
+      "level": "1",
+      "type": "QUARANTINE",
+      "capacity": 40,
+      "active": true
+    },
+    {
+      "id": "LOC-012",
+      "warehouseId": "WH-003",
+      "name": "Rabat Zone A – Shelf A1 (Electronics)",
+      "code": "RAB-A-A1",
+      "zone": "A",
+      "aisle": "A",
+      "shelf": "1",
+      "level": "1",
+      "type": "SHELF",
+      "capacity": 120,
+      "active": true
+    },
+    {
+      "id": "LOC-013",
+      "warehouseId": "WH-003",
+      "name": "Rabat Zone A – Shelf A2 (Accessories)",
+      "code": "RAB-A-A2",
+      "zone": "A",
+      "aisle": "A",
+      "shelf": "2",
+      "level": "1",
+      "type": "SHELF",
+      "capacity": 200,
+      "active": true
+    },
+    {
+      "id": "LOC-014",
+      "warehouseId": "WH-003",
+      "name": "Rabat Receiving Dock",
+      "code": "RAB-RECV",
+      "zone": "DOCK",
+      "aisle": null,
+      "shelf": null,
+      "level": null,
+      "type": "STAGING",
+      "capacity": 60,
+      "active": true
+    },
+    {
+      "id": "LOC-015",
+      "warehouseId": "WH-004",
+      "name": "Overflow Bulk Storage",
+      "code": "OVF-BULK",
+      "zone": "BULK",
+      "aisle": null,
+      "shelf": null,
+      "level": null,
+      "type": "BULK",
+      "capacity": 500,
+      "active": true
+    }
+  ]
+}

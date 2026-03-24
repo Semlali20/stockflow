@@ -6,8 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Search, RefreshCw, FileText, X, ChevronDown,
-  Eye, Edit2, Trash2, Send, CheckCircle2, XCircle, Truck,
+  Eye, Edit2, Trash2, Send, CheckCircle2, XCircle, Truck, Download,
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { salesService } from '@/services/sales.service';
 import { Quote, QuoteStatus, Customer } from '@/types';
 import { toast } from 'react-hot-toast';
@@ -479,6 +481,154 @@ const QuotesPage = () => {
   useEffect(() => { fetchQuotes(); }, [statusFilter, customerFilter]);
   useEffect(() => { fetchCustomers(); }, []);
 
+  const generateQuotePDF = (quote: Quote) => {
+    const doc = new jsPDF();
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+
+    // ── Decorative background shapes (left side) ──
+    doc.setFillColor(154, 208, 170);
+    doc.ellipse(8, 105, 22, 68, 'F');
+    doc.setFillColor(140, 185, 225);
+    doc.ellipse(18, 155, 18, 52, 'F');
+    doc.setFillColor(200, 225, 150);
+    doc.ellipse(5, 195, 14, 38, 'F');
+    doc.setFillColor(154, 208, 170);
+    doc.ellipse(10, 240, 10, 28, 'F');
+
+    // ── Title ──
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(36);
+    doc.setTextColor(26, 58, 108);
+    doc.text('DEVIS', 14, 27);
+
+    // ── Company name ──
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(70, 70, 70);
+    doc.text('TechSupply Maroc', 14, 35);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text('Casablanca, Maroc', 14, 40);
+
+    // ── Top separator ──
+    doc.setDrawColor(26, 58, 108);
+    doc.setLineWidth(0.5);
+    doc.line(14, 46, W - 14, 46);
+
+    // ── Info columns ──
+    const infoY = 53;
+    // Left — customer
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(26, 58, 108);
+    doc.text('FACTURÉ À', 14, infoY);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(50, 50, 50);
+    doc.text(quote.customerName, 14, infoY + 6);
+
+    // Right — document details
+    const dX = W - 75;
+    const vX = W - 14;
+    let dY = infoY;
+    const row = (label: string, value: string) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(26, 58, 108);
+      doc.text(label, dX, dY);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(50, 50, 50);
+      doc.text(value, vX, dY, { align: 'right' });
+      dY += 7;
+    };
+    row('DEVIS N°', quote.reference);
+    row('DATE', new Date(quote.createdAt).toLocaleDateString('fr-FR'));
+    if (quote.validUntil) row('VALIDITÉ', new Date(quote.validUntil).toLocaleDateString('fr-FR'));
+    row('STATUT', quote.status);
+
+    // ── Second separator ──
+    doc.setDrawColor(26, 58, 108);
+    doc.setLineWidth(0.5);
+    doc.line(14, 87, W - 14, 87);
+
+    // ── Table ──
+    autoTable(doc, {
+      startY: 92,
+      head: [['QTÉ', 'DÉSIGNATION', 'PRIX UNIT. HT', 'REMISE', 'MONTANT HT']],
+      body: (quote.lines || []).map(l => [
+        l.quantity.toString(),
+        l.itemName,
+        l.unitPrice.toFixed(2),
+        `${l.discountPercent}%`,
+        l.totalPrice.toFixed(2),
+      ]),
+      headStyles: { fillColor: [26, 58, 108], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, halign: 'center' },
+      bodyStyles: { fontSize: 8.5, textColor: [50, 50, 50] },
+      alternateRowStyles: { fillColor: [235, 242, 255] },
+      columnStyles: {
+        0: { cellWidth: 18, halign: 'center' },
+        2: { halign: 'right', cellWidth: 34 },
+        3: { halign: 'center', cellWidth: 22 },
+        4: { halign: 'right', cellWidth: 34 },
+      },
+      styles: { lineColor: [200, 215, 235], lineWidth: 0.2 },
+      margin: { left: 14, right: 14 },
+    });
+
+    const finalY = (doc as any).lastAutoTable?.finalY ?? 150;
+
+    // ── Totals ──
+    const tX = W - 80;
+    const tVX = W - 14;
+    let tY = finalY + 9;
+    const subtotal = quote.subtotal ?? (quote.lines || []).reduce((s, l) => s + l.totalPrice, 0);
+    const total = quote.totalAmount ?? subtotal;
+    const disc = subtotal - total;
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text('Total HT', tX, tY);
+    doc.text(`${subtotal.toFixed(2)}`, tVX, tY, { align: 'right' });
+
+    if (disc > 0.001) {
+      tY += 6;
+      doc.text('Remise globale', tX, tY);
+      doc.text(`-${disc.toFixed(2)}`, tVX, tY, { align: 'right' });
+    }
+
+    tY += 5;
+    doc.setDrawColor(26, 58, 108);
+    doc.setLineWidth(0.3);
+    doc.line(tX, tY, tVX, tY);
+
+    tY += 8;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 58, 108);
+    doc.text('TOTAL HT', tX, tY);
+    doc.text(`${total.toFixed(2)} €`, tVX, tY, { align: 'right' });
+
+    // ── Footer ──
+    doc.setDrawColor(26, 58, 108);
+    doc.setLineWidth(0.4);
+    doc.line(14, H - 33, W - 14, H - 33);
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 58, 108);
+    doc.text('CONDITIONS ET MODALITÉS', 14, H - 26);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text("Devis valable 30 jours à compter de la date d'émission.", 14, H - 20);
+    doc.text('Pour toute question, contactez notre service commercial.', 14, H - 14);
+
+    doc.save(`devis-${quote.reference}.pdf`);
+  };
+
   const filtered = useMemo(() =>
     quotes.filter(q =>
       !searchTerm ||
@@ -633,6 +783,10 @@ const QuotesPage = () => {
                         {/* View */}
                         <button onClick={() => { setSelectedQuote(quote); setIsDetailOpen(true); }} className="p-1.5 rounded-lg text-neutral-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title={t('common.view')}>
                           <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        {/* Download PDF */}
+                        <button onClick={() => generateQuotePDF(quote)} className="p-1.5 rounded-lg text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title="Download PDF">
+                          <Download className="w-3.5 h-3.5" />
                         </button>
                         {/* Edit (DRAFT) */}
                         {quote.status === 'DRAFT' && (

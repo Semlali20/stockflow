@@ -1,0 +1,505 @@
+{
+  "meta": {
+    "company": "TechSupply SARL",
+    "description": "Product catalog seed data",
+    "generated": "2026-03-22",
+    "totals": { "categories": 10, "products": 30, "variants": 180 }
+  },
+
+  "categories": [
+    { "id": "CAT-001", "name": "Smartphones",       "slug": "smartphones",       "description": "Mobile phones and smartphones",               "active": true },
+    { "id": "CAT-002", "name": "Laptops",           "slug": "laptops",           "description": "Portable computers and ultrabooks",            "active": true },
+    { "id": "CAT-003", "name": "Tablets",           "slug": "tablets",           "description": "Tablet computers and e-readers",               "active": true },
+    { "id": "CAT-004", "name": "Audio",             "slug": "audio",             "description": "Headphones, earbuds and portable speakers",    "active": true },
+    { "id": "CAT-005", "name": "Cables & Charging", "slug": "cables-charging",   "description": "USB cables, chargers and power accessories",   "active": true },
+    { "id": "CAT-006", "name": "Cases & Protection","slug": "cases-protection",  "description": "Phone cases, screen protectors, laptop bags",  "active": true },
+    { "id": "CAT-007", "name": "Networking",        "slug": "networking",        "description": "Routers, switches and range extenders",        "active": true },
+    { "id": "CAT-008", "name": "Storage",           "slug": "storage",           "description": "External HDDs, SSDs and USB flash drives",     "active": true },
+    { "id": "CAT-009", "name": "Peripherals",       "slug": "peripherals",       "description": "Mice, keyboards and input devices",            "active": true },
+    { "id": "CAT-010", "name": "Smart Home",        "slug": "smart-home",        "description": "Smart lighting, plugs and home automation",    "active": true }
+  ],
+
+  "products": [
+
+    {
+      "id": "PROD-001", "categoryId": "CAT-001", "name": "Samsung Galaxy A54 5G",
+      "sku": "SAM-A54-5G", "barcode": "8806094914955", "trackingType": "SERIAL",
+      "price": 3299, "cost": 2650, "currency": "MAD",
+      "description": "6.4\" AMOLED, 5000mAh, 50MP triple camera, 5G connectivity",
+      "active": true,
+      "variants": [
+        { "id": "PROD-001-V1", "sku": "SAM-A54-5G-128-BLK", "name": "128GB / Black",   "barcode": "8806094914962", "attributes": { "storage": "128GB", "color": "Black"  }, "price": 3299, "cost": 2650 },
+        { "id": "PROD-001-V2", "sku": "SAM-A54-5G-128-WHT", "name": "128GB / White",   "barcode": "8806094914979", "attributes": { "storage": "128GB", "color": "White"  }, "price": 3299, "cost": 2650 },
+        { "id": "PROD-001-V3", "sku": "SAM-A54-5G-128-BLU", "name": "128GB / Blue",    "barcode": "8806094914986", "attributes": { "storage": "128GB", "color": "Blue"   }, "price": 3299, "cost": 2650 },
+        { "id": "PROD-001-V4", "sku": "SAM-A54-5G-256-BLK", "name": "256GB / Black",   "barcode": "8806094914993", "attributes": { "storage": "256GB", "color": "Black"  }, "price": 3599, "cost": 2900 },
+        { "id": "PROD-001-V5", "sku": "SAM-A54-5G-256-WHT", "name": "256GB / White",   "barcode": "8806094915007", "attributes": { "storage": "256GB", "color": "White"  }, "price": 3599, "cost": 2900 },
+        { "id": "PROD-001-V6", "sku": "SAM-A54-5G-256-BLU", "name": "256GB / Blue",    "barcode": "8806094915014", "attributes": { "storage": "256GB", "color": "Blue"   }, "price": 3599, "cost": 2900 }
+      ]
+    },
+
+    {
+      "id": "PROD-002", "categoryId": "CAT-001", "name": "Apple iPhone 14",
+      "sku": "APP-IP14", "barcode": "0194253388210", "trackingType": "SERIAL",
+      "price": 7999, "cost": 6400, "currency": "MAD",
+      "description": "6.1\" Super Retina XDR, A15 Bionic, 12MP dual camera, iOS 17",
+      "active": true,
+      "variants": [
+        { "id": "PROD-002-V1", "sku": "APP-IP14-128-BLK", "name": "128GB / Midnight",  "barcode": "0194253388227", "attributes": { "storage": "128GB", "color": "Midnight"  }, "price": 7999, "cost": 6400 },
+        { "id": "PROD-002-V2", "sku": "APP-IP14-128-STL", "name": "128GB / Starlight", "barcode": "0194253388234", "attributes": { "storage": "128GB", "color": "Starlight" }, "price": 7999, "cost": 6400 },
+        { "id": "PROD-002-V3", "sku": "APP-IP14-128-BLU", "name": "128GB / Blue",      "barcode": "0194253388241", "attributes": { "storage": "128GB", "color": "Blue"      }, "price": 7999, "cost": 6400 },
+        { "id": "PROD-002-V4", "sku": "APP-IP14-256-BLK", "name": "256GB / Midnight",  "barcode": "0194253388258", "attributes": { "storage": "256GB", "color": "Midnight"  }, "price": 8799, "cost": 7050 },
+        { "id": "PROD-002-V5", "sku": "APP-IP14-256-STL", "name": "256GB / Starlight", "barcode": "0194253388265", "attributes": { "storage": "256GB", "color": "Starlight" }, "price": 8799, "cost": 7050 },
+        { "id": "PROD-002-V6", "sku": "APP-IP14-512-BLK", "name": "512GB / Midnight",  "barcode": "0194253388272", "attributes": { "storage": "512GB", "color": "Midnight"  }, "price": 9999, "cost": 8000 }
+      ]
+    },
+
+    {
+      "id": "PROD-003", "categoryId": "CAT-001", "name": "Xiaomi Redmi Note 12",
+      "sku": "XIA-RN12", "barcode": "6934177781230", "trackingType": "SERIAL",
+      "price": 1799, "cost": 1350, "currency": "MAD",
+      "description": "6.67\" AMOLED 120Hz, Snapdragon 4 Gen 1, 50MP camera, 5000mAh",
+      "active": true,
+      "variants": [
+        { "id": "PROD-003-V1", "sku": "XIA-RN12-128-BLK", "name": "4GB+128GB / Onyx Black",    "barcode": "6934177781247", "attributes": { "ram": "4GB",  "storage": "128GB", "color": "Onyx Black"    }, "price": 1799, "cost": 1350 },
+        { "id": "PROD-003-V2", "sku": "XIA-RN12-128-ICE", "name": "4GB+128GB / Ice Blue",      "barcode": "6934177781254", "attributes": { "ram": "4GB",  "storage": "128GB", "color": "Ice Blue"      }, "price": 1799, "cost": 1350 },
+        { "id": "PROD-003-V3", "sku": "XIA-RN12-128-MNT", "name": "4GB+128GB / Mint Green",    "barcode": "6934177781261", "attributes": { "ram": "4GB",  "storage": "128GB", "color": "Mint Green"    }, "price": 1799, "cost": 1350 },
+        { "id": "PROD-003-V4", "sku": "XIA-RN12-256-BLK", "name": "6GB+256GB / Onyx Black",    "barcode": "6934177781278", "attributes": { "ram": "6GB",  "storage": "256GB", "color": "Onyx Black"    }, "price": 2099, "cost": 1580 },
+        { "id": "PROD-003-V5", "sku": "XIA-RN12-256-ICE", "name": "6GB+256GB / Ice Blue",      "barcode": "6934177781285", "attributes": { "ram": "6GB",  "storage": "256GB", "color": "Ice Blue"      }, "price": 2099, "cost": 1580 },
+        { "id": "PROD-003-V6", "sku": "XIA-RN12-256-MNT", "name": "6GB+256GB / Mint Green",    "barcode": "6934177781292", "attributes": { "ram": "6GB",  "storage": "256GB", "color": "Mint Green"    }, "price": 2099, "cost": 1580 }
+      ]
+    },
+
+    {
+      "id": "PROD-004", "categoryId": "CAT-002", "name": "Dell Inspiron 15 3520",
+      "sku": "DEL-INS15-3520", "barcode": "5397184681435", "trackingType": "SERIAL",
+      "price": 6499, "cost": 5200, "currency": "MAD",
+      "description": "15.6\" FHD, Intel Core i5-1235U, Intel Iris Xe, Wi-Fi 6, Windows 11",
+      "active": true,
+      "variants": [
+        { "id": "PROD-004-V1", "sku": "DEL-INS15-8-256-SLV",  "name": "8GB / 256GB SSD / Silver",  "barcode": "5397184681442", "attributes": { "ram": "8GB",  "storage": "256GB SSD", "color": "Silver" }, "price": 6199, "cost": 4950 },
+        { "id": "PROD-004-V2", "sku": "DEL-INS15-8-512-SLV",  "name": "8GB / 512GB SSD / Silver",  "barcode": "5397184681459", "attributes": { "ram": "8GB",  "storage": "512GB SSD", "color": "Silver" }, "price": 6499, "cost": 5200 },
+        { "id": "PROD-004-V3", "sku": "DEL-INS15-16-512-BLK", "name": "16GB / 512GB SSD / Black",  "barcode": "5397184681466", "attributes": { "ram": "16GB", "storage": "512GB SSD", "color": "Black"  }, "price": 7299, "cost": 5850 },
+        { "id": "PROD-004-V4", "sku": "DEL-INS15-16-1T-BLK",  "name": "16GB / 1TB SSD / Black",    "barcode": "5397184681473", "attributes": { "ram": "16GB", "storage": "1TB SSD",   "color": "Black"  }, "price": 7999, "cost": 6400 },
+        { "id": "PROD-004-V5", "sku": "DEL-INS15-32-1T-SLV",  "name": "32GB / 1TB SSD / Silver",   "barcode": "5397184681480", "attributes": { "ram": "32GB", "storage": "1TB SSD",   "color": "Silver" }, "price": 9499, "cost": 7600 },
+        { "id": "PROD-004-V6", "sku": "DEL-INS15-32-2T-BLK",  "name": "32GB / 2TB SSD / Black",    "barcode": "5397184681497", "attributes": { "ram": "32GB", "storage": "2TB SSD",   "color": "Black"  }, "price": 11499,"cost": 9200 }
+      ]
+    },
+
+    {
+      "id": "PROD-005", "categoryId": "CAT-002", "name": "HP Pavilion 14-dv2",
+      "sku": "HP-PAV14-DV2", "barcode": "0196548451082", "trackingType": "SERIAL",
+      "price": 5299, "cost": 4200, "currency": "MAD",
+      "description": "14\" FHD IPS, Intel Core i5-1235U, 8GB DDR4, Intel Iris Xe, Wi-Fi 6",
+      "active": true,
+      "variants": [
+        { "id": "PROD-005-V1", "sku": "HP-PAV14-8-256-SLV",  "name": "8GB / 256GB / Silver",   "barcode": "0196548451099", "attributes": { "ram": "8GB",  "storage": "256GB SSD", "color": "Natural Silver" }, "price": 4999, "cost": 3950 },
+        { "id": "PROD-005-V2", "sku": "HP-PAV14-8-512-SLV",  "name": "8GB / 512GB / Silver",   "barcode": "0196548451105", "attributes": { "ram": "8GB",  "storage": "512GB SSD", "color": "Natural Silver" }, "price": 5299, "cost": 4200 },
+        { "id": "PROD-005-V3", "sku": "HP-PAV14-16-512-BLU", "name": "16GB / 512GB / Blue",    "barcode": "0196548451112", "attributes": { "ram": "16GB", "storage": "512GB SSD", "color": "Warm Gold"      }, "price": 6099, "cost": 4850 },
+        { "id": "PROD-005-V4", "sku": "HP-PAV14-16-1T-BLU",  "name": "16GB / 1TB / Blue",      "barcode": "0196548451129", "attributes": { "ram": "16GB", "storage": "1TB SSD",   "color": "Warm Gold"      }, "price": 6799, "cost": 5400 },
+        { "id": "PROD-005-V5", "sku": "HP-PAV14-32-1T-SLV",  "name": "32GB / 1TB / Silver",    "barcode": "0196548451136", "attributes": { "ram": "32GB", "storage": "1TB SSD",   "color": "Natural Silver" }, "price": 8299, "cost": 6650 },
+        { "id": "PROD-005-V6", "sku": "HP-PAV14-32-2T-BLK",  "name": "32GB / 2TB / Ceramic",   "barcode": "0196548451143", "attributes": { "ram": "32GB", "storage": "2TB SSD",   "color": "Ceramic White"  }, "price": 9999, "cost": 8000 }
+      ]
+    },
+
+    {
+      "id": "PROD-006", "categoryId": "CAT-002", "name": "Lenovo IdeaPad 5 15",
+      "sku": "LEN-IP5-15", "barcode": "0196379501215", "trackingType": "SERIAL",
+      "price": 5799, "cost": 4650, "currency": "MAD",
+      "description": "15.6\" FHD IPS anti-glare, AMD Ryzen 5 7530U, Radeon Graphics, Wi-Fi 6",
+      "active": true,
+      "variants": [
+        { "id": "PROD-006-V1", "sku": "LEN-IP5-8-256-GRY",  "name": "8GB / 256GB / Abyss Blue",   "barcode": "0196379501222", "attributes": { "ram": "8GB",  "storage": "256GB SSD", "color": "Abyss Blue"  }, "price": 5299, "cost": 4250 },
+        { "id": "PROD-006-V2", "sku": "LEN-IP5-8-512-GRY",  "name": "8GB / 512GB / Abyss Blue",   "barcode": "0196379501239", "attributes": { "ram": "8GB",  "storage": "512GB SSD", "color": "Abyss Blue"  }, "price": 5799, "cost": 4650 },
+        { "id": "PROD-006-V3", "sku": "LEN-IP5-16-512-BLU", "name": "16GB / 512GB / Cloud Grey",  "barcode": "0196379501246", "attributes": { "ram": "16GB", "storage": "512GB SSD", "color": "Cloud Grey"  }, "price": 6699, "cost": 5350 },
+        { "id": "PROD-006-V4", "sku": "LEN-IP5-16-1T-BLU",  "name": "16GB / 1TB / Cloud Grey",    "barcode": "0196379501253", "attributes": { "ram": "16GB", "storage": "1TB SSD",   "color": "Cloud Grey"  }, "price": 7399, "cost": 5900 },
+        { "id": "PROD-006-V5", "sku": "LEN-IP5-32-1T-GRY",  "name": "32GB / 1TB / Abyss Blue",    "barcode": "0196379501260", "attributes": { "ram": "32GB", "storage": "1TB SSD",   "color": "Abyss Blue"  }, "price": 8999, "cost": 7200 },
+        { "id": "PROD-006-V6", "sku": "LEN-IP5-32-2T-GRY",  "name": "32GB / 2TB / Cloud Grey",    "barcode": "0196379501277", "attributes": { "ram": "32GB", "storage": "2TB SSD",   "color": "Cloud Grey"  }, "price": 10999,"cost": 8800 }
+      ]
+    },
+
+    {
+      "id": "PROD-007", "categoryId": "CAT-003", "name": "Apple iPad 10th Generation",
+      "sku": "APP-IPAD10", "barcode": "0194253384335", "trackingType": "SERIAL",
+      "price": 4499, "cost": 3600, "currency": "MAD",
+      "description": "10.9\" Liquid Retina, A14 Bionic, 12MP front+rear camera, USB-C, Wi-Fi 6",
+      "active": true,
+      "variants": [
+        { "id": "PROD-007-V1", "sku": "APP-IPAD10-64-WIFI-SLV",  "name": "Wi-Fi 64GB / Silver",         "barcode": "0194253384342", "attributes": { "connectivity": "Wi-Fi",    "storage": "64GB",  "color": "Silver"     }, "price": 4499, "cost": 3600 },
+        { "id": "PROD-007-V2", "sku": "APP-IPAD10-64-WIFI-BLU",  "name": "Wi-Fi 64GB / Blue",           "barcode": "0194253384359", "attributes": { "connectivity": "Wi-Fi",    "storage": "64GB",  "color": "Blue"       }, "price": 4499, "cost": 3600 },
+        { "id": "PROD-007-V3", "sku": "APP-IPAD10-256-WIFI-SLV", "name": "Wi-Fi 256GB / Silver",        "barcode": "0194253384366", "attributes": { "connectivity": "Wi-Fi",    "storage": "256GB", "color": "Silver"     }, "price": 5299, "cost": 4250 },
+        { "id": "PROD-007-V4", "sku": "APP-IPAD10-256-WIFI-PNK", "name": "Wi-Fi 256GB / Pink",          "barcode": "0194253384373", "attributes": { "connectivity": "Wi-Fi",    "storage": "256GB", "color": "Pink"       }, "price": 5299, "cost": 4250 },
+        { "id": "PROD-007-V5", "sku": "APP-IPAD10-64-CELL-SLV",  "name": "Cellular 64GB / Silver",      "barcode": "0194253384380", "attributes": { "connectivity": "Cellular", "storage": "64GB",  "color": "Silver"     }, "price": 5499, "cost": 4400 },
+        { "id": "PROD-007-V6", "sku": "APP-IPAD10-256-CELL-BLU", "name": "Cellular 256GB / Blue",       "barcode": "0194253384397", "attributes": { "connectivity": "Cellular", "storage": "256GB", "color": "Blue"       }, "price": 6299, "cost": 5050 }
+      ]
+    },
+
+    {
+      "id": "PROD-008", "categoryId": "CAT-003", "name": "Samsung Galaxy Tab A8",
+      "sku": "SAM-TABA8", "barcode": "8806094312255", "trackingType": "SERIAL",
+      "price": 2299, "cost": 1840, "currency": "MAD",
+      "description": "10.5\" TFT LCD, Unisoc T618, 7040mAh, USB-C, Wi-Fi 5",
+      "active": true,
+      "variants": [
+        { "id": "PROD-008-V1", "sku": "SAM-TABA8-32-GRY",    "name": "3GB+32GB / Gray",        "barcode": "8806094312262", "attributes": { "ram": "3GB", "storage": "32GB",  "color": "Gray"  }, "price": 2099, "cost": 1680 },
+        { "id": "PROD-008-V2", "sku": "SAM-TABA8-64-GRY",    "name": "4GB+64GB / Gray",        "barcode": "8806094312279", "attributes": { "ram": "4GB", "storage": "64GB",  "color": "Gray"  }, "price": 2299, "cost": 1840 },
+        { "id": "PROD-008-V3", "sku": "SAM-TABA8-64-SLV",    "name": "4GB+64GB / Silver",      "barcode": "8806094312286", "attributes": { "ram": "4GB", "storage": "64GB",  "color": "Silver"}, "price": 2299, "cost": 1840 },
+        { "id": "PROD-008-V4", "sku": "SAM-TABA8-128-GRY",   "name": "4GB+128GB / Gray",       "barcode": "8806094312293", "attributes": { "ram": "4GB", "storage": "128GB", "color": "Gray"  }, "price": 2599, "cost": 2080 },
+        { "id": "PROD-008-V5", "sku": "SAM-TABA8-128-SLV",   "name": "4GB+128GB / Silver",     "barcode": "8806094312309", "attributes": { "ram": "4GB", "storage": "128GB", "color": "Silver"}, "price": 2599, "cost": 2080 },
+        { "id": "PROD-008-V6", "sku": "SAM-TABA8-128-PNK",   "name": "4GB+128GB / Pink Gold",  "barcode": "8806094312316", "attributes": { "ram": "4GB", "storage": "128GB", "color": "Pink Gold"}, "price": 2599, "cost": 2080 }
+      ]
+    },
+
+    {
+      "id": "PROD-009", "categoryId": "CAT-003", "name": "Huawei MatePad 11",
+      "sku": "HUA-MP11", "barcode": "6941487228249", "trackingType": "SERIAL",
+      "price": 2999, "cost": 2400, "currency": "MAD",
+      "description": "10.95\" IPS 2.5K 120Hz, Snapdragon 865, HarmonyOS 3.1, 7250mAh",
+      "active": true,
+      "variants": [
+        { "id": "PROD-009-V1", "sku": "HUA-MP11-6-64-GRY",   "name": "6GB+64GB / Matte Gray",    "barcode": "6941487228256", "attributes": { "ram": "6GB",  "storage": "64GB",  "color": "Matte Gray"  }, "price": 2799, "cost": 2240 },
+        { "id": "PROD-009-V2", "sku": "HUA-MP11-6-128-GRY",  "name": "6GB+128GB / Matte Gray",   "barcode": "6941487228263", "attributes": { "ram": "6GB",  "storage": "128GB", "color": "Matte Gray"  }, "price": 2999, "cost": 2400 },
+        { "id": "PROD-009-V3", "sku": "HUA-MP11-6-128-WHT",  "name": "6GB+128GB / Matte Silver",  "barcode": "6941487228270", "attributes": { "ram": "6GB",  "storage": "128GB", "color": "Matte Silver"}, "price": 2999, "cost": 2400 },
+        { "id": "PROD-009-V4", "sku": "HUA-MP11-8-128-GRY",  "name": "8GB+128GB / Matte Gray",   "barcode": "6941487228287", "attributes": { "ram": "8GB",  "storage": "128GB", "color": "Matte Gray"  }, "price": 3399, "cost": 2720 },
+        { "id": "PROD-009-V5", "sku": "HUA-MP11-8-256-GRY",  "name": "8GB+256GB / Matte Gray",   "barcode": "6941487228294", "attributes": { "ram": "8GB",  "storage": "256GB", "color": "Matte Gray"  }, "price": 3799, "cost": 3040 },
+        { "id": "PROD-009-V6", "sku": "HUA-MP11-8-256-WHT",  "name": "8GB+256GB / Matte Silver",  "barcode": "6941487228300", "attributes": { "ram": "8GB",  "storage": "256GB", "color": "Matte Silver"}, "price": 3799, "cost": 3040 }
+      ]
+    },
+
+    {
+      "id": "PROD-010", "categoryId": "CAT-004", "name": "Sony WH-1000XM5",
+      "sku": "SON-WH1000XM5", "barcode": "4548736132283", "trackingType": "QUANTITY",
+      "price": 2799, "cost": 2100, "currency": "MAD",
+      "description": "Industry-leading ANC, 30hr battery, Hi-Res Audio, multipoint connection",
+      "active": true,
+      "variants": [
+        { "id": "PROD-010-V1", "sku": "SON-WH1000XM5-BLK", "name": "Black",        "barcode": "4548736132290", "attributes": { "color": "Black"         }, "price": 2799, "cost": 2100 },
+        { "id": "PROD-010-V2", "sku": "SON-WH1000XM5-SLV", "name": "Silver",       "barcode": "4548736132306", "attributes": { "color": "Silver"        }, "price": 2799, "cost": 2100 },
+        { "id": "PROD-010-V3", "sku": "SON-WH1000XM5-MDN", "name": "Midnight Blue","barcode": "4548736132313", "attributes": { "color": "Midnight Blue"  }, "price": 2799, "cost": 2100 },
+        { "id": "PROD-010-V4", "sku": "SON-WH1000XM5-SND", "name": "Sand Beige",   "barcode": "4548736132320", "attributes": { "color": "Sand Beige"    }, "price": 2799, "cost": 2100 },
+        { "id": "PROD-010-V5", "sku": "SON-WH1000XM5-ECR", "name": "Ecru",         "barcode": "4548736132337", "attributes": { "color": "Ecru"          }, "price": 2799, "cost": 2100 },
+        { "id": "PROD-010-V6", "sku": "SON-WH1000XM5-FOR", "name": "Forest Green", "barcode": "4548736132344", "attributes": { "color": "Forest Green"  }, "price": 2799, "cost": 2100 }
+      ]
+    },
+
+    {
+      "id": "PROD-011", "categoryId": "CAT-004", "name": "JBL Flip 6",
+      "sku": "JBL-FLIP6", "barcode": "0050036395578", "trackingType": "QUANTITY",
+      "price": 1199, "cost": 900, "currency": "MAD",
+      "description": "Portable BT speaker, IP67, 12hr battery, PartyBoost compatible, 30W",
+      "active": true,
+      "variants": [
+        { "id": "PROD-011-V1", "sku": "JBL-FLIP6-BLK",  "name": "Black",        "barcode": "0050036395585", "attributes": { "color": "Black"        }, "price": 1199, "cost": 900 },
+        { "id": "PROD-011-V2", "sku": "JBL-FLIP6-RED",  "name": "Red",          "barcode": "0050036395592", "attributes": { "color": "Red"          }, "price": 1199, "cost": 900 },
+        { "id": "PROD-011-V3", "sku": "JBL-FLIP6-BLU",  "name": "Blue",         "barcode": "0050036395608", "attributes": { "color": "Blue"         }, "price": 1199, "cost": 900 },
+        { "id": "PROD-011-V4", "sku": "JBL-FLIP6-TRQ",  "name": "Teal",         "barcode": "0050036395615", "attributes": { "color": "Teal"         }, "price": 1199, "cost": 900 },
+        { "id": "PROD-011-V5", "sku": "JBL-FLIP6-GRY",  "name": "Gray",         "barcode": "0050036395622", "attributes": { "color": "Gray"         }, "price": 1199, "cost": 900 },
+        { "id": "PROD-011-V6", "sku": "JBL-FLIP6-PNK",  "name": "Pink",         "barcode": "0050036395639", "attributes": { "color": "Pink"         }, "price": 1199, "cost": 900 }
+      ]
+    },
+
+    {
+      "id": "PROD-012", "categoryId": "CAT-004", "name": "Apple AirPods Pro 2nd Gen",
+      "sku": "APP-AIRPODSPRO2", "barcode": "0194253404521", "trackingType": "QUANTITY",
+      "price": 2199, "cost": 1650, "currency": "MAD",
+      "description": "Active Noise Cancellation, Adaptive Transparency, H2 chip, MagSafe case, 6hr",
+      "active": true,
+      "variants": [
+        { "id": "PROD-012-V1", "sku": "APP-AIRPODSPRO2-LTNG",   "name": "Lightning Case",         "barcode": "0194253404538", "attributes": { "case": "Lightning Case"    }, "price": 2199, "cost": 1650 },
+        { "id": "PROD-012-V2", "sku": "APP-AIRPODSPRO2-USBC",   "name": "USB-C Case",             "barcode": "0194253404545", "attributes": { "case": "USB-C Case"       }, "price": 2299, "cost": 1725 },
+        { "id": "PROD-012-V3", "sku": "APP-AIRPODSPRO2-MAGSAFE","name": "MagSafe Case",           "barcode": "0194253404552", "attributes": { "case": "MagSafe Case"     }, "price": 2199, "cost": 1650 },
+        { "id": "PROD-012-V4", "sku": "APP-AIRPODSPRO2-ENS",    "name": "Engraved / Lightning",   "barcode": "0194253404569", "attributes": { "case": "Lightning + Engraving" }, "price": 2299, "cost": 1725 },
+        { "id": "PROD-012-V5", "sku": "APP-AIRPODSPRO2-ENSUC",  "name": "Engraved / USB-C",       "barcode": "0194253404576", "attributes": { "case": "USB-C + Engraving" }, "price": 2399, "cost": 1800 },
+        { "id": "PROD-012-V6", "sku": "APP-AIRPODSPRO2-BUN",    "name": "Bundle w/ Polishing Cloth","barcode": "0194253404583","attributes": { "case": "MagSafe + Cloth"  }, "price": 2349, "cost": 1762 }
+      ]
+    },
+
+    {
+      "id": "PROD-013", "categoryId": "CAT-005", "name": "USB-C Braided Cable",
+      "sku": "CBL-USBC-BRD", "barcode": "7291234500130", "trackingType": "LOT",
+      "price": 99, "cost": 45, "currency": "MAD",
+      "description": "Nylon braided USB-C to USB-C, 60W fast charge, 10Gbps data, TPE connector",
+      "active": true,
+      "variants": [
+        { "id": "PROD-013-V1", "sku": "CBL-USBC-1M-BLK", "name": "1m / Black", "barcode": "7291234500147", "attributes": { "length": "1m", "color": "Black" }, "price": 79,  "cost": 35 },
+        { "id": "PROD-013-V2", "sku": "CBL-USBC-1M-WHT", "name": "1m / White", "barcode": "7291234500154", "attributes": { "length": "1m", "color": "White" }, "price": 79,  "cost": 35 },
+        { "id": "PROD-013-V3", "sku": "CBL-USBC-2M-BLK", "name": "2m / Black", "barcode": "7291234500161", "attributes": { "length": "2m", "color": "Black" }, "price": 99,  "cost": 45 },
+        { "id": "PROD-013-V4", "sku": "CBL-USBC-2M-WHT", "name": "2m / White", "barcode": "7291234500178", "attributes": { "length": "2m", "color": "White" }, "price": 99,  "cost": 45 },
+        { "id": "PROD-013-V5", "sku": "CBL-USBC-3M-BLK", "name": "3m / Black", "barcode": "7291234500185", "attributes": { "length": "3m", "color": "Black" }, "price": 129, "cost": 58 },
+        { "id": "PROD-013-V6", "sku": "CBL-USBC-3M-WHT", "name": "3m / White", "barcode": "7291234500192", "attributes": { "length": "3m", "color": "White" }, "price": 129, "cost": 58 }
+      ]
+    },
+
+    {
+      "id": "PROD-014", "categoryId": "CAT-005", "name": "HDMI 4K Cable",
+      "sku": "CBL-HDMI4K", "barcode": "7291234500209", "trackingType": "LOT",
+      "price": 129, "cost": 60, "currency": "MAD",
+      "description": "HDMI 2.0 4K@60Hz, 18Gbps bandwidth, gold-plated connectors, braided",
+      "active": true,
+      "variants": [
+        { "id": "PROD-014-V1", "sku": "CBL-HDMI4K-1M-BLK",  "name": "1m / Black",  "barcode": "7291234500216", "attributes": { "length": "1m",  "color": "Black" }, "price": 89,  "cost": 42 },
+        { "id": "PROD-014-V2", "sku": "CBL-HDMI4K-2M-BLK",  "name": "2m / Black",  "barcode": "7291234500223", "attributes": { "length": "2m",  "color": "Black" }, "price": 109, "cost": 52 },
+        { "id": "PROD-014-V3", "sku": "CBL-HDMI4K-3M-BLK",  "name": "3m / Black",  "barcode": "7291234500230", "attributes": { "length": "3m",  "color": "Black" }, "price": 129, "cost": 60 },
+        { "id": "PROD-014-V4", "sku": "CBL-HDMI4K-5M-BLK",  "name": "5m / Black",  "barcode": "7291234500247", "attributes": { "length": "5m",  "color": "Black" }, "price": 169, "cost": 80 },
+        { "id": "PROD-014-V5", "sku": "CBL-HDMI4K-3M-SLV",  "name": "3m / Silver", "barcode": "7291234500254", "attributes": { "length": "3m",  "color": "Silver"}, "price": 149, "cost": 70 },
+        { "id": "PROD-014-V6", "sku": "CBL-HDMI4K-10M-BLK", "name": "10m / Black", "barcode": "7291234500261", "attributes": { "length": "10m", "color": "Black" }, "price": 259, "cost": 130}
+      ]
+    },
+
+    {
+      "id": "PROD-015", "categoryId": "CAT-005", "name": "65W GaN Fast Charger",
+      "sku": "CHR-GAN65W", "barcode": "7291234500278", "trackingType": "LOT",
+      "price": 349, "cost": 210, "currency": "MAD",
+      "description": "65W GaN PD 3.0, dual USB-C + USB-A, foldable plug, multi-device support",
+      "active": true,
+      "variants": [
+        { "id": "PROD-015-V1", "sku": "CHR-GAN65W-EU-WHT",  "name": "65W / EU / White", "barcode": "7291234500285", "attributes": { "wattage": "65W",  "plug": "EU", "color": "White" }, "price": 349, "cost": 210 },
+        { "id": "PROD-015-V2", "sku": "CHR-GAN65W-EU-BLK",  "name": "65W / EU / Black", "barcode": "7291234500292", "attributes": { "wattage": "65W",  "plug": "EU", "color": "Black" }, "price": 349, "cost": 210 },
+        { "id": "PROD-015-V3", "sku": "CHR-GAN45W-EU-WHT",  "name": "45W / EU / White", "barcode": "7291234500308", "attributes": { "wattage": "45W",  "plug": "EU", "color": "White" }, "price": 279, "cost": 168 },
+        { "id": "PROD-015-V4", "sku": "CHR-GAN100W-EU-WHT", "name": "100W/ EU / White", "barcode": "7291234500315", "attributes": { "wattage": "100W", "plug": "EU", "color": "White" }, "price": 499, "cost": 299 },
+        { "id": "PROD-015-V5", "sku": "CHR-GAN65W-UK-WHT",  "name": "65W / UK / White", "barcode": "7291234500322", "attributes": { "wattage": "65W",  "plug": "UK", "color": "White" }, "price": 379, "cost": 228 },
+        { "id": "PROD-015-V6", "sku": "CHR-GAN65W-UN-WHT",  "name": "65W / Universal",  "barcode": "7291234500339", "attributes": { "wattage": "65W",  "plug": "Universal", "color": "White" }, "price": 399, "cost": 240 }
+      ]
+    },
+
+    {
+      "id": "PROD-016", "categoryId": "CAT-006", "name": "iPhone 14 Silicone Case",
+      "sku": "CAS-IP14-SIL", "barcode": "0194253388302", "trackingType": "QUANTITY",
+      "price": 149, "cost": 55, "currency": "MAD",
+      "description": "Liquid silicone exterior, microfiber lining, MagSafe compatible, slim profile",
+      "active": true,
+      "variants": [
+        { "id": "PROD-016-V1", "sku": "CAS-IP14-SIL-BLK",  "name": "Black",        "barcode": "0194253388319", "attributes": { "color": "Black"       }, "price": 149, "cost": 55 },
+        { "id": "PROD-016-V2", "sku": "CAS-IP14-SIL-WHT",  "name": "White",        "barcode": "0194253388326", "attributes": { "color": "White"       }, "price": 149, "cost": 55 },
+        { "id": "PROD-016-V3", "sku": "CAS-IP14-SIL-BLU",  "name": "Midnight Blue","barcode": "0194253388333", "attributes": { "color": "Midnight Blue"}, "price": 149, "cost": 55 },
+        { "id": "PROD-016-V4", "sku": "CAS-IP14-SIL-RED",  "name": "(Product)RED", "barcode": "0194253388340", "attributes": { "color": "(PRODUCT)RED" }, "price": 149, "cost": 55 },
+        { "id": "PROD-016-V5", "sku": "CAS-IP14-SIL-CLR",  "name": "Clear",        "barcode": "0194253388357", "attributes": { "color": "Clear"       }, "price": 129, "cost": 48 },
+        { "id": "PROD-016-V6", "sku": "CAS-IP14-SIL-SUN",  "name": "Sunglow",      "barcode": "0194253388364", "attributes": { "color": "Sunglow"     }, "price": 149, "cost": 55 }
+      ]
+    },
+
+    {
+      "id": "PROD-017", "categoryId": "CAT-006", "name": "Samsung A54 Hybrid Case",
+      "sku": "CAS-A54-HYB", "barcode": "8806094915021", "trackingType": "QUANTITY",
+      "price": 99, "cost": 40, "currency": "MAD",
+      "description": "Dual-layer TPU+PC, raised bezels, anti-slip grip, military-grade drop tested",
+      "active": true,
+      "variants": [
+        { "id": "PROD-017-V1", "sku": "CAS-A54-HYB-BLK",  "name": "Black",       "barcode": "8806094915038", "attributes": { "color": "Black"       }, "price": 99, "cost": 40 },
+        { "id": "PROD-017-V2", "sku": "CAS-A54-HYB-CLR",  "name": "Transparent", "barcode": "8806094915045", "attributes": { "color": "Transparent" }, "price": 99, "cost": 40 },
+        { "id": "PROD-017-V3", "sku": "CAS-A54-HYB-BLU",  "name": "Navy Blue",   "barcode": "8806094915052", "attributes": { "color": "Navy Blue"   }, "price": 99, "cost": 40 },
+        { "id": "PROD-017-V4", "sku": "CAS-A54-HYB-GRN",  "name": "Olive Green", "barcode": "8806094915069", "attributes": { "color": "Olive Green" }, "price": 99, "cost": 40 },
+        { "id": "PROD-017-V5", "sku": "CAS-A54-HYB-RED",  "name": "Burgundy",    "barcode": "8806094915076", "attributes": { "color": "Burgundy"    }, "price": 99, "cost": 40 },
+        { "id": "PROD-017-V6", "sku": "CAS-A54-HYB-PNK",  "name": "Rose Pink",   "barcode": "8806094915083", "attributes": { "color": "Rose Pink"   }, "price": 99, "cost": 40 }
+      ]
+    },
+
+    {
+      "id": "PROD-018", "categoryId": "CAT-006", "name": "Universal Laptop Bag 15.6\"",
+      "sku": "BAG-UNIV-156", "barcode": "7291234500346", "trackingType": "QUANTITY",
+      "price": 199, "cost": 85, "currency": "MAD",
+      "description": "Water-resistant 900D polyester, padded compartment, USB charging port, 12L",
+      "active": true,
+      "variants": [
+        { "id": "PROD-018-V1", "sku": "BAG-UNIV-156-BLK", "name": "Black / 15.6\"",         "barcode": "7291234500353", "attributes": { "size": "15.6\"", "color": "Black"  }, "price": 199, "cost": 85 },
+        { "id": "PROD-018-V2", "sku": "BAG-UNIV-156-NVY", "name": "Navy Blue / 15.6\"",     "barcode": "7291234500360", "attributes": { "size": "15.6\"", "color": "Navy"   }, "price": 199, "cost": 85 },
+        { "id": "PROD-018-V3", "sku": "BAG-UNIV-14-BLK",  "name": "Black / 14\"",           "barcode": "7291234500377", "attributes": { "size": "14\"",   "color": "Black"  }, "price": 179, "cost": 76 },
+        { "id": "PROD-018-V4", "sku": "BAG-UNIV-17-BLK",  "name": "Black / 17.3\"",         "barcode": "7291234500384", "attributes": { "size": "17.3\"", "color": "Black"  }, "price": 219, "cost": 93 },
+        { "id": "PROD-018-V5", "sku": "BAG-UNIV-156-GRY", "name": "Gray / 15.6\" (Backpack)","barcode": "7291234500391", "attributes": { "size": "15.6\"", "color": "Gray", "style": "Backpack" }, "price": 249, "cost": 106 },
+        { "id": "PROD-018-V6", "sku": "BAG-UNIV-156-BRN", "name": "Brown / 15.6\" (Leather)","barcode": "7291234500407", "attributes": { "size": "15.6\"", "color": "Brown", "style": "Leather" }, "price": 349, "cost": 148 }
+      ]
+    },
+
+    {
+      "id": "PROD-019", "categoryId": "CAT-007", "name": "TP-Link Archer AX3000",
+      "sku": "NET-TPAX3000", "barcode": "6935364090938", "trackingType": "QUANTITY",
+      "price": 799, "cost": 580, "currency": "MAD",
+      "description": "Wi-Fi 6 AX3000, dual-band, 4 antennas, OFDMA+MU-MIMO, covers up to 180m²",
+      "active": true,
+      "variants": [
+        { "id": "PROD-019-V1", "sku": "NET-TPAX3000-STD",  "name": "Standard Pack",          "barcode": "6935364090945", "attributes": { "pack": "Standard"          }, "price": 799,  "cost": 580 },
+        { "id": "PROD-019-V2", "sku": "NET-TPAX3000-EW2",  "name": "+ 2yr Warranty",         "barcode": "6935364090952", "attributes": { "pack": "Extended Warranty"  }, "price": 899,  "cost": 640 },
+        { "id": "PROD-019-V3", "sku": "NET-TPAX3000-BIZ",  "name": "Business Pack",          "barcode": "6935364090969", "attributes": { "pack": "Business"          }, "price": 999,  "cost": 720 },
+        { "id": "PROD-019-V4", "sku": "NET-TPAX3000-2PK",  "name": "2-Pack Bundle",          "barcode": "6935364090976", "attributes": { "pack": "2-Pack"            }, "price": 1499, "cost": 1100 },
+        { "id": "PROD-019-V5", "sku": "NET-TPAX3000-3PK",  "name": "3-Pack Bundle (Mesh)",   "barcode": "6935364090983", "attributes": { "pack": "3-Pack Mesh"       }, "price": 2199, "cost": 1600 },
+        { "id": "PROD-019-V6", "sku": "NET-TPAX3000-ONT",  "name": "ONT Bundle (FTTH)",      "barcode": "6935364090990", "attributes": { "pack": "ONT Bundle"        }, "price": 1199, "cost": 870 }
+      ]
+    },
+
+    {
+      "id": "PROD-020", "categoryId": "CAT-007", "name": "Netgear GS308 8-Port Switch",
+      "sku": "NET-NEGS308", "barcode": "0606449143040", "trackingType": "QUANTITY",
+      "price": 449, "cost": 320, "currency": "MAD",
+      "description": "8-port Gigabit unmanaged switch, plug-and-play, fanless, desktop/wall-mount",
+      "active": true,
+      "variants": [
+        { "id": "PROD-020-V1", "sku": "NET-NEGS308-8P",   "name": "8-Port",          "barcode": "0606449143057", "attributes": { "ports": "8",  "type": "Unmanaged" }, "price": 449,  "cost": 320 },
+        { "id": "PROD-020-V2", "sku": "NET-NEGS316-16P",  "name": "16-Port",         "barcode": "0606449143064", "attributes": { "ports": "16", "type": "Unmanaged" }, "price": 699,  "cost": 499 },
+        { "id": "PROD-020-V3", "sku": "NET-NEGS324-24P",  "name": "24-Port",         "barcode": "0606449143071", "attributes": { "ports": "24", "type": "Unmanaged" }, "price": 1099, "cost": 780 },
+        { "id": "PROD-020-V4", "sku": "NET-NEGS308P-POE", "name": "8-Port PoE+",     "barcode": "0606449143088", "attributes": { "ports": "8",  "type": "PoE+"      }, "price": 849,  "cost": 605 },
+        { "id": "PROD-020-V5", "sku": "NET-NEGS316P-POE", "name": "16-Port PoE+",    "barcode": "0606449143095", "attributes": { "ports": "16", "type": "PoE+"      }, "price": 1299, "cost": 925 },
+        { "id": "PROD-020-V6", "sku": "NET-NEGS308-MNG",  "name": "8-Port Managed",  "barcode": "0606449143101", "attributes": { "ports": "8",  "type": "Managed"   }, "price": 799,  "cost": 570 }
+      ]
+    },
+
+    {
+      "id": "PROD-021", "categoryId": "CAT-007", "name": "TP-Link RE605X Range Extender",
+      "sku": "NET-TPRE605X", "barcode": "6935364089604", "trackingType": "QUANTITY",
+      "price": 499, "cost": 360, "currency": "MAD",
+      "description": "AX1800 Wi-Fi 6 extender, dual-band, Gigabit port, OneMesh compatible",
+      "active": true,
+      "variants": [
+        { "id": "PROD-021-V1", "sku": "NET-TPRE605X-WHT",  "name": "AX1800 / White",  "barcode": "6935364089611", "attributes": { "standard": "AX1800", "color": "White" }, "price": 499,  "cost": 360 },
+        { "id": "PROD-021-V2", "sku": "NET-TPRE300-WHT",   "name": "N300 / White",    "barcode": "6935364089628", "attributes": { "standard": "N300",   "color": "White" }, "price": 199,  "cost": 144 },
+        { "id": "PROD-021-V3", "sku": "NET-TPRE505X-WHT",  "name": "AX3000 / White",  "barcode": "6935364089635", "attributes": { "standard": "AX3000", "color": "White" }, "price": 699,  "cost": 504 },
+        { "id": "PROD-021-V4", "sku": "NET-TPRE605X-EW2",  "name": "AX1800 + 2yr Warranty","barcode": "6935364089642", "attributes": { "standard": "AX1800", "pack": "Extended Warranty" }, "price": 599, "cost": 430 },
+        { "id": "PROD-021-V5", "sku": "NET-TPRE605X-2PK",  "name": "AX1800 2-Pack",   "barcode": "6935364089659", "attributes": { "standard": "AX1800", "pack": "2-Pack" }, "price": 949,  "cost": 684 },
+        { "id": "PROD-021-V6", "sku": "NET-TPRE605X-DSK",  "name": "AX1800 Desktop",  "barcode": "6935364089666", "attributes": { "standard": "AX1800", "form": "Desktop" }, "price": 549, "cost": 396 }
+      ]
+    },
+
+    {
+      "id": "PROD-022", "categoryId": "CAT-008", "name": "WD Elements 1TB External HDD",
+      "sku": "STR-WD1TB", "barcode": "0718037831619", "trackingType": "LOT",
+      "price": 599, "cost": 420, "currency": "MAD",
+      "description": "USB 3.0, plug-and-play, FAT32/NTFS compatible, slim 20mm, 3yr warranty",
+      "active": true,
+      "variants": [
+        { "id": "PROD-022-V1", "sku": "STR-WD500GB-BLK",  "name": "500GB / Black",   "barcode": "0718037831626", "attributes": { "capacity": "500GB", "color": "Black"  }, "price": 399,  "cost": 280 },
+        { "id": "PROD-022-V2", "sku": "STR-WD1TB-BLK",    "name": "1TB / Black",     "barcode": "0718037831633", "attributes": { "capacity": "1TB",   "color": "Black"  }, "price": 599,  "cost": 420 },
+        { "id": "PROD-022-V3", "sku": "STR-WD2TB-BLK",    "name": "2TB / Black",     "barcode": "0718037831640", "attributes": { "capacity": "2TB",   "color": "Black"  }, "price": 899,  "cost": 630 },
+        { "id": "PROD-022-V4", "sku": "STR-WD4TB-BLK",    "name": "4TB / Black",     "barcode": "0718037831657", "attributes": { "capacity": "4TB",   "color": "Black"  }, "price": 1499, "cost": 1050 },
+        { "id": "PROD-022-V5", "sku": "STR-WD1TB-WHT",    "name": "1TB / White",     "barcode": "0718037831664", "attributes": { "capacity": "1TB",   "color": "White"  }, "price": 599,  "cost": 420 },
+        { "id": "PROD-022-V6", "sku": "STR-WD2TB-WHT",    "name": "2TB / White",     "barcode": "0718037831671", "attributes": { "capacity": "2TB",   "color": "White"  }, "price": 899,  "cost": 630 }
+      ]
+    },
+
+    {
+      "id": "PROD-023", "categoryId": "CAT-008", "name": "Samsung 870 EVO SSD",
+      "sku": "STR-SAM870", "barcode": "8806090545848", "trackingType": "LOT",
+      "price": 499, "cost": 350, "currency": "MAD",
+      "description": "SATA III 2.5\", MLC V-NAND, up to 560/530 MB/s R/W, 5yr warranty",
+      "active": true,
+      "variants": [
+        { "id": "PROD-023-V1", "sku": "STR-SAM870-250",  "name": "250GB",  "barcode": "8806090545855", "attributes": { "capacity": "250GB" }, "price": 329,  "cost": 231 },
+        { "id": "PROD-023-V2", "sku": "STR-SAM870-500",  "name": "500GB",  "barcode": "8806090545862", "attributes": { "capacity": "500GB" }, "price": 499,  "cost": 350 },
+        { "id": "PROD-023-V3", "sku": "STR-SAM870-1T",   "name": "1TB",    "barcode": "8806090545879", "attributes": { "capacity": "1TB"   }, "price": 899,  "cost": 630 },
+        { "id": "PROD-023-V4", "sku": "STR-SAM870-2T",   "name": "2TB",    "barcode": "8806090545886", "attributes": { "capacity": "2TB"   }, "price": 1699, "cost": 1190 },
+        { "id": "PROD-023-V5", "sku": "STR-SAM870-4T",   "name": "4TB",    "barcode": "8806090545893", "attributes": { "capacity": "4TB"   }, "price": 3299, "cost": 2310 },
+        { "id": "PROD-023-V6", "sku": "STR-SAM870-500K",  "name": "500GB + Install Kit", "barcode": "8806090545909", "attributes": { "capacity": "500GB", "bundle": "Install Kit" }, "price": 579, "cost": 406 }
+      ]
+    },
+
+    {
+      "id": "PROD-024", "categoryId": "CAT-008", "name": "SanDisk Ultra USB 3.0",
+      "sku": "STR-SD-USB3", "barcode": "0619659113681", "trackingType": "LOT",
+      "price": 149, "cost": 70, "currency": "MAD",
+      "description": "USB 3.0, up to 130MB/s read, retractable design, SanDisk SecureAccess",
+      "active": true,
+      "variants": [
+        { "id": "PROD-024-V1", "sku": "STR-SD-32GB",   "name": "32GB",           "barcode": "0619659113698", "attributes": { "capacity": "32GB"  }, "price": 79,  "cost": 37 },
+        { "id": "PROD-024-V2", "sku": "STR-SD-64GB",   "name": "64GB",           "barcode": "0619659113704", "attributes": { "capacity": "64GB"  }, "price": 109, "cost": 51 },
+        { "id": "PROD-024-V3", "sku": "STR-SD-128GB",  "name": "128GB",          "barcode": "0619659113711", "attributes": { "capacity": "128GB" }, "price": 149, "cost": 70 },
+        { "id": "PROD-024-V4", "sku": "STR-SD-256GB",  "name": "256GB",          "barcode": "0619659113728", "attributes": { "capacity": "256GB" }, "price": 249, "cost": 117 },
+        { "id": "PROD-024-V5", "sku": "STR-SD-512GB",  "name": "512GB",          "barcode": "0619659113735", "attributes": { "capacity": "512GB" }, "price": 449, "cost": 211 },
+        { "id": "PROD-024-V6", "sku": "STR-SD-128-3PK","name": "128GB 3-Pack",   "barcode": "0619659113742", "attributes": { "capacity": "128GB", "pack": "3-Pack" }, "price": 399, "cost": 188 }
+      ]
+    },
+
+    {
+      "id": "PROD-025", "categoryId": "CAT-009", "name": "Logitech MX Master 3S",
+      "sku": "PER-LMX3S", "barcode": "5099206098770", "trackingType": "QUANTITY",
+      "price": 899, "cost": 650, "currency": "MAD",
+      "description": "8K DPI, MagSpeed scroll, Quiet clicks, BT + Logi Bolt USB, 70-day battery",
+      "active": true,
+      "variants": [
+        { "id": "PROD-025-V1", "sku": "PER-LMX3S-GRA",  "name": "Graphite",      "barcode": "5099206098787", "attributes": { "color": "Graphite"     }, "price": 899, "cost": 650 },
+        { "id": "PROD-025-V2", "sku": "PER-LMX3S-PAL",  "name": "Pale Gray",     "barcode": "5099206098794", "attributes": { "color": "Pale Gray"    }, "price": 899, "cost": 650 },
+        { "id": "PROD-025-V3", "sku": "PER-LMX3S-WHT",  "name": "White",         "barcode": "5099206098800", "attributes": { "color": "White"        }, "price": 899, "cost": 650 },
+        { "id": "PROD-025-V4", "sku": "PER-LMX3S-MID",  "name": "Midnight Teal", "barcode": "5099206098817", "attributes": { "color": "Midnight Teal"}, "price": 899, "cost": 650 },
+        { "id": "PROD-025-V5", "sku": "PER-LMX3S-GRA-MAC", "name": "Graphite / Mac", "barcode": "5099206098824", "attributes": { "color": "Graphite", "platform": "Mac" }, "price": 949, "cost": 686 },
+        { "id": "PROD-025-V6", "sku": "PER-LMX3S-PAL-MAC", "name": "Pale Gray / Mac", "barcode": "5099206098831", "attributes": { "color": "Pale Gray","platform": "Mac" }, "price": 949, "cost": 686 }
+      ]
+    },
+
+    {
+      "id": "PROD-026", "categoryId": "CAT-009", "name": "Keychron K2 Mechanical Keyboard",
+      "sku": "PER-KEYK2", "barcode": "6971920664032", "trackingType": "QUANTITY",
+      "price": 699, "cost": 490, "currency": "MAD",
+      "description": "75% TKL, hot-swappable, BT 5.1 + USB-C, RGB backlight, Mac/Win",
+      "active": true,
+      "variants": [
+        { "id": "PROD-026-V1", "sku": "PER-KEYK2-RED-RGB",  "name": "Red Switch / RGB",   "barcode": "6971920664049", "attributes": { "switch": "Gateron Red",   "backlight": "RGB"     }, "price": 699, "cost": 490 },
+        { "id": "PROD-026-V2", "sku": "PER-KEYK2-BRN-RGB",  "name": "Brown Switch / RGB",  "barcode": "6971920664056", "attributes": { "switch": "Gateron Brown",  "backlight": "RGB"     }, "price": 699, "cost": 490 },
+        { "id": "PROD-026-V3", "sku": "PER-KEYK2-BLU-RGB",  "name": "Blue Switch / RGB",   "barcode": "6971920664063", "attributes": { "switch": "Gateron Blue",   "backlight": "RGB"     }, "price": 699, "cost": 490 },
+        { "id": "PROD-026-V4", "sku": "PER-KEYK2-RED-WHT",  "name": "Red Switch / White",  "barcode": "6971920664070", "attributes": { "switch": "Gateron Red",   "backlight": "White"   }, "price": 649, "cost": 455 },
+        { "id": "PROD-026-V5", "sku": "PER-KEYK2-BRN-WHT",  "name": "Brown Switch / White","barcode": "6971920664087", "attributes": { "switch": "Gateron Brown",  "backlight": "White"   }, "price": 649, "cost": 455 },
+        { "id": "PROD-026-V6", "sku": "PER-KEYK2-BLU-WHT",  "name": "Blue Switch / White", "barcode": "6971920664094", "attributes": { "switch": "Gateron Blue",   "backlight": "White"   }, "price": 649, "cost": 455 }
+      ]
+    },
+
+    {
+      "id": "PROD-027", "categoryId": "CAT-009", "name": "HP LaserJet M110we",
+      "sku": "PER-HPLASM110", "barcode": "0196786027685", "trackingType": "SERIAL",
+      "price": 1299, "cost": 960, "currency": "MAD",
+      "description": "Mono laser, 20ppm, Wi-Fi + USB, HP+ Smart Printing, 8000 pages/month",
+      "active": true,
+      "variants": [
+        { "id": "PROD-027-V1", "sku": "PER-HPLASM110-STD",  "name": "Standard",                "barcode": "0196786027692", "attributes": { "bundle": "Printer only"       }, "price": 1299, "cost": 960  },
+        { "id": "PROD-027-V2", "sku": "PER-HPLASM110-TON",  "name": "+ Extra Toner",           "barcode": "0196786027708", "attributes": { "bundle": "Printer + Toner"    }, "price": 1599, "cost": 1184 },
+        { "id": "PROD-027-V3", "sku": "PER-HPLASM110-INS",  "name": "+ Install Service",       "barcode": "0196786027715", "attributes": { "bundle": "Printer + Install"  }, "price": 1499, "cost": 1110 },
+        { "id": "PROD-027-V4", "sku": "PER-HPLASM110-EW3",  "name": "+ 3yr Warranty",          "barcode": "0196786027722", "attributes": { "bundle": "Printer + 3yr Warr"  }, "price": 1699, "cost": 1258 },
+        { "id": "PROD-027-V5", "sku": "PER-HPLASM110-BIZ",  "name": "Business Pack",           "barcode": "0196786027739", "attributes": { "bundle": "Business Pack"       }, "price": 1999, "cost": 1480 },
+        { "id": "PROD-027-V6", "sku": "PER-HPLASM110-CLR",  "name": "Color Upgrade (M182nw)",  "barcode": "0196786027746", "attributes": { "bundle": "Color Laser M182nw" }, "price": 2199, "cost": 1628 }
+      ]
+    },
+
+    {
+      "id": "PROD-028", "categoryId": "CAT-010", "name": "Philips Hue White & Color Starter Kit",
+      "sku": "SH-PHUE-SK", "barcode": "0046677570989", "trackingType": "QUANTITY",
+      "price": 899, "cost": 620, "currency": "MAD",
+      "description": "3x E27 Color bulbs + Bridge, 16M colors, voice/app control, Zigbee",
+      "active": true,
+      "variants": [
+        { "id": "PROD-028-V1", "sku": "SH-PHUE-SK-E27-3",  "name": "3-Bulb E27 Starter",      "barcode": "0046677570996", "attributes": { "bulb": "E27", "count": "3", "type": "Color"      }, "price": 899,  "cost": 620 },
+        { "id": "PROD-028-V2", "sku": "SH-PHUE-SK-E27-4",  "name": "4-Bulb E27 Starter",      "barcode": "0046677571009", "attributes": { "bulb": "E27", "count": "4", "type": "Color"      }, "price": 1099, "cost": 758 },
+        { "id": "PROD-028-V3", "sku": "SH-PHUE-SK-E14-3",  "name": "3-Bulb E14 Starter",      "barcode": "0046677571016", "attributes": { "bulb": "E14", "count": "3", "type": "Color"      }, "price": 899,  "cost": 620 },
+        { "id": "PROD-028-V4", "sku": "SH-PHUE-SK-WHT-3",  "name": "3-Bulb White Ambiance",   "barcode": "0046677571023", "attributes": { "bulb": "E27", "count": "3", "type": "White Amb" }, "price": 699,  "cost": 483 },
+        { "id": "PROD-028-V5", "sku": "SH-PHUE-SK-E27-6",  "name": "6-Bulb E27 Color Pack",   "barcode": "0046677571030", "attributes": { "bulb": "E27", "count": "6", "type": "Color"      }, "price": 1599, "cost": 1104 },
+        { "id": "PROD-028-V6", "sku": "SH-PHUE-SK-GU10-3", "name": "3-Bulb GU10 Starter",     "barcode": "0046677571047", "attributes": { "bulb": "GU10","count": "3", "type": "Color"      }, "price": 949,  "cost": 655 }
+      ]
+    },
+
+    {
+      "id": "PROD-029", "categoryId": "CAT-010", "name": "TP-Link Tapo P110 Smart Plug",
+      "sku": "SH-TAPP110", "barcode": "6935364089727", "trackingType": "QUANTITY",
+      "price": 149, "cost": 75, "currency": "MAD",
+      "description": "Wi-Fi smart plug, energy monitoring, 16A, voice control, away mode, timer",
+      "active": true,
+      "variants": [
+        { "id": "PROD-029-V1", "sku": "SH-TAPP110-EU-1",  "name": "1-Pack / EU",       "barcode": "6935364089734", "attributes": { "plug": "EU", "pack": "1-Pack" }, "price": 149,  "cost": 75  },
+        { "id": "PROD-029-V2", "sku": "SH-TAPP110-EU-2",  "name": "2-Pack / EU",       "barcode": "6935364089741", "attributes": { "plug": "EU", "pack": "2-Pack" }, "price": 279,  "cost": 140 },
+        { "id": "PROD-029-V3", "sku": "SH-TAPP110-EU-4",  "name": "4-Pack / EU",       "barcode": "6935364089758", "attributes": { "plug": "EU", "pack": "4-Pack" }, "price": 549,  "cost": 275 },
+        { "id": "PROD-029-V4", "sku": "SH-TAPP100-EU-1",  "name": "P100 Basic 1-Pack", "barcode": "6935364089765", "attributes": { "plug": "EU", "model": "P100", "pack": "1-Pack" }, "price": 99, "cost": 50 },
+        { "id": "PROD-029-V5", "sku": "SH-TAPP115-EU-1",  "name": "P115 Mini 1-Pack",  "barcode": "6935364089772", "attributes": { "plug": "EU", "model": "P115", "pack": "1-Pack" }, "price": 169, "cost": 85 },
+        { "id": "PROD-029-V6", "sku": "SH-TAPP110-UK-1",  "name": "1-Pack / UK",       "barcode": "6935364089789", "attributes": { "plug": "UK", "pack": "1-Pack" }, "price": 169,  "cost": 85  }
+      ]
+    },
+
+    {
+      "id": "PROD-030", "categoryId": "CAT-010", "name": "Xiaomi Robot Vacuum G1",
+      "sku": "SH-XMRVG1", "barcode": "6934177749209", "trackingType": "QUANTITY",
+      "price": 1999, "cost": 1450, "currency": "MAD",
+      "description": "2500Pa suction, laser navigation, 150min runtime, Mi Home app, 2-in-1 sweep+mop",
+      "active": true,
+      "variants": [
+        { "id": "PROD-030-V1", "sku": "SH-XMRVG1-WHT",   "name": "G1 / White (Sweep)",      "barcode": "6934177749216", "attributes": { "model": "G1",  "color": "White",  "mode": "Sweep"      }, "price": 1999, "cost": 1450 },
+        { "id": "PROD-030-V2", "sku": "SH-XMRVG3-WHT",   "name": "G3 / White (Sweep+Mop)",  "barcode": "6934177749223", "attributes": { "model": "G3",  "color": "White",  "mode": "Sweep+Mop"  }, "price": 2499, "cost": 1812 },
+        { "id": "PROD-030-V3", "sku": "SH-XMRVE12-WHT",  "name": "E12 / White (Sweep)",     "barcode": "6934177749230", "attributes": { "model": "E12", "color": "White",  "mode": "Sweep"      }, "price": 1499, "cost": 1087 },
+        { "id": "PROD-030-V4", "sku": "SH-XMRVS12-WHT",  "name": "S12 / White (Sweep+Mop)", "barcode": "6934177749247", "attributes": { "model": "S12", "color": "White",  "mode": "Sweep+Mop"  }, "price": 2999, "cost": 2174 },
+        { "id": "PROD-030-V5", "sku": "SH-XMRVG1-BLK",   "name": "G1 / Black (Sweep)",      "barcode": "6934177749254", "attributes": { "model": "G1",  "color": "Black",  "mode": "Sweep"      }, "price": 1999, "cost": 1450 },
+        { "id": "PROD-030-V6", "sku": "SH-XMRVG1-BUN",   "name": "G1 + Extra Filter Pack",  "barcode": "6934177749261", "attributes": { "model": "G1",  "color": "White",  "bundle": "Filter Pack" }, "price": 2149, "cost": 1559 }
+      ]
+    }
+
+  ]
+}

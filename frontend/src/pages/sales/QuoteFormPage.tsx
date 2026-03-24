@@ -2,11 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, FileText, Save, Send, ArrowLeft, Package } from 'lucide-react';
+import { Plus, Trash2, Send, ArrowLeft, Package } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { salesService } from '@/services/sales.service';
 import { inventoryService } from '@/services/inventory.service';
 import { locationService } from '@/services/location.service';
@@ -176,29 +174,6 @@ export const QuoteFormPage = () => {
     }
   };
 
-  const generatePDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text(t('sales.quotes.title'), 14, 22);
-    doc.setFontSize(11);
-    doc.text(`${t('sales.quotes.customer')}: ${customerName}`, 14, 35);
-    if (validUntil) doc.text(`${t('sales.quotes.validUntil')}: ${validUntil}`, 14, 42);
-
-    autoTable(doc, {
-      startY: 50,
-      head: [[t('quoteForm.item'), t('sales.quotes.sku'), t('sales.quotes.qty'), t('quoteForm.unitPrice'), t('sales.quotes.discountPct'), t('sales.quotes.lineTotal')]],
-      body: lines.map(l => [l.itemName, l.itemSku, l.quantity, l.unitPrice.toFixed(2), `${l.discountPercent}%`, l.totalPrice.toFixed(2)]),
-    });
-
-    const finalY = (doc as any).lastAutoTable?.finalY || 100;
-    doc.text(`${t('sales.quotes.subtotal')}: ${subtotal.toFixed(2)}`, 14, finalY + 10);
-    doc.text(`${t('sales.quotes.discount')}: ${discountPercent}% (-${totalDiscount.toFixed(2)})`, 14, finalY + 17);
-    doc.setFontSize(13);
-    doc.text(`${t('sales.quotes.total')}: ${total.toFixed(2)}`, 14, finalY + 26);
-
-    doc.save(`quote-${Date.now()}.pdf`);
-  };
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Header */}
@@ -213,12 +188,6 @@ export const QuoteFormPage = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" icon={<FileText size={16} />} onClick={generatePDF} disabled={lines.length === 0}>
-            {t('quoteForm.generatePdf')}
-          </Button>
-          <Button variant="outline" icon={<Save size={16} />} onClick={handleSaveDraft} loading={saving} disabled={saving}>
-            {t('quoteForm.saveDraft')}
-          </Button>
           <Button icon={<Send size={16} />} onClick={handleSendQuote} loading={saving} disabled={saving}>
             {t('quoteForm.sendQuote')}
           </Button>

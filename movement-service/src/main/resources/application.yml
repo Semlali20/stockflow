@@ -2,6 +2,7 @@
 spring:
   application:
     name: movement-service
+
   servlet:
     multipart:
       max-file-size: 50MB

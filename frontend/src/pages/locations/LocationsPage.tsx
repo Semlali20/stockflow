@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
+import { LocationFormModal } from '@/components/locations/LocationFormModal';
 import { Location, Warehouse as WarehouseType } from '@/types';
 
 export const LocationsPage: React.FC = () => {
@@ -27,6 +28,8 @@ export const LocationsPage: React.FC = () => {
   
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
 
   useEffect(() => {
     fetchInitialData();
@@ -51,6 +54,18 @@ export const LocationsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreateClick = () => {
+    setSelectedLocation(null);
+    setFormMode('create');
+    setIsFormModalOpen(true);
+  };
+
+  const handleEditClick = (location: Location) => {
+    setSelectedLocation(location);
+    setFormMode('edit');
+    setIsFormModalOpen(true);
   };
 
   const handleDeleteClick = (location: Location) => {
@@ -116,7 +131,7 @@ export const LocationsPage: React.FC = () => {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             {t('common.refresh')}
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button onClick={handleCreateClick} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
             {t('locations.locations.newLocation')}
           </Button>
@@ -243,7 +258,7 @@ export const LocationsPage: React.FC = () => {
                     <td className="px-6 py-4">{getStatusBadge(loc.status)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
+                        <button onClick={() => handleEditClick(loc)} className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
                         <button onClick={() => handleDeleteClick(loc)} className="p-2 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                       </div>
                     </td>
@@ -261,6 +276,14 @@ export const LocationsPage: React.FC = () => {
         onConfirm={handleDelete}
         title={t('locations.locations.delete.title')}
         message={t('locations.locations.delete.confirm', { code: selectedLocation?.code || '' })}
+      />
+
+      <LocationFormModal
+        isOpen={isFormModalOpen}
+        onClose={() => setIsFormModalOpen(false)}
+        onSuccess={fetchInitialData}
+        mode={formMode}
+        location={selectedLocation}
       />
     </div>
   );

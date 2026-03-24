@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { ReportModal } from '@/components/ui/ReportModal';
+import { Modal } from '@/components/ui/Modal';
 import { useFileDownload } from '@/hooks/useFileDownload';
 import { API_ENDPOINTS } from '@/config/constants';
 
@@ -107,11 +108,25 @@ export const InventoryPageEnhanced: React.FC = () => {
   const [serials, setSerials] = useState<Map<string, any>>(new Map());
 
   // Modals
-  const [, setIsCreateModalOpen] = useState(false);
-  const [, setIsEditModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [, setIsViewModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  // Form state (create / edit)
+  const [formItemId, setFormItemId] = useState('');
+  const [formWarehouseId, setFormWarehouseId] = useState('');
+  const [formLocationId, setFormLocationId] = useState('');
+  const [formLotId, setFormLotId] = useState('');
+  const [formSerialId, setFormSerialId] = useState('');
+  const [formQuantity, setFormQuantity] = useState('');
+  const [formUom, setFormUom] = useState('PCS');
+  const [formStatus, setFormStatus] = useState('AVAILABLE');
+  const [formUnitCost, setFormUnitCost] = useState('');
+  const [formExpiryDate, setFormExpiryDate] = useState('');
+  const [formManufactureDate, setFormManufactureDate] = useState('');
+  const [formSubmitting, setFormSubmitting] = useState(false);
 
   const { isDownloading, downloadCsv } = useFileDownload();
 
@@ -281,19 +296,93 @@ export const InventoryPageEnhanced: React.FC = () => {
   // CRUD OPERATIONS
   // ============================================================================
 
+  const resetForm = () => {
+    setFormItemId('');
+    setFormWarehouseId('');
+    setFormLocationId('');
+    setFormLotId('');
+    setFormSerialId('');
+    setFormQuantity('');
+    setFormUom('PCS');
+    setFormStatus('AVAILABLE');
+    setFormUnitCost('');
+    setFormExpiryDate('');
+    setFormManufactureDate('');
+  };
+
   const handleCreate = () => {
     setSelectedInventory(null);
+    resetForm();
     setIsCreateModalOpen(true);
   };
 
   const handleEdit = (inventory: EnrichedInventory) => {
     setSelectedInventory(inventory);
+    setFormItemId(inventory.itemId);
+    setFormWarehouseId(inventory.warehouseId);
+    setFormLocationId(inventory.locationId);
+    setFormLotId(inventory.lotId || '');
+    setFormSerialId(inventory.serialId || '');
+    setFormQuantity(String(inventory.quantityOnHand));
+    setFormUom(inventory.uom);
+    setFormStatus(inventory.status);
+    setFormUnitCost(inventory.unitCost != null ? String(inventory.unitCost) : '');
+    setFormExpiryDate(inventory.expiryDate ? inventory.expiryDate.split('T')[0] : '');
+    setFormManufactureDate(inventory.manufactureDate ? inventory.manufactureDate.split('T')[0] : '');
     setIsEditModalOpen(true);
   };
 
   const handleView = (inventory: EnrichedInventory) => {
     setSelectedInventory(inventory);
     setIsViewModalOpen(true);
+  };
+
+  const handleFormSubmit = async (isEdit: boolean) => {
+    if (!formWarehouseId || !formLocationId || !formQuantity || !formUom || (!isEdit && !formItemId)) {
+      toast.error(t('common.fillRequired'));
+      return;
+    }
+    setFormSubmitting(true);
+    try {
+      if (isEdit && selectedInventory) {
+        await inventoryService.updateInventory(selectedInventory.id, {
+          warehouseId: formWarehouseId,
+          locationId: formLocationId,
+          lotId: formLotId || undefined,
+          serialId: formSerialId || undefined,
+          quantity: Number(formQuantity),
+          uom: formUom,
+          status: formStatus,
+          unitCost: formUnitCost ? Number(formUnitCost) : undefined,
+          expiryDate: formExpiryDate || undefined,
+          manufactureDate: formManufactureDate || undefined,
+        });
+        toast.success(t('inventory.messages.updateSuccess'));
+        setIsEditModalOpen(false);
+      } else {
+        await inventoryService.createInventory({
+          itemId: formItemId,
+          warehouseId: formWarehouseId,
+          locationId: formLocationId,
+          lotId: formLotId || undefined,
+          serialId: formSerialId || undefined,
+          quantity: Number(formQuantity),
+          uom: formUom,
+          status: formStatus,
+          unitCost: formUnitCost ? Number(formUnitCost) : undefined,
+          expiryDate: formExpiryDate || undefined,
+          manufactureDate: formManufactureDate || undefined,
+        });
+        toast.success(t('inventory.messages.createSuccess'));
+        setIsCreateModalOpen(false);
+      }
+      fetchInventories();
+    } catch (error) {
+      console.error('Error saving inventory:', error);
+      toast.error(isEdit ? t('inventory.messages.updateError') : t('inventory.messages.createError'));
+    } finally {
+      setFormSubmitting(false);
+    }
   };
 
   const handleDeleteClick = (inventory: EnrichedInventory) => {
@@ -749,7 +838,319 @@ export const InventoryPageEnhanced: React.FC = () => {
         message={`${t('inventory.deleteMessage')} "${selectedInventory?.itemName}"? ${t('common.close')}`}
       />
 
-      {/* TODO: Add Create/Edit/View Modals */}
+      {/* Create Modal */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title={t('inventory.newInventory')}
+        size="xl"
+      >
+        <div className="space-y-4">
+          {/* Item */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('inventory.table.item')} <span className="text-red-500">*</span>
+            </label>
+            <Select value={formItemId} onChange={e => setFormItemId(e.target.value)} className="w-full">
+              <option value="">-- {t('inventory.form.selectItem', 'Select an item')} --</option>
+              {Array.from(items.values()).map((item: any) => (
+                <option key={item.id} value={item.id}>{item.name}{item.sku ? ` (${item.sku})` : ''}</option>
+              ))}
+            </Select>
+          </div>
+
+          {/* Warehouse + Location */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.warehouse', 'Warehouse')} <span className="text-red-500">*</span>
+              </label>
+              <Select value={formWarehouseId} onChange={e => { setFormWarehouseId(e.target.value); setFormLocationId(''); }} className="w-full">
+                <option value="">-- {t('inventory.form.selectWarehouse', 'Select warehouse')} --</option>
+                {Array.from(warehouses.values()).map((wh: any) => (
+                  <option key={wh.id} value={wh.id}>{wh.name}</option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.location', 'Location')} <span className="text-red-500">*</span>
+              </label>
+              <Select value={formLocationId} onChange={e => setFormLocationId(e.target.value)} className="w-full">
+                <option value="">-- {t('inventory.form.selectLocation', 'Select location')} --</option>
+                {Array.from(locations.values())
+                  .filter((loc: any) => !formWarehouseId || loc.warehouseId === formWarehouseId)
+                  .map((loc: any) => (
+                    <option key={loc.id} value={loc.id}>{loc.code}{loc.name ? ` — ${loc.name}` : ''}</option>
+                  ))}
+              </Select>
+            </div>
+          </div>
+
+          {/* Qty + UOM + Status */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.table.onHand')} <span className="text-red-500">*</span>
+              </label>
+              <Input type="number" min="0" value={formQuantity} onChange={e => setFormQuantity(e.target.value)} className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.uom', 'UOM')} <span className="text-red-500">*</span>
+              </label>
+              <Input type="text" value={formUom} onChange={e => setFormUom(e.target.value)} placeholder="PCS, KG, L…" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.table.status')} <span className="text-red-500">*</span>
+              </label>
+              <Select value={formStatus} onChange={e => setFormStatus(e.target.value)} className="w-full">
+                <option value="AVAILABLE">{t('inventory.status.available')}</option>
+                <option value="RESERVED">{t('inventory.status.reserved')}</option>
+                <option value="QUARANTINED">{t('inventory.status.quarantined')}</option>
+                <option value="DAMAGED">{t('inventory.status.damaged')}</option>
+              </Select>
+            </div>
+          </div>
+
+          {/* Unit cost + Dates */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.unitCost', 'Unit Cost')}
+              </label>
+              <Input type="number" min="0" step="0.01" value={formUnitCost} onChange={e => setFormUnitCost(e.target.value)} className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.expiryDate', 'Expiry Date')}
+              </label>
+              <Input type="date" value={formExpiryDate} onChange={e => setFormExpiryDate(e.target.value)} className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.manufactureDate', 'Manufacture Date')}
+              </label>
+              <Input type="date" value={formManufactureDate} onChange={e => setFormManufactureDate(e.target.value)} className="w-full" />
+            </div>
+          </div>
+
+          {/* Lot + Serial */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.lot', 'Lot')}
+              </label>
+              <Select value={formLotId} onChange={e => setFormLotId(e.target.value)} className="w-full">
+                <option value="">— {t('inventory.form.noLot', 'No lot')} —</option>
+                {Array.from(lots.values())
+                  .filter((lot: any) => !formItemId || lot.itemId === formItemId)
+                  .map((lot: any) => (
+                    <option key={lot.id} value={lot.id}>{lot.lotNumber}</option>
+                  ))}
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.serial', 'Serial')}
+              </label>
+              <Select value={formSerialId} onChange={e => setFormSerialId(e.target.value)} className="w-full">
+                <option value="">— {t('inventory.form.noSerial', 'No serial')} —</option>
+                {Array.from(serials.values())
+                  .filter((s: any) => !formItemId || s.itemId === formItemId)
+                  .map((s: any) => (
+                    <option key={s.id} value={s.id}>{s.serialNumber}</option>
+                  ))}
+              </Select>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <Button variant="secondary" onClick={() => setIsCreateModalOpen(false)} disabled={formSubmitting}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={() => handleFormSubmit(false)} loading={formSubmitting}>
+              {t('common.create', 'Create')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title={t('inventory.editInventory', 'Edit Inventory')}
+        size="xl"
+      >
+        <div className="space-y-4">
+          {/* Item (read-only in edit) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('inventory.table.item')}
+            </label>
+            <div className="px-3 py-2 bg-gray-50 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 rounded-md text-sm text-gray-700 dark:text-gray-300">
+              {selectedInventory?.itemName} {selectedInventory?.itemSku ? `(${selectedInventory.itemSku})` : ''}
+            </div>
+          </div>
+
+          {/* Warehouse + Location */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.warehouse', 'Warehouse')} <span className="text-red-500">*</span>
+              </label>
+              <Select value={formWarehouseId} onChange={e => { setFormWarehouseId(e.target.value); setFormLocationId(''); }} className="w-full">
+                <option value="">-- {t('inventory.form.selectWarehouse', 'Select warehouse')} --</option>
+                {Array.from(warehouses.values()).map((wh: any) => (
+                  <option key={wh.id} value={wh.id}>{wh.name}</option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.location', 'Location')} <span className="text-red-500">*</span>
+              </label>
+              <Select value={formLocationId} onChange={e => setFormLocationId(e.target.value)} className="w-full">
+                <option value="">-- {t('inventory.form.selectLocation', 'Select location')} --</option>
+                {Array.from(locations.values())
+                  .filter((loc: any) => !formWarehouseId || loc.warehouseId === formWarehouseId)
+                  .map((loc: any) => (
+                    <option key={loc.id} value={loc.id}>{loc.code}{loc.name ? ` — ${loc.name}` : ''}</option>
+                  ))}
+              </Select>
+            </div>
+          </div>
+
+          {/* Qty + UOM + Status */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.table.onHand')} <span className="text-red-500">*</span>
+              </label>
+              <Input type="number" min="0" value={formQuantity} onChange={e => setFormQuantity(e.target.value)} className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.uom', 'UOM')} <span className="text-red-500">*</span>
+              </label>
+              <Input type="text" value={formUom} onChange={e => setFormUom(e.target.value)} placeholder="PCS, KG, L…" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.table.status')} <span className="text-red-500">*</span>
+              </label>
+              <Select value={formStatus} onChange={e => setFormStatus(e.target.value)} className="w-full">
+                <option value="AVAILABLE">{t('inventory.status.available')}</option>
+                <option value="RESERVED">{t('inventory.status.reserved')}</option>
+                <option value="QUARANTINED">{t('inventory.status.quarantined')}</option>
+                <option value="DAMAGED">{t('inventory.status.damaged')}</option>
+              </Select>
+            </div>
+          </div>
+
+          {/* Unit cost + Dates */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.unitCost', 'Unit Cost')}
+              </label>
+              <Input type="number" min="0" step="0.01" value={formUnitCost} onChange={e => setFormUnitCost(e.target.value)} className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.expiryDate', 'Expiry Date')}
+              </label>
+              <Input type="date" value={formExpiryDate} onChange={e => setFormExpiryDate(e.target.value)} className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.manufactureDate', 'Manufacture Date')}
+              </label>
+              <Input type="date" value={formManufactureDate} onChange={e => setFormManufactureDate(e.target.value)} className="w-full" />
+            </div>
+          </div>
+
+          {/* Lot + Serial */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.lot', 'Lot')}
+              </label>
+              <Select value={formLotId} onChange={e => setFormLotId(e.target.value)} className="w-full">
+                <option value="">— {t('inventory.form.noLot', 'No lot')} —</option>
+                {Array.from(lots.values())
+                  .filter((lot: any) => !selectedInventory?.itemId || lot.itemId === selectedInventory.itemId)
+                  .map((lot: any) => (
+                    <option key={lot.id} value={lot.id}>{lot.lotNumber}</option>
+                  ))}
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('inventory.form.serial', 'Serial')}
+              </label>
+              <Select value={formSerialId} onChange={e => setFormSerialId(e.target.value)} className="w-full">
+                <option value="">— {t('inventory.form.noSerial', 'No serial')} —</option>
+                {Array.from(serials.values())
+                  .filter((s: any) => !selectedInventory?.itemId || s.itemId === selectedInventory.itemId)
+                  .map((s: any) => (
+                    <option key={s.id} value={s.id}>{s.serialNumber}</option>
+                  ))}
+              </Select>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <Button variant="secondary" onClick={() => setIsEditModalOpen(false)} disabled={formSubmitting}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={() => handleFormSubmit(true)} loading={formSubmitting}>
+              {t('common.save')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* View Modal */}
+      <Modal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        title={t('inventory.viewInventory', 'Inventory Details')}
+        size="lg"
+      >
+        {selectedInventory && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: t('inventory.table.item'), value: selectedInventory.itemName },
+                { label: t('inventory.table.sku'), value: selectedInventory.itemSku || '—' },
+                { label: t('inventory.table.location'), value: `${selectedInventory.warehouseName} / ${selectedInventory.locationName}` },
+                { label: t('inventory.table.onHand'), value: `${selectedInventory.quantityOnHand} ${selectedInventory.uom}` },
+                { label: t('inventory.table.reserved'), value: `${selectedInventory.quantityReserved} ${selectedInventory.uom}` },
+                { label: t('inventory.table.available'), value: `${selectedInventory.availableQuantity} ${selectedInventory.uom}` },
+                { label: t('inventory.table.status'), value: selectedInventory.status },
+                { label: t('inventory.form.unitCost', 'Unit Cost'), value: selectedInventory.unitCost != null ? selectedInventory.unitCost : '—' },
+                { label: t('inventory.form.expiryDate', 'Expiry Date'), value: selectedInventory.expiryDate ? selectedInventory.expiryDate.split('T')[0] : '—' },
+                { label: t('inventory.form.manufactureDate', 'Manufacture Date'), value: selectedInventory.manufactureDate ? selectedInventory.manufactureDate.split('T')[0] : '—' },
+                { label: t('inventory.form.lot', 'Lot'), value: selectedInventory.lotNumber || '—' },
+                { label: t('inventory.form.serial', 'Serial'), value: selectedInventory.serialNumber || '—' },
+              ].map(f => (
+                <div key={f.label} className="bg-gray-50 dark:bg-neutral-700 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{f.label}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{String(f.value)}</p>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end pt-3 border-t border-gray-200 dark:border-gray-700">
+              <Button onClick={() => setIsViewModalOpen(false)}>{t('common.close')}</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       <ReportModal
         isOpen={isReportModalOpen}

@@ -94,16 +94,17 @@ export const AlertsPage: React.FC = () => {
         response = await alertService.getAlerts(params);
       }
 
-      setAlerts(response?.content || []);
+      const alertsList = response?.content || [];
+      setAlerts(alertsList);
       setPagination({
         page: response?.number ?? 0,
         size: response?.size ?? 20,
-        totalElements: response?.totalElements ?? 0,
-        totalPages: response?.totalPages ?? 0,
+        totalElements: response?.totalElements ?? alertsList.length,
+        totalPages: response?.totalPages ?? 1,
       });
 
       // Fetch item and location names for all alerts
-      await fetchEntityNames(response.content);
+      await fetchEntityNames(alertsList);
 
       // Update last refreshed timestamp
       setLastUpdated(new Date());
@@ -117,6 +118,7 @@ export const AlertsPage: React.FC = () => {
 
   // Fetch item and location names for alerts
   const fetchEntityNames = async (alertsList: AlertType[]) => {
+    if (!alertsList?.length) return;
     const itemIds = new Set<string>();
     const locationIds = new Set<string>();
 

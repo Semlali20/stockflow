@@ -1,6 +1,22 @@
 spring:
   application:
     name: location-service
+  datasource:
+    url: jdbc:postgresql://localhost:5435/location_db
+    username: location_user
+    password: location_pass
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  sql:
+    init:
+      mode: always
 
 server:
   port: 8085

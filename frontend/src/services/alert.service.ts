@@ -137,7 +137,22 @@ export interface NotificationStatistics {
 // ==================== HELPERS ====================
 const mapPageResponse = <T>(data: any): PaginatedResponse<T> => {
   if (!data) return { content: [], totalElements: 0, totalPages: 0, size: 10, number: 0, numberOfElements: 0, first: true, last: true, empty: true };
-  
+
+  // If the backend returns a plain array, wrap it as a single page
+  if (Array.isArray(data)) {
+    return {
+      content: data,
+      totalElements: data.length,
+      totalPages: 1,
+      size: data.length || 10,
+      number: 0,
+      numberOfElements: data.length,
+      first: true,
+      last: true,
+      empty: data.length === 0,
+    };
+  }
+
   // If it's already in the correct format, return it
   if (data.number !== undefined) return data;
 

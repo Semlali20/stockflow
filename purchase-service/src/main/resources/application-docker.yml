@@ -24,6 +24,13 @@ spring:
           time_zone: UTC
     open-in-view: false
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://auth-service:8083
+          jwk-set-uri: http://auth-service:8083/.well-known/jwks.json
+
 server:
   port: 8089
   error:
