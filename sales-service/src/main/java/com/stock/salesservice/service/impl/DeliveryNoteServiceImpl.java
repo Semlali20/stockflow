@@ -12,14 +12,21 @@ import com.stock.salesservice.repository.DeliveryNoteRepository;
 import com.stock.salesservice.service.DeliveryNoteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,6 +37,10 @@ import java.util.stream.Collectors;
 public class DeliveryNoteServiceImpl implements DeliveryNoteService {
 
     private final DeliveryNoteRepository deliveryNoteRepository;
+    private final RestTemplate restTemplate;
+
+    @Value("${services.inventory-service.url:http://localhost:8086}")
+    private String inventoryServiceUrl;
 
     @Override
     public DeliveryNoteResponse createDeliveryNote(DeliveryNoteRequest request, String createdBy) {
@@ -107,27 +118,13 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
             throw new BusinessException("Delivery note can only be updated when in DRAFT status. Current status: " + deliveryNote.getStatus());
         }
 
-        if (request.getCustomerId() != null) {
-            deliveryNote.setCustomerId(request.getCustomerId());
-        }
-        if (request.getCustomerName() != null) {
-            deliveryNote.setCustomerName(request.getCustomerName());
-        }
-        if (request.getDeliveryDate() != null) {
-            deliveryNote.setDeliveryDate(request.getDeliveryDate());
-        }
-        if (request.getDeliveryAddress() != null) {
-            deliveryNote.setDeliveryAddress(request.getDeliveryAddress());
-        }
-        if (request.getNotes() != null) {
-            deliveryNote.setNotes(request.getNotes());
-        }
-        if (request.getInventoryId() != null) {
-            deliveryNote.setInventoryId(request.getInventoryId());
-        }
-        if (request.getLocationId() != null) {
-            deliveryNote.setLocationId(request.getLocationId());
-        }
+        if (request.getCustomerId() != null) deliveryNote.setCustomerId(request.getCustomerId());
+        if (request.getCustomerName() != null) deliveryNote.setCustomerName(request.getCustomerName());
+        if (request.getDeliveryDate() != null) deliveryNote.setDeliveryDate(request.getDeliveryDate());
+        if (request.getDeliveryAddress() != null) deliveryNote.setDeliveryAddress(request.getDeliveryAddress());
+        if (request.getNotes() != null) deliveryNote.setNotes(request.getNotes());
+        if (request.getInventoryId() != null) deliveryNote.setInventoryId(request.getInventoryId());
+        if (request.getLocationId() != null) deliveryNote.setLocationId(request.getLocationId());
 
         // Replace lines
         deliveryNote.getLines().clear();
@@ -158,9 +155,8 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
         DeliveryNote deliveryNote = deliveryNoteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DeliveryNote", id));
 
-        if (deliveryNote.getStatus() != DeliveryNoteStatus.DRAFT
-                && deliveryNote.getStatus() != DeliveryNoteStatus.CANCELLED) {
-            throw new BusinessException("Delivery note can only be deleted when in DRAFT or CANCELLED status. Current status: " + deliveryNote.getStatus());
+        if (deliveryNote.getStatus() != DeliveryNoteStatus.DRAFT) {
+            throw new BusinessException("Delivery note can only be deleted when in DRAFT status. Current status: " + deliveryNote.getStatus());
         }
 
         deliveryNoteRepository.delete(deliveryNote);
@@ -168,7 +164,7 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
     }
 
     @Override
-    public DeliveryNoteResponse validateDeliveryNote(UUID id) {
+    public DeliveryNoteResponse validateDeliveryNote(UUID id, String authToken) {
         log.info("Validating delivery note: {}", id);
         DeliveryNote deliveryNote = deliveryNoteRepository.findByIdWithLines(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DeliveryNote", id));
@@ -180,54 +176,41 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
         deliveryNote.setStatus(DeliveryNoteStatus.VALIDATED);
         DeliveryNote updated = deliveryNoteRepository.save(deliveryNote);
         log.info("Delivery note validated: {}", id);
-        return toResponse(updated);
-    }
 
-    @Override
-    public DeliveryNoteResponse shipDeliveryNote(UUID id) {
-        log.info("Shipping delivery note: {}", id);
-        DeliveryNote deliveryNote = deliveryNoteRepository.findByIdWithLines(id)
-                .orElseThrow(() -> new ResourceNotFoundException("DeliveryNote", id));
+        // Decrease inventory for each line
+        if (updated.getLines() != null) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            if (authToken != null && !authToken.isBlank()) {
+                headers.set("Authorization", authToken);
+            }
 
-        if (deliveryNote.getStatus() != DeliveryNoteStatus.VALIDATED) {
-            throw new BusinessException("Only VALIDATED delivery notes can be shipped. Current status: " + deliveryNote.getStatus());
+            for (DeliveryNoteLine line : updated.getLines()) {
+                if (line.getItemId() == null) continue;
+                int qty = line.getDeliveredQuantity() != null ? line.getDeliveredQuantity() : line.getOrderedQuantity();
+                if (qty <= 0) continue;
+
+                try {
+                    Map<String, Object> body = new HashMap<>();
+                    body.put("itemId", line.getItemId());
+                    body.put("locationId", updated.getLocationId());
+                    body.put("warehouseId", updated.getInventoryId());
+                    body.put("quantityChange", -(double) qty);
+                    body.put("reason", "Delivery note " + updated.getReference() + " validated — " + line.getItemName());
+
+                    HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+                    restTemplate.postForObject(
+                            inventoryServiceUrl + "/api/inventory/adjust",
+                            requestEntity,
+                            Object.class
+                    );
+                    log.info("Inventory decreased for item {} by {}", line.getItemId(), qty);
+                } catch (Exception e) {
+                    log.warn("Failed to adjust inventory for item {}: {}", line.getItemId(), e.getMessage());
+                }
+            }
         }
 
-        deliveryNote.setStatus(DeliveryNoteStatus.SHIPPED);
-        DeliveryNote updated = deliveryNoteRepository.save(deliveryNote);
-        log.info("Delivery note shipped: {}", id);
-        return toResponse(updated);
-    }
-
-    @Override
-    public DeliveryNoteResponse deliverDeliveryNote(UUID id) {
-        log.info("Marking delivery note as delivered: {}", id);
-        DeliveryNote deliveryNote = deliveryNoteRepository.findByIdWithLines(id)
-                .orElseThrow(() -> new ResourceNotFoundException("DeliveryNote", id));
-
-        if (deliveryNote.getStatus() != DeliveryNoteStatus.SHIPPED) {
-            throw new BusinessException("Only SHIPPED delivery notes can be marked as delivered. Current status: " + deliveryNote.getStatus());
-        }
-
-        deliveryNote.setStatus(DeliveryNoteStatus.DELIVERED);
-        DeliveryNote updated = deliveryNoteRepository.save(deliveryNote);
-        log.info("Delivery note delivered: {}", id);
-        return toResponse(updated);
-    }
-
-    @Override
-    public DeliveryNoteResponse cancelDeliveryNote(UUID id) {
-        log.info("Cancelling delivery note: {}", id);
-        DeliveryNote deliveryNote = deliveryNoteRepository.findByIdWithLines(id)
-                .orElseThrow(() -> new ResourceNotFoundException("DeliveryNote", id));
-
-        if (deliveryNote.getStatus() == DeliveryNoteStatus.DELIVERED) {
-            throw new BusinessException("Cannot cancel a DELIVERED delivery note.");
-        }
-
-        deliveryNote.setStatus(DeliveryNoteStatus.CANCELLED);
-        DeliveryNote updated = deliveryNoteRepository.save(deliveryNote);
-        log.info("Delivery note cancelled: {}", id);
         return toResponse(updated);
     }
 

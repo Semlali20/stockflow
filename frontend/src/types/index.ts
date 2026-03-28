@@ -720,7 +720,7 @@ export interface PurchaseOrder {
 
 export type CustomerStatus = 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
 export type QuoteStatus = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED';
-export type DeliveryNoteStatus = 'DRAFT' | 'VALIDATED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+export type DeliveryNoteStatus = 'DRAFT' | 'VALIDATED';
 
 export interface Customer {
   id: string;

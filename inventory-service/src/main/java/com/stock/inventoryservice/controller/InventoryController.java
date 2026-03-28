@@ -182,7 +182,7 @@ public class InventoryController {
     // ========== INVENTORY OPERATIONS ==========
 
     @PostMapping("/adjust")
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER', 'MANAGER')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Adjust inventory by item+location", description = "Adjust inventory by itemId+locationId with a quantity delta")
     public ResponseEntity<InventoryDTO> adjustInventoryByItemAndLocation(
             @RequestBody java.util.Map<String, Object> body) {

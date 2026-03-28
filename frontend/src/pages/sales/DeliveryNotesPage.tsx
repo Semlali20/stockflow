@@ -6,12 +6,11 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Search, RefreshCw, Truck, X, ChevronDown,
-  Eye, Edit2, CheckCircle2, XCircle, Package, Download,
+  Eye, Edit2, CheckCircle2, Package, Download, Trash2,
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { salesService } from '@/services/sales.service';
-import { inventoryService } from '@/services/inventory.service';
 import { DeliveryNote, DeliveryNoteStatus, Customer } from '@/types';
 import { toast } from 'react-hot-toast';
 
@@ -50,9 +49,6 @@ const StyledSelect = ({
 const DN_STATUS_CLASS: Record<DeliveryNoteStatus, string> = {
   DRAFT: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
   VALIDATED: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  SHIPPED: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  DELIVERED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-  CANCELLED: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 };
 
 const StatusBadge = ({ status }: { status: DeliveryNoteStatus }) => {
@@ -60,9 +56,6 @@ const StatusBadge = ({ status }: { status: DeliveryNoteStatus }) => {
   const labelMap: Record<DeliveryNoteStatus, string> = {
     DRAFT: t('sales.deliveryNotes.statusDraft'),
     VALIDATED: t('sales.deliveryNotes.statusValidated'),
-    SHIPPED: t('sales.deliveryNotes.statusShipped'),
-    DELIVERED: t('sales.deliveryNotes.statusDelivered'),
-    CANCELLED: t('sales.deliveryNotes.statusCancelled'),
   };
   const className = DN_STATUS_CLASS[status] ?? DN_STATUS_CLASS.DRAFT;
   return (
@@ -606,30 +599,10 @@ const DeliveryNotesPage = () => {
     try {
       if (action === 'validate') {
         await salesService.validateDeliveryNote(note.id);
-        // Deduct inventory only when NOT linked to a quote and a location is set
-        if (!note.quoteId && note.locationId) {
-          await Promise.allSettled(
-            (note.lines || [])
-              .filter(l => l.itemId)
-              .map(l =>
-                inventoryService.adjustInventory({
-                  itemId: l.itemId,
-                  locationId: note.locationId!,
-                  warehouseId: note.inventoryId,
-                  quantityChange: -l.deliveredQuantity,
-                  reason: `Delivery note ${note.reference} validated — ${l.itemName}`,
-                })
-              )
-          );
-        }
         toast.success(t('sales.deliveryNotes.validated'));
-      }
-      else if (action === 'ship') { await salesService.shipDeliveryNote(note.id); toast.success(t('sales.deliveryNotes.shipped')); }
-      else if (action === 'deliver') { await salesService.deliverDeliveryNote(note.id); toast.success(t('sales.deliveryNotes.delivered')); }
-      else if (action === 'cancel') {
-        // Cancel: inventory stays unchanged — just update status
-        await salesService.cancelDeliveryNote(note.id);
-        toast.success(t('sales.deliveryNotes.cancelled'));
+      } else if (action === 'delete') {
+        await salesService.deleteDeliveryNote(note.id);
+        toast.success(t('sales.deliveryNotes.deleted'));
       }
       fetchNotes();
     } catch {
@@ -641,9 +614,6 @@ const DeliveryNotesPage = () => {
     { value: '', label: t('common.allStatuses') },
     { value: 'DRAFT', label: t('sales.deliveryNotes.statusDraft') },
     { value: 'VALIDATED', label: t('sales.deliveryNotes.statusValidated') },
-    { value: 'SHIPPED', label: t('sales.deliveryNotes.statusShipped') },
-    { value: 'DELIVERED', label: t('sales.deliveryNotes.statusDelivered') },
-    { value: 'CANCELLED', label: t('sales.deliveryNotes.statusCancelled') },
   ];
 
   const customerOptions = [
@@ -776,22 +746,10 @@ const DeliveryNotesPage = () => {
                             <CheckCircle2 className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        {/* Ship (VALIDATED) */}
-                        {note.status === 'VALIDATED' && (
-                          <button onClick={() => handleAction('ship', note)} className="p-1.5 rounded-lg text-neutral-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors" title={t('sales.deliveryNotes.ship')}>
-                            <Truck className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {/* Deliver (SHIPPED) */}
-                        {note.status === 'SHIPPED' && (
-                          <button onClick={() => handleAction('deliver', note)} className="p-1.5 rounded-lg text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title={t('sales.deliveryNotes.deliver')}>
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {/* Cancel (DRAFT/VALIDATED) */}
-                        {(note.status === 'DRAFT' || note.status === 'VALIDATED') && (
-                          <button onClick={() => handleAction('cancel', note)} className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('sales.deliveryNotes.cancel')}>
-                            <XCircle className="w-3.5 h-3.5" />
+                        {/* Delete (DRAFT) */}
+                        {note.status === 'DRAFT' && (
+                          <button onClick={() => handleAction('delete', note)} className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('common.delete')}>
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>

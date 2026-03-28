@@ -1,7 +1,7 @@
 // frontend/src/services/sales.service.ts
 
 import { apiClient } from './api';
-import type { Customer, Quote, DeliveryNote } from '../types';
+import type { Customer } from '../types';
 
 const BASE = '/api';
 
@@ -35,7 +35,4 @@ export const salesService = {
   updateDeliveryNote: (id: string, data: any) => apiClient.put(`${BASE}/delivery-notes/${id}`, data),
   deleteDeliveryNote: (id: string) => apiClient.delete(`${BASE}/delivery-notes/${id}`),
   validateDeliveryNote: (id: string) => apiClient.post(`${BASE}/delivery-notes/${id}/validate`),
-  shipDeliveryNote: (id: string) => apiClient.post(`${BASE}/delivery-notes/${id}/ship`),
-  deliverDeliveryNote: (id: string) => apiClient.post(`${BASE}/delivery-notes/${id}/deliver`),
-  cancelDeliveryNote: (id: string) => apiClient.post(`${BASE}/delivery-notes/${id}/cancel`),
 };

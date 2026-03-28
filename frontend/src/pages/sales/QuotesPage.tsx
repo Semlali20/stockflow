@@ -11,7 +11,6 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { salesService } from '@/services/sales.service';
-import { inventoryService } from '@/services/inventory.service';
 import { Quote, QuoteStatus, Customer } from '@/types';
 import { toast } from 'react-hot-toast';
 
@@ -644,28 +643,7 @@ const QuotesPage = () => {
       if (action === 'send') { await salesService.sendQuote(quote.id); toast.success(t('sales.quotes.sent')); }
       else if (action === 'accept') {
         await salesService.acceptQuote(quote.id);
-        // Fetch full quote to get locationId and lines
-        try {
-          const res = await salesService.getQuoteById(quote.id);
-          const fullQuote: any = res?.data || res;
-          const locationId = fullQuote?.locationId;
-          const lines = fullQuote?.lines || [];
-          if (locationId && lines.length) {
-            await Promise.all(lines.map((line: any) =>
-              inventoryService.adjustInventory({
-                itemId: line.itemId,
-                locationId,
-                quantityChange: -Number(line.quantity),
-                reason: `Quote accepted: ${fullQuote.reference || quote.id}`,
-              }).catch((err: any) => console.warn('Inventory deduction failed for item', line.itemId, err))
-            ));
-            toast.success(t('sales.quotes.accepted') + ' — inventory updated');
-          } else {
-            toast.success(t('sales.quotes.accepted'));
-          }
-        } catch {
-          toast.success(t('sales.quotes.accepted'));
-        }
+        toast.success(t('sales.quotes.accepted'));
       }
       else if (action === 'reject') { await salesService.rejectQuote(quote.id); toast.success(t('sales.quotes.rejected')); }
       else if (action === 'convert') { await salesService.convertToDelivery(quote.id, {}); toast.success(t('sales.quotes.converted')); }
@@ -843,8 +821,8 @@ const QuotesPage = () => {
                             <Truck className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        {/* Delete (DRAFT) */}
-                        {quote.status === 'DRAFT' && (
+                        {/* Delete (DRAFT or REJECTED) */}
+                        {(quote.status === 'DRAFT' || quote.status === 'REJECTED') && (
                           <button onClick={() => handleAction('delete', quote)} className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('common.delete')}>
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

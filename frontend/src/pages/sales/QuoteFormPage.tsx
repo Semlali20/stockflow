@@ -41,7 +41,7 @@ export const QuoteFormPage = () => {
   // Data
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [warehouseLocations, setWarehouseLocations] = useState<Location[]>([]);
   const [inventoryItems, setInventoryItems] = useState<Inventory[]>([]);
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [itemNamesMap, setItemNamesMap] = useState<Record<string, string>>({});
@@ -77,14 +77,6 @@ export const QuoteFormPage = () => {
       })
       .catch(() => setWarehouses([]))
       .finally(() => setLoadingWarehouses(false));
-
-    setLoadingLocations(true);
-    locationService.getLocations({ size: 1000 })
-      .then((data: any) => {
-        setLocations(Array.isArray(data) ? data : (data?.content || []));
-      })
-      .catch(() => setLocations([]))
-      .finally(() => setLoadingLocations(false));
 
     productService.getItems({ size: 1000 })
       .then((res: any) => {
@@ -126,27 +118,40 @@ export const QuoteFormPage = () => {
     }
   }, [t]);
 
-  const handleWarehouseChange = (warehouseId: string) => {
+  const handleWarehouseChange = async (warehouseId: string) => {
     setInventoryId(warehouseId);
     setSelectedLocationId('');
+    setWarehouseLocations([]);
     setLines([]);
+    setAddItemId('');
+    setAddCategoryId('');
+    if (!warehouseId) { setInventoryItems([]); return; }
+    // Load locations for this warehouse
+    setLoadingLocations(true);
+    try {
+      const data = await locationService.getLocationsByWarehouse(warehouseId);
+      setWarehouseLocations(Array.isArray(data) ? data : (data?.content || []));
+    } catch {
+      setWarehouseLocations([]);
+    } finally {
+      setLoadingLocations(false);
+    }
+    // Load warehouse-level inventory (all locations)
     loadInventoryItems(warehouseId);
   };
 
   const handleLocationChange = async (locationId: string) => {
     setSelectedLocationId(locationId);
     setLines([]);
-    // If a warehouse is already selected, keep warehouse-level inventory (total across all locations)
-    // Only fetch by location if no warehouse is selected
+    setAddItemId('');
+    setAddCategoryId('');
     if (!locationId) {
+      // "All Locations" — reload warehouse-level inventory
       if (inventoryId) loadInventoryItems(inventoryId);
       else setInventoryItems([]);
       return;
     }
-    if (inventoryId) {
-      // Already have warehouse inventory loaded — no need to re-fetch
-      return;
-    }
+    // Load inventory only for this location
     setLoadingItems(true);
     try {
       const data = await inventoryService.getInventoriesByLocation(locationId);
@@ -195,9 +200,11 @@ export const QuoteFormPage = () => {
 
   const removeLine = (idx: number) => setLines(prev => prev.filter((_, i) => i !== idx));
 
-  const subtotal = lines.reduce((s, l) => s + l.totalPrice, 0);
-  const totalDiscount = subtotal * discountPercent / 100;
-  const total = subtotal - totalDiscount;
+  const grossSubtotal = lines.reduce((s, l) => s + (l.quantity * l.unitPrice), 0);
+  const lineDiscountAmount = lines.reduce((s, l) => s + (l.quantity * l.unitPrice * l.discountPercent / 100), 0);
+  const subtotalAfterLines = grossSubtotal - lineDiscountAmount;
+  const globalDiscountAmount = subtotalAfterLines * discountPercent / 100;
+  const total = subtotalAfterLines - globalDiscountAmount;
 
   const buildPayload = () => ({
     customerId,
@@ -311,10 +318,12 @@ export const QuoteFormPage = () => {
                   value={selectedLocationId}
                   onChange={e => handleLocationChange(e.target.value)}
                   className="w-full"
-                  disabled={loadingLocations}
+                  disabled={!inventoryId || loadingLocations}
                 >
-                  <option value="">Select Location</option>
-                  {locations.map(l => <option key={l.id} value={l.id}>{(l as any).code || l.name}</option>)}
+                  <option value="">All Locations</option>
+                  {warehouseLocations.map(l => (
+                    <option key={l.id} value={l.id}>{(l as any).code || l.name}</option>
+                  ))}
                 </Select>
               </div>
               <div>
@@ -359,9 +368,12 @@ export const QuoteFormPage = () => {
                     <tbody className="bg-white divide-y divide-gray-100">
                       {/* Add row */}
                       {(() => {
+                        // Only show items that have inventory in the selected location/warehouse
+                        const inventoryItemIds = new Set(inventoryItems.map(inv => inv.itemId));
+                        const availableItems = allItems.filter((it: any) => inventoryItemIds.has(it.id));
                         const filteredItems = addCategoryId
-                          ? allItems.filter((it: any) => it.categoryId === addCategoryId)
-                          : allItems;
+                          ? availableItems.filter((it: any) => it.categoryId === addCategoryId)
+                          : availableItems;
                         const availQty = addItemId && addItemId in inventoryQtyMap
                           ? inventoryQtyMap[addItemId]
                           : null;
@@ -520,12 +532,20 @@ export const QuoteFormPage = () => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">{t('sales.quotes.subtotal')}</span>
-                <span className="font-medium">{subtotal.toFixed(2)}</span>
+                <span className="font-medium">{grossSubtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-orange-600">
-                <span>{t('sales.quotes.discount')} ({discountPercent}%)</span>
-                <span>-{totalDiscount.toFixed(2)}</span>
-              </div>
+              {lineDiscountAmount > 0 && (
+                <div className="flex justify-between text-orange-500">
+                  <span>Line Discounts</span>
+                  <span>-{lineDiscountAmount.toFixed(2)}</span>
+                </div>
+              )}
+              {discountPercent > 0 && (
+                <div className="flex justify-between text-orange-600">
+                  <span>{t('sales.quotes.discount')} ({discountPercent}%)</span>
+                  <span>-{globalDiscountAmount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="border-t pt-3 flex justify-between text-base font-bold">
                 <span>{t('sales.quotes.total')}</span>
                 <span className="text-blue-600">{total.toFixed(2)}</span>

@@ -31,7 +31,7 @@ public class DeliveryNoteController {
     private final DeliveryNoteService deliveryNoteService;
 
     @PostMapping
-    @Operation(summary = "Create a new delivery note", description = "Creates a new delivery note with lines")
+    @Operation(summary = "Create a new delivery note")
     public ResponseEntity<DeliveryNoteResponse> createDeliveryNote(
             @Valid @RequestBody DeliveryNoteRequest request,
             @RequestHeader(value = "X-User-Id", required = false) String userId) {
@@ -42,7 +42,7 @@ public class DeliveryNoteController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all delivery notes", description = "Retrieves all delivery notes with optional filters and pagination")
+    @Operation(summary = "Get all delivery notes with optional filters and pagination")
     public ResponseEntity<Page<DeliveryNoteResponse>> getAllDeliveryNotes(
             @Parameter(description = "Filter by status") @RequestParam(required = false) DeliveryNoteStatus status,
             @Parameter(description = "Filter by customer ID") @RequestParam(required = false) String customerId,
@@ -53,7 +53,7 @@ public class DeliveryNoteController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get delivery note by ID", description = "Retrieves a delivery note by its ID with all lines")
+    @Operation(summary = "Get delivery note by ID with all lines")
     public ResponseEntity<DeliveryNoteResponse> getDeliveryNoteById(
             @Parameter(description = "Delivery note ID") @PathVariable UUID id) {
         log.info("REST request to get delivery note: {}", id);
@@ -62,7 +62,7 @@ public class DeliveryNoteController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update delivery note", description = "Updates an existing delivery note (only when in DRAFT status)")
+    @Operation(summary = "Update delivery note (DRAFT only)")
     public ResponseEntity<DeliveryNoteResponse> updateDeliveryNote(
             @Parameter(description = "Delivery note ID") @PathVariable UUID id,
             @Valid @RequestBody DeliveryNoteRequest request) {
@@ -72,7 +72,7 @@ public class DeliveryNoteController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete delivery note", description = "Deletes a delivery note (only DRAFT or CANCELLED)")
+    @Operation(summary = "Delete delivery note (DRAFT only)")
     public ResponseEntity<Void> deleteDeliveryNote(
             @Parameter(description = "Delivery note ID") @PathVariable UUID id) {
         log.info("REST request to delete delivery note: {}", id);
@@ -81,43 +81,17 @@ public class DeliveryNoteController {
     }
 
     @PostMapping("/{id}/validate")
-    @Operation(summary = "Validate delivery note", description = "Transitions delivery note from DRAFT to VALIDATED status")
+    @Operation(summary = "Validate delivery note — changes status to VALIDATED and decreases inventory")
     public ResponseEntity<DeliveryNoteResponse> validateDeliveryNote(
-            @Parameter(description = "Delivery note ID") @PathVariable UUID id) {
+            @Parameter(description = "Delivery note ID") @PathVariable UUID id,
+            @RequestHeader(value = "Authorization", required = false) String authToken) {
         log.info("REST request to validate delivery note: {}", id);
-        DeliveryNoteResponse response = deliveryNoteService.validateDeliveryNote(id);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/{id}/ship")
-    @Operation(summary = "Ship delivery note", description = "Transitions delivery note from VALIDATED to SHIPPED status")
-    public ResponseEntity<DeliveryNoteResponse> shipDeliveryNote(
-            @Parameter(description = "Delivery note ID") @PathVariable UUID id) {
-        log.info("REST request to ship delivery note: {}", id);
-        DeliveryNoteResponse response = deliveryNoteService.shipDeliveryNote(id);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/{id}/deliver")
-    @Operation(summary = "Mark delivery note as delivered", description = "Transitions delivery note from SHIPPED to DELIVERED status")
-    public ResponseEntity<DeliveryNoteResponse> deliverDeliveryNote(
-            @Parameter(description = "Delivery note ID") @PathVariable UUID id) {
-        log.info("REST request to mark delivery note as delivered: {}", id);
-        DeliveryNoteResponse response = deliveryNoteService.deliverDeliveryNote(id);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/{id}/cancel")
-    @Operation(summary = "Cancel delivery note", description = "Cancels a delivery note (cannot cancel DELIVERED notes)")
-    public ResponseEntity<DeliveryNoteResponse> cancelDeliveryNote(
-            @Parameter(description = "Delivery note ID") @PathVariable UUID id) {
-        log.info("REST request to cancel delivery note: {}", id);
-        DeliveryNoteResponse response = deliveryNoteService.cancelDeliveryNote(id);
+        DeliveryNoteResponse response = deliveryNoteService.validateDeliveryNote(id, authToken);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/customer/{customerId}")
-    @Operation(summary = "Get delivery notes by customer", description = "Retrieves all delivery notes for a specific customer")
+    @Operation(summary = "Get delivery notes by customer")
     public ResponseEntity<List<DeliveryNoteResponse>> getDeliveryNotesByCustomer(
             @Parameter(description = "Customer ID") @PathVariable String customerId) {
         log.info("REST request to get delivery notes for customer: {}", customerId);

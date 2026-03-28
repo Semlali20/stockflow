@@ -21,13 +21,7 @@ public interface DeliveryNoteService {
 
     void deleteDeliveryNote(UUID id);
 
-    DeliveryNoteResponse validateDeliveryNote(UUID id);
-
-    DeliveryNoteResponse shipDeliveryNote(UUID id);
-
-    DeliveryNoteResponse deliverDeliveryNote(UUID id);
-
-    DeliveryNoteResponse cancelDeliveryNote(UUID id);
+    DeliveryNoteResponse validateDeliveryNote(UUID id, String authToken);
 
     List<DeliveryNoteResponse> getDeliveryNotesByCustomer(String customerId);
 }

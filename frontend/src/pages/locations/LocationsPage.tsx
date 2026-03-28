@@ -227,7 +227,6 @@ export const LocationsPage: React.FC = () => {
             <thead>
               <tr className="bg-neutral-50 dark:bg-neutral-900/50 border-b border-neutral-200 dark:border-neutral-700">
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.locations.table.code')}</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.locations.table.name')}</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.locations.table.warehouse')}</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.locations.table.zoneAisleRack')}</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.locations.table.type')}</th>
@@ -237,14 +236,13 @@ export const LocationsPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
               {loading ? (
-                <tr><td colSpan={7} className="px-6 py-10 text-center text-neutral-500">{t('common.loading')}</td></tr>
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-neutral-500">{t('common.loading')}</td></tr>
               ) : filteredLocations.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-10 text-center text-neutral-500">{t('locations.locations.messages.noLocations')}</td></tr>
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-neutral-500">{t('locations.locations.messages.noLocations')}</td></tr>
               ) : (
                 filteredLocations.map((loc) => (
                   <tr key={loc.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors">
                     <td className="px-6 py-4 text-sm font-mono text-neutral-600 dark:text-neutral-400">{loc.code}</td>
-                    <td className="px-6 py-4 text-sm font-medium dark:text-white">{loc.name}</td>
                     <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400">
                       {warehouses.find(w => w.id === loc.warehouseId)?.name || loc.warehouseId}
                     </td>
