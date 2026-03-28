@@ -515,7 +515,7 @@ const MovementDetailModal = ({ isOpen, onClose, movement: initialMovement, onUpd
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-neutral-100 dark:border-neutral-700/60">
-                        {['Item', 'From', 'To', 'Requested', 'Actual', 'Variance', 'Status', 'Actions'].map((h) => (
+                        {['Item', 'From', 'To', 'Requested', 'Actual', 'Variance', 'Status'].map((h) => (
                           <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider whitespace-nowrap">
                             {h}
                           </th>
@@ -528,9 +528,10 @@ const MovementDetailModal = ({ isOpen, onClose, movement: initialMovement, onUpd
                         const fromLoc = line.fromLocationId ? enrichedData.locations.get(line.fromLocationId) : null;
                         const toLoc = line.toLocationId ? enrichedData.locations.get(line.toLocationId) : null;
                         const variance = line.actualQuantity != null ? line.actualQuantity - line.requestedQuantity : null;
-                        const lineSt = LINE_STATUS_STYLE[line.status] ?? LINE_STATUS_STYLE.PENDING;
+                        const effectiveLineStatus = movement.status === 'COMPLETED' ? LineStatus.COMPLETED : line.status;
+                        const lineSt = LINE_STATUS_STYLE[effectiveLineStatus] ?? LINE_STATUS_STYLE.PENDING;
                         const canComplete = line.status !== LineStatus.COMPLETED &&
-                          (movement.status === 'IN_PROGRESS' || movement.status === 'COMPLETED' || movement.status === 'PARTIALLY_COMPLETED');
+                          (movement.status === 'IN_PROGRESS' || movement.status === 'PARTIALLY_COMPLETED');
                         const canDelete = movement.status !== 'COMPLETED' && movement.status !== 'CANCELLED';
 
                         return (
@@ -616,37 +617,10 @@ const MovementDetailModal = ({ isOpen, onClose, movement: initialMovement, onUpd
                             <td className="px-4 py-3 whitespace-nowrap">
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${lineSt.bg} ${lineSt.text}`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${lineSt.dot}`} />
-                                {line.status.replace(/_/g, ' ')}
+                                {effectiveLineStatus.replace(/_/g, ' ')}
                               </span>
                             </td>
 
-                            {/* Actions */}
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="flex items-center gap-1.5">
-                                {canComplete && (
-                                  <button
-                                    onClick={() => handleCompleteMovementLine(line.id)}
-                                    disabled={loading}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold
-                                      bg-emerald-500 hover:bg-emerald-600 text-white transition-colors disabled:opacity-50"
-                                  >
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    Complete
-                                  </button>
-                                )}
-                                {canDelete && (
-                                  <button
-                                    onClick={() => handleDeleteLine(line.id)}
-                                    disabled={loading}
-                                    className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400
-                                      hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all disabled:opacity-50"
-                                    title="Delete line"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                )}
-                              </div>
-                            </td>
                           </tr>
                         );
                       })}

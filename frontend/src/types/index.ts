@@ -287,6 +287,7 @@ export interface Item {
   sku: string;
   description?: string;
   categoryId?: string;
+  categoryName?: string;
   category?: Category;
   uom: string;
   weight?: number;
@@ -430,6 +431,7 @@ export interface Warehouse {
   name: string;
   code: string;
   siteId: string;
+  siteName?: string;
   site?: Site;
   address?: string;
   city?: string;
@@ -439,7 +441,9 @@ export interface Warehouse {
   phone?: string;
   email?: string;
   capacity?: number;
-  status: string;
+  isActive?: boolean;
+  status?: string;
+  settings?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -449,6 +453,7 @@ export interface Location {
   name: string;
   code: string;
   warehouseId: string;
+  warehouseName?: string;
   warehouse?: Warehouse;
   locationType: string;
   type: string;
@@ -456,10 +461,14 @@ export interface Location {
   parent?: Location;
   aisle?: string;
   rack?: string;
+  level?: string;
   shelf?: string;
   bin?: string;
   zone?: string;
   capacity?: number;
+  restrictions?: string;
+  coordinates?: string;
+  isActive?: boolean;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -745,6 +754,7 @@ export interface Quote {
   customerId: string;
   customerName: string;
   inventoryId?: string;
+  locationId?: string;
   status: QuoteStatus;
   validUntil?: string;
   notes?: string;
@@ -776,6 +786,7 @@ export interface DeliveryNote {
   customerId: string;
   customerName: string;
   inventoryId?: string;
+  locationId?: string;
   status: DeliveryNoteStatus;
   deliveryDate?: string;
   deliveryAddress?: string;

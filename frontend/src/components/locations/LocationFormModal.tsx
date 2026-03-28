@@ -33,7 +33,8 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
     type: 'STORAGE' as 'RECEIVING' | 'STORAGE' | 'PICKING' | 'STAGING' | 'SHIPPING' | 'QUARANTINE' | 'MANUFACTURING' | 'RETURNS',
     capacity: '',
     restrictions: '',
-    coordinates: ''
+    coordinates: '',
+    isActive: true
   });
   
   const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -74,7 +75,8 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
         type: location.type || 'STORAGE',
         capacity: location.capacity || '',
         restrictions: location.restrictions || '',
-        coordinates: location.coordinates || ''
+        coordinates: location.coordinates || '',
+        isActive: location.isActive !== false
       });
     } else {
       setFormData({
@@ -88,7 +90,8 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
         type: 'STORAGE',
         capacity: '',
         restrictions: '',
-        coordinates: ''
+        coordinates: '',
+        isActive: true
       });
     }
   }, [mode, location, isOpen]);
@@ -109,7 +112,8 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
         type: formData.type,
         capacity: formData.capacity || null,
         restrictions: formData.restrictions || null,
-        coordinates: formData.coordinates || null
+        coordinates: formData.coordinates || null,
+        isActive: formData.isActive
       };
 
       if (mode === 'create') {
@@ -293,6 +297,29 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
               onChange={(e) => setFormData({ ...formData, restrictions: e.target.value })}
               placeholder="Any special restrictions or requirements (e.g., Hazmat only, Temperature controlled, etc.)"
             />
+          </div>
+
+          {/* Active / Inactive Toggle */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Status</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {formData.isActive ? 'Location is active and available' : 'Location is inactive and unavailable'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
+                formData.isActive ? 'bg-blue-600' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                  formData.isActive ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
 
           {/* Action Buttons */}

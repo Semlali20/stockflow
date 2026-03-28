@@ -89,32 +89,33 @@ export const LocationsPage: React.FC = () => {
 
   const filteredLocations = locations.filter(loc => {
     if (!loc) return false;
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       (loc.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (loc.code?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesWarehouse = !filterWarehouse || loc.warehouseId === filterWarehouse;
     const matchesType = !filterType || loc.type === filterType;
-    const matchesStatus = !filterStatus || loc.status === filterStatus;
+    const matchesStatus = !filterStatus ||
+      (filterStatus === 'ACTIVE' ? loc.isActive !== false : loc.isActive === false);
     return matchesSearch && matchesWarehouse && matchesType && matchesStatus;
   });
 
   const stats = {
     total: locations.length,
-    active: locations.filter(l => l?.status === 'ACTIVE').length,
+    active: locations.filter(l => l?.isActive !== false).length,
     storage: locations.filter(l => l?.type === 'STORAGE').length,
     picking: locations.filter(l => l?.type === 'PICKING').length,
   };
 
-  const getStatusBadge = (status: string) => {
-    const s = status || 'UNKNOWN';
-    const isActive = s === 'ACTIVE';
+  const getStatusBadge = (isActive?: boolean) => {
     return (
       <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
-        isActive 
-          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
+        isActive !== false
+          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
           : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
       }`}>
-        {t(`locations.locations.status.${s.toLowerCase()}`, { defaultValue: s })}
+        {isActive !== false
+          ? t('locations.locations.status.active')
+          : t('locations.locations.status.inactive')}
       </span>
     );
   };
@@ -255,7 +256,7 @@ export const LocationsPage: React.FC = () => {
                         {loc.type ? t(`locations.locations.types.${loc.type.toLowerCase()}`, { defaultValue: loc.type }) : t('common.na')}
                       </span>
                     </td>
-                    <td className="px-6 py-4">{getStatusBadge(loc.status)}</td>
+                    <td className="px-6 py-4">{getStatusBadge(loc.isActive)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => handleEditClick(loc)} className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>

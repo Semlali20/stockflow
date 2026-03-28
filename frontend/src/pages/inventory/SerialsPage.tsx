@@ -30,6 +30,10 @@ export const SerialsPage: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [selectedSerial, setSelectedSerial] = useState<Serial | null>(null);
 
+  // Lookup maps
+  const [itemNames, setItemNames] = useState<Map<string, string>>(new Map());
+  const [locationCodes, setLocationCodes] = useState<Map<string, string>>(new Map());
+
   // Modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -37,6 +41,8 @@ export const SerialsPage: React.FC = () => {
 
   useEffect(() => {
     fetchSerials();
+    fetchItemNames();
+    fetchLocationCodes();
   }, []);
 
   const fetchSerials = async () => {
@@ -49,6 +55,30 @@ export const SerialsPage: React.FC = () => {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchItemNames = async () => {
+    try {
+      const response = await productService.getItems();
+      const list: any[] = Array.isArray(response) ? response : response?.content || [];
+      const map = new Map<string, string>();
+      list.forEach((item: any) => map.set(item.id, item.name));
+      setItemNames(map);
+    } catch (error) {
+      console.error('Failed to fetch items for name resolution:', error);
+    }
+  };
+
+  const fetchLocationCodes = async () => {
+    try {
+      const response = await locationService.getLocations();
+      const list: any[] = Array.isArray(response) ? response : response?.content || [];
+      const map = new Map<string, string>();
+      list.forEach((loc: any) => map.set(loc.id, loc.code || loc.name));
+      setLocationCodes(map);
+    } catch (error) {
+      console.error('Failed to fetch locations for code resolution:', error);
     }
   };
 
@@ -218,8 +248,12 @@ export const SerialsPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-mono">
                         {serial.serialNumber}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{serial.itemId}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{serial.locationId || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {itemNames.get(serial.itemId) || serial.itemId}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {serial.locationId ? (locationCodes.get(serial.locationId) || serial.locationId) : '-'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -513,9 +547,9 @@ const SerialFormModal: React.FC<SerialFormModalProps> = ({ isOpen, onClose, onSu
                 onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
               >
                 <option value="">{t('common.noLocation')}</option>
-                {locations.map((loc) => (
+                {locations.filter(loc => loc?.id).map((loc) => (
                   <option key={loc.id} value={loc.id}>
-                    {loc.name}
+                    {loc.code || loc.name || loc.id}
                   </option>
                 ))}
               </Select>

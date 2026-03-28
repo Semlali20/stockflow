@@ -50,6 +50,8 @@
     "actions": "الإجراءات",
     "allStatuses": "جميع الحالات",
     "selectSupplier": "اختر مورداً",
+    "export": "تصدير",
+    "import": "استيراد",
     "exportCsv": "تصدير CSV",
     "importCsv": "استيراد CSV",
     "report": "تقرير",
@@ -306,6 +308,7 @@
         "shelfLifeValue": "{{count}} أيام",
         "sku": "رمز التتبع SKU",
         "categoryId": "معرف الفئة",
+        "category": "الفئة",
         "tags": "الوسوم",
         "temperatureControls": "ضوابط درجة الحرارة",
         "customAttributes": "سمات مخصصة",
@@ -676,10 +679,17 @@
         "sold": "مباع",
         "defective": "معيب"
       },
+      "status": {
+        "inStock": "في المخزن",
+        "sold": "مباع",
+        "defective": "معيب",
+        "returning": "راجع",
+        "scrapped": "مُخرَد"
+      },
       "table": {
         "code": "الكود",
         "serialNumber": "الرقم التسلسلي",
-        "itemId": "معرف العنصر",
+        "itemId": "العنصر",
         "location": "الموقع"
       },
       "messages": {

@@ -31,6 +31,8 @@ public class QuoteRequest {
 
     private String inventoryId;
 
+    private String locationId;
+
     @Builder.Default
     @DecimalMin(value = "0.0", inclusive = true, message = "Discount percent must be non-negative")
     private BigDecimal discountPercent = BigDecimal.ZERO;

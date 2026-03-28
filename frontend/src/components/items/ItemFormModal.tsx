@@ -288,7 +288,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
         sku: formData.sku,
         name: formData.name,
         description: formData.description || undefined,
-        attributes: attributesJson ? JSON.parse(attributesJson) : undefined,
+        attributes: attributesJson || undefined,           // keep as JSON string — backend expects String
         tags: formData.tags || undefined,
         imageUrl: imagePreview || undefined,
         isSerialized: formData.isSerialized,

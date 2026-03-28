@@ -1,5 +1,5 @@
 // frontend/src/pages/inventory/InventoryPageEnhanced.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   Search,
@@ -17,8 +17,14 @@ import {
   Download,
   TrendingDown,
   PackageX,
+  ChevronDown,
   FileText,
+  Table,
+  File,
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { inventoryService } from '@/services/inventory.service';
 import { productService } from '@/services/product.service';
 import { locationService } from '@/services/location.service';
@@ -28,24 +34,10 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
-import { ReportModal } from '@/components/ui/ReportModal';
 import { Modal } from '@/components/ui/Modal';
 import { useFileDownload } from '@/hooks/useFileDownload';
 import { API_ENDPOINTS } from '@/config/constants';
 
-const inventoryReportColumns = [
-  { header: 'Item ID', key: 'itemId', width: 15 },
-  { header: 'Item Name', key: 'itemName', width: 25 },
-  { header: 'SKU', key: 'itemSku', width: 15 },
-  { header: 'Warehouse', key: 'warehouseName', width: 20 },
-  { header: 'Location', key: 'locationName', width: 20 },
-  { header: 'On Hand', key: 'quantityOnHand', width: 12 },
-  { header: 'Reserved', key: 'quantityReserved', width: 12 },
-  { header: 'Available', key: 'availableQuantity', width: 12 },
-  { header: 'UOM', key: 'uom', width: 8 },
-  { header: 'Status', key: 'status', width: 15 },
-  { header: 'Expiry Date', key: 'expiryDate', width: 15 },
-];
 
 // ============================================================================
 // INTERFACES
@@ -112,7 +104,8 @@ export const InventoryPageEnhanced: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
 
   // Form state (create / edit)
   const [formItemId, setFormItemId] = useState('');
@@ -129,6 +122,131 @@ export const InventoryPageEnhanced: React.FC = () => {
   const [formSubmitting, setFormSubmitting] = useState(false);
 
   const { isDownloading, downloadCsv } = useFileDownload();
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // ──────────────────────────────────────────────────────────────
+  // EXPORT HANDLERS
+  // ──────────────────────────────────────────────────────────────
+
+  const handleExportCSV = () => {
+    setShowExportMenu(false);
+    downloadCsv(API_ENDPOINTS.INVENTORY.INVENTORY_EXPORT_CSV, `inventory-${new Date().toISOString().split('T')[0]}.csv`);
+  };
+
+  const handleExportExcel = () => {
+    setShowExportMenu(false);
+    try {
+      const data = filteredInventories.map((inv) => ({
+        'Item Name': inv.itemName || '',
+        'SKU': inv.itemSku || '',
+        'Warehouse': inv.warehouseName || '',
+        'Location': inv.locationName || '',
+        'On Hand': inv.quantityOnHand,
+        'Reserved': inv.quantityReserved,
+        'Available': inv.availableQuantity,
+        'UOM': inv.uom,
+        'Status': inv.status,
+        'Unit Cost': inv.unitCost ?? '',
+        'Expiry Date': inv.expiryDate ? inv.expiryDate.split('T')[0] : '',
+        'Manufacture Date': inv.manufactureDate ? inv.manufactureDate.split('T')[0] : '',
+        'Lot': inv.lotNumber || '',
+        'Serial': inv.serialNumber || '',
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const colWidths = Object.keys(data[0] || {}).map((key) => ({
+        wch: Math.max(key.length, ...data.map((row: any) => String(row[key] ?? '').length)) + 2,
+      }));
+      ws['!cols'] = colWidths;
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+      XLSX.writeFile(wb, `inventory-${new Date().toISOString().split('T')[0]}.xlsx`);
+      toast.success('Excel file downloaded successfully');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to export Excel file');
+    }
+  };
+
+  const handleExportPDF = () => {
+    setShowExportMenu(false);
+    try {
+      const doc = new jsPDF({ orientation: 'landscape' });
+      const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      // Decorative background shapes
+      doc.setFillColor(154, 208, 170); doc.ellipse(8, 105, 22, 68, 'F');
+      doc.setFillColor(140, 185, 225); doc.ellipse(18, 155, 18, 52, 'F');
+      doc.setFillColor(200, 225, 150); doc.ellipse(5, 195, 14, 38, 'F');
+
+      // Title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(28);
+      doc.setTextColor(26, 58, 108);
+      doc.text('INVENTORY', 14, 22);
+
+      doc.setFillColor(26, 58, 108);
+      doc.rect(14, 26, 120, 1.2, 'F');
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated: ${dateStr}`, 14, 34);
+      doc.text(`Total records: ${filteredInventories.length}`, 14, 40);
+
+      autoTable(doc, {
+        startY: 48,
+        head: [['Item', 'SKU', 'Warehouse', 'Location', 'On Hand', 'Reserved', 'Available', 'UOM', 'Status', 'Expiry']],
+        body: filteredInventories.map((inv) => [
+          inv.itemName || '',
+          inv.itemSku || '',
+          inv.warehouseName || '',
+          inv.locationName || '',
+          inv.quantityOnHand,
+          inv.quantityReserved,
+          inv.availableQuantity,
+          inv.uom,
+          inv.status,
+          inv.expiryDate ? inv.expiryDate.split('T')[0] : '—',
+        ]),
+        headStyles: { fillColor: [26, 58, 108], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+        bodyStyles: { fontSize: 7.5, textColor: [40, 40, 40] },
+        alternateRowStyles: { fillColor: [245, 247, 252] },
+        margin: { left: 14, right: 14 },
+      });
+
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        const pageH = doc.internal.pageSize.getHeight();
+        const pageW = doc.internal.pageSize.getWidth();
+        doc.setFillColor(26, 58, 108);
+        doc.rect(0, pageH - 12, pageW, 12, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Stock Management System', 14, pageH - 4);
+        doc.text(`Page ${i} / ${pageCount}`, pageW - 28, pageH - 4);
+      }
+
+      doc.save(`inventory-${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('PDF downloaded successfully');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to export PDF');
+    }
+  };
 
   useEffect(() => {
     fetchReferenceData();
@@ -350,7 +468,7 @@ export const InventoryPageEnhanced: React.FC = () => {
           locationId: formLocationId,
           lotId: formLotId || undefined,
           serialId: formSerialId || undefined,
-          quantity: Number(formQuantity),
+          quantityOnHand: Number(formQuantity),
           uom: formUom,
           status: formStatus,
           unitCost: formUnitCost ? Number(formUnitCost) : undefined,
@@ -366,7 +484,7 @@ export const InventoryPageEnhanced: React.FC = () => {
           locationId: formLocationId,
           lotId: formLotId || undefined,
           serialId: formSerialId || undefined,
-          quantity: Number(formQuantity),
+          quantityOnHand: Number(formQuantity),
           uom: formUom,
           status: formStatus,
           unitCost: formUnitCost ? Number(formUnitCost) : undefined,
@@ -506,23 +624,45 @@ export const InventoryPageEnhanced: React.FC = () => {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             {t('inventory.refresh')}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            icon={<Download size={15} />}
-            onClick={() => downloadCsv(API_ENDPOINTS.INVENTORY.INVENTORY_EXPORT_CSV, 'inventory.csv')}
-            loading={isDownloading}
-          >
-            {t('inventory.exportCsv')}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            icon={<FileText size={15} />}
-            onClick={() => setIsReportModalOpen(true)}
-          >
-            {t('inventory.report')}
-          </Button>
+          {/* Export dropdown */}
+          <div className="relative" ref={exportMenuRef}>
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<Download size={15} />}
+              onClick={() => setShowExportMenu((v) => !v)}
+              loading={isDownloading}
+              className="flex items-center gap-1"
+            >
+              {t('common.export')}
+              <ChevronDown size={13} className={`ml-0.5 transition-transform ${showExportMenu ? 'rotate-180' : ''}`} />
+            </Button>
+            {showExportMenu && (
+              <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                <button
+                  onClick={handleExportCSV}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
+                >
+                  <FileText size={15} className="text-green-600" />
+                  CSV File (.csv)
+                </button>
+                <button
+                  onClick={handleExportExcel}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
+                >
+                  <Table size={15} className="text-emerald-600" />
+                  Excel File (.xlsx)
+                </button>
+                <button
+                  onClick={handleExportPDF}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
+                >
+                  <File size={15} className="text-red-500" />
+                  PDF Document (.pdf)
+                </button>
+              </div>
+            )}
+          </div>
           <Button onClick={handleCreate} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
             {t('inventory.newInventory')}
@@ -1152,17 +1292,6 @@ export const InventoryPageEnhanced: React.FC = () => {
         )}
       </Modal>
 
-      <ReportModal
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
-        title={t('inventory.title')}
-        description={t('inventory.reportDescription')}
-        columns={inventoryReportColumns}
-        fetchData={async () => {
-          return inventories as unknown as Record<string, unknown>[];
-        }}
-        filename="inventory-report"
-      />
     </div>
   );
 };

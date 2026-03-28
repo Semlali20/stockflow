@@ -28,6 +28,7 @@ public class DeliveryNoteResponse {
     private String deliveryAddress;
     private String notes;
     private String inventoryId;
+    private String locationId;
     private String createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

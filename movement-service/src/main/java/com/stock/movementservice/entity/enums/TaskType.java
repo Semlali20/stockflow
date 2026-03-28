@@ -5,7 +5,6 @@ public enum TaskType {
     PACK,              // Pack items
     PUT_AWAY,          // Store items in location
     COUNT,             // Count inventory
-    INSPECT,           // Quality inspection
     LOAD,              // Load onto vehicle
     UNLOAD,            // Unload from vehicle
     STAGE,             // Stage for shipment

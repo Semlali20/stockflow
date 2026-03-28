@@ -1,8 +1,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Modal } from './Modal';
 import { Button } from './Button';
-import { Upload, FileText, AlertCircle, CheckCircle, X, Download } from 'lucide-react';
-import { useCsvUpload, CsvRowError } from '@/hooks/useCsvUpload';
+import { Upload, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { useCsvUpload, isAcceptedFileType, CsvRowError } from '@/hooks/useCsvUpload';
 import { cn } from '@/utils/cn';
 
 interface ImportCsvModalProps {
@@ -11,7 +11,7 @@ interface ImportCsvModalProps {
   onSuccess?: () => void;
   title: string;
   importEndpoint: string;
-  templateColumns: string[];
+  templateColumns?: string[];
   exampleRows?: string[][];
 }
 
@@ -21,18 +21,21 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({
   onSuccess,
   title,
   importEndpoint,
-  templateColumns,
-  exampleRows = [],
 }) => {
   const { isUploading, progress, result, error, uploadCsv, reset } = useCsvUpload();
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const getFileIcon = (filename: string) => {
+    const lower = filename.toLowerCase();
+    if (lower.endsWith('.pdf')) return '📄';
+    if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) return '📊';
+    return '📋';
+  };
+
   const handleFile = useCallback((file: File) => {
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      return;
-    }
+    if (!isAcceptedFileType(file.name)) return;
     setSelectedFile(file);
     reset();
   }, [reset]);
@@ -61,40 +64,9 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({
     onClose();
   }, [reset, onClose]);
 
-  const downloadTemplate = useCallback(() => {
-    const header = templateColumns.join(',');
-    const rows = exampleRows.map(row => row.join(','));
-    const csv = '\uFEFF' + [header, ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${title.toLowerCase().replace(/\s+/g, '-')}-template.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [templateColumns, exampleRows, title]);
-
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={`Import ${title} from CSV`} size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} title={`Import ${title}`} size="lg">
       <div className="space-y-5">
-
-        {/* Template download */}
-        <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <div className="flex items-center gap-2">
-            <FileText size={16} className="text-blue-600 dark:text-blue-400" />
-            <span className="text-sm text-blue-700 dark:text-blue-300">
-              Download the CSV template with correct column headers
-            </span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            icon={<Download size={14} />}
-            onClick={downloadTemplate}
-          >
-            Template
-          </Button>
-        </div>
 
         {/* Drop zone */}
         <div
@@ -113,7 +85,7 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx,.xls,.pdf"
             onChange={handleFileInput}
             className="hidden"
           />
@@ -121,7 +93,9 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({
             <div className="flex items-center justify-center gap-3">
               <CheckCircle size={24} className="text-green-500" />
               <div className="text-left">
-                <p className="font-medium text-gray-900 dark:text-white">{selectedFile.name}</p>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {getFileIcon(selectedFile.name)} {selectedFile.name}
+                </p>
                 <p className="text-sm text-gray-500">{(selectedFile.size / 1024).toFixed(1)} KB</p>
               </div>
               <button
@@ -134,8 +108,18 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({
           ) : (
             <>
               <Upload size={36} className="mx-auto text-gray-400 mb-3" />
-              <p className="font-medium text-gray-700 dark:text-gray-200">Drop CSV file here</p>
+              <p className="font-medium text-gray-700 dark:text-gray-200">Drop your file here</p>
               <p className="text-sm text-gray-500 mt-1">or click to browse</p>
+              <div className="flex items-center justify-center gap-2 mt-3">
+                {['CSV', 'XLSX', 'PDF'].map(fmt => (
+                  <span
+                    key={fmt}
+                    className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
+                  >
+                    {fmt}
+                  </span>
+                ))}
+              </div>
               <p className="text-xs text-gray-400 mt-2">Max file size: 50MB</p>
             </>
           )}
@@ -210,7 +194,7 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({
               disabled={!selectedFile || isUploading}
               loading={isUploading}
             >
-              Import CSV
+              Import
             </Button>
           )}
         </div>

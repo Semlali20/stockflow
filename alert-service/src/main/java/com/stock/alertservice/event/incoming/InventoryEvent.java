@@ -20,12 +20,9 @@ public class InventoryEvent {
     private String lotId;
     private String serialId;
     
-    // THIS IS THE CRITICAL FIX - Map quantityOnHand to quantity
+    // Map JSON field "quantityOnHand" → Java field "quantity" for convenience
     @JsonProperty("quantityOnHand")
     private Double quantity;
-    
-    @JsonProperty("quantityOnHand")
-    private Double quantityOnHand;
     
     private Double quantityReserved;
     private Double quantityDamaged;

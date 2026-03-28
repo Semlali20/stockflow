@@ -1,12 +1,12 @@
 // frontend/src/pages/movements/MovementsPage.tsx
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
   Plus, Search, RefreshCw, Package, FileText,
   Activity, CheckCircle2, TrendingUp, X, SlidersHorizontal,
-  ArrowDownCircle, ChevronDown, Download,
+  ArrowDownCircle, ChevronDown, Download, Table, File,
 } from 'lucide-react';
 import { movementService } from '@/services/movement.service';
 import { inventoryService } from '@/services/inventory.service';
@@ -17,20 +17,11 @@ import { confirmDelete } from '@/utils/confirmDialog';
 import MovementFormModal from '@/components/movements/MovementFormModal';
 import MovementDetailModal from '@/components/movements/MovementDetailModal';
 import MovementCard from '@/components/movements/Movementcard';
-import { ReportModal } from '@/components/ui/ReportModal';
 import { useFileDownload } from '@/hooks/useFileDownload';
 import { API_ENDPOINTS } from '@/config/constants';
-
-const movementReportColumns = [
-  { header: 'Reference', key: 'referenceNumber', width: 20 },
-  { header: 'Type', key: 'type', width: 15 },
-  { header: 'Status', key: 'status', width: 15 },
-  { header: 'Priority', key: 'priority', width: 12 },
-  { header: 'Warehouse ID', key: 'warehouseId', width: 20 },
-  { header: 'Movement Date', key: 'movementDate', width: 20 },
-  { header: 'Notes', key: 'notes', width: 30 },
-  { header: 'Created At', key: 'createdAt', width: 20 },
-];
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 // ─── Styled select ───────────────────────────────────────────────────
 const StyledSelect = ({
@@ -68,13 +59,24 @@ const MovementsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ type: '', status: '' });
   const [showFilters, setShowFilters] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
 
   const { isDownloading, downloadCsv } = useFileDownload();
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Memoized Options
   const STAT_CARDS = useMemo(() => [
@@ -266,6 +268,85 @@ const MovementsPage = () => {
     }
   };
 
+  const handleExportCSV = () => {
+    downloadCsv(API_ENDPOINTS.MOVEMENTS.MOVEMENTS_EXPORT_CSV, 'movements.csv');
+    setShowExportMenu(false);
+  };
+
+  const handleExportExcel = () => {
+    const rows = filteredMovements.map((m) => ({
+      'Reference Number': m.referenceNumber || '',
+      'Type': m.type || '',
+      'Status': m.status || '',
+      'Priority': m.priority || '',
+      'Warehouse ID': m.warehouseId || '',
+      'Movement Date': m.movementDate ? new Date(m.movementDate).toLocaleDateString() : '',
+      'Notes': m.notes || '',
+      'Created At': m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '',
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const colWidths = [20, 15, 15, 12, 20, 18, 30, 18].map((w) => ({ wch: w }));
+    ws['!cols'] = colWidths;
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Movements');
+    XLSX.writeFile(wb, 'movements.xlsx');
+    setShowExportMenu(false);
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageW = doc.internal.pageSize.getWidth();
+
+    // Background shapes
+    doc.setFillColor(63, 81, 181);
+    doc.rect(0, 0, pageW, 38, 'F');
+    doc.setFillColor(92, 107, 192);
+    doc.circle(pageW - 20, -10, 40, 'F');
+    doc.setFillColor(48, 63, 159);
+    doc.circle(20, 55, 25, 'F');
+
+    // Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Movements Report', 15, 16);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${new Date().toLocaleDateString()} | Total: ${filteredMovements.length}`, 15, 27);
+
+    autoTable(doc, {
+      startY: 45,
+      head: [['Reference', 'Type', 'Status', 'Priority', 'Movement Date', 'Notes', 'Created At']],
+      body: filteredMovements.map((m) => [
+        m.referenceNumber || '',
+        m.type || '',
+        m.status || '',
+        m.priority || '',
+        m.movementDate ? new Date(m.movementDate).toLocaleDateString() : '',
+        m.notes || '',
+        m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '',
+      ]),
+      headStyles: { fillColor: [63, 81, 181], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+      bodyStyles: { fontSize: 8, textColor: [30, 30, 30] },
+      alternateRowStyles: { fillColor: [245, 247, 255] },
+      margin: { left: 15, right: 15 },
+      didDrawPage: (data) => {
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(
+          `Page ${data.pageNumber} of ${pageCount}`,
+          pageW / 2,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'center' }
+        );
+      },
+    });
+
+    doc.save('movements.pdf');
+    setShowExportMenu(false);
+  };
+
   const hasActiveFilters = filters.type || filters.status || searchTerm;
 
   return (
@@ -295,28 +376,45 @@ const MovementsPage = () => {
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
 
-            <button
-              onClick={() => downloadCsv(API_ENDPOINTS.MOVEMENTS.MOVEMENTS_EXPORT_CSV, 'movements.csv')}
-              disabled={isDownloading}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800
-                text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400
-                hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 text-sm font-medium"
-              title={t('common.exportCsv')}
-            >
-              <Download className="w-4 h-4" />
-              {t('common.exportCsv')}
-            </button>
-
-            <button
-              onClick={() => setIsReportModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800
-                text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400
-                hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 text-sm font-medium"
-              title={t('common.report')}
-            >
-              <FileText className="w-4 h-4" />
-              {t('common.report')}
-            </button>
+            {/* Export Dropdown */}
+            <div className="relative" ref={exportMenuRef}>
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800
+                  text-neutral-600 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400
+                  hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 text-sm font-medium"
+              >
+                <Download className="w-4 h-4" />
+                {t('common.export')}
+                <ChevronDown className={`w-3 h-3 transition-transform ${showExportMenu ? 'rotate-180' : ''}`} />
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg z-50 overflow-hidden">
+                  <button
+                    onClick={handleExportCSV}
+                    disabled={isDownloading}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    <Download className="w-3 h-3 text-green-600" />
+                    CSV
+                  </button>
+                  <button
+                    onClick={handleExportExcel}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    <Table className="w-3 h-3 text-emerald-600" />
+                    Excel (.xlsx)
+                  </button>
+                  <button
+                    onClick={handleExportPDF}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    <File className="w-3 h-3 text-red-500" />
+                    PDF
+                  </button>
+                </div>
+              )}
+            </div>
 
             <motion.button
               whileHover={{ scale: 1.02, y: -1 }}
@@ -544,17 +642,6 @@ const MovementsPage = () => {
         />
       )}
 
-      <ReportModal
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
-        title={t('movements.title')}
-        description={t('movements.reportDescription')}
-        columns={movementReportColumns}
-        fetchData={async () => {
-          return movements as unknown as Record<string, unknown>[];
-        }}
-        filename="movements-report"
-      />
     </div>
   );
 };

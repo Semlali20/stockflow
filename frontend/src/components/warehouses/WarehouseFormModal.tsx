@@ -30,7 +30,9 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
   const [formData, setFormData] = useState({
     siteId: '',
     name: '',
-    code: ''
+    code: '',
+    address: '',
+    isActive: true
   });
   
   // Easy settings - array of key-value pairs
@@ -65,7 +67,9 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
       setFormData({
         siteId: warehouse.siteId || '',
         name: warehouse.name || '',
-        code: warehouse.code || ''
+        code: warehouse.code || '',
+        address: warehouse.address || '',
+        isActive: warehouse.isActive !== false
       });
 
       // Parse JSON string settings from backend to array
@@ -88,7 +92,9 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
       setFormData({
         siteId: '',
         name: '',
-        code: ''
+        code: '',
+        address: '',
+        isActive: true
       });
       setSettings([]);
     }
@@ -133,6 +139,8 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
         siteId: formData.siteId,
         name: formData.name,
         code: formData.code,
+        address: formData.address || undefined,
+        isActive: formData.isActive,
         settings: settingsJson // Send as JSON string
       };
 
@@ -223,6 +231,42 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
               />
               <p className="text-xs text-gray-500 mt-1">Must be unique</p>
             </div>
+          </div>
+
+          {/* Address - Optional */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Address <span className="text-gray-400 font-normal">(Optional)</span>
+            </label>
+            <Input
+              type="text"
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              placeholder="e.g., 123 Main St, City, Country"
+            />
+          </div>
+
+          {/* Active / Inactive Toggle */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Status</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {formData.isActive ? 'Warehouse is active and operational' : 'Warehouse is inactive and unavailable'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
+                formData.isActive ? 'bg-blue-600' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                  formData.isActive ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
 
           {/* Settings - Easy Key-Value Editor */}

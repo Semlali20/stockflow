@@ -1,6 +1,7 @@
 package com.stock.locationservice.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
@@ -8,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WarehouseCreateRequest {
 
     @NotBlank(message = "Site ID is required")
@@ -18,6 +20,10 @@ public class WarehouseCreateRequest {
 
     @NotBlank(message = "Warehouse code is required")
     private String code;
+
+    private String address;
+
+    private Boolean isActive;
 
     private String settings;
 }

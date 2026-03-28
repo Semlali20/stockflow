@@ -4,6 +4,7 @@ import com.stock.locationservice.dto.WarehouseCreateRequest;
 import com.stock.locationservice.dto.WarehouseDTO;
 import com.stock.locationservice.entity.Site;
 import com.stock.locationservice.entity.Warehouse;
+import com.stock.locationservice.repository.LocationRepository;
 import com.stock.locationservice.repository.SiteRepository;
 import com.stock.locationservice.repository.WarehouseRepository;
 import com.stock.locationservice.service.WarehouseService;
@@ -23,6 +24,7 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     private final WarehouseRepository warehouseRepository;
     private final SiteRepository siteRepository;
+    private final LocationRepository locationRepository;
 
     @Override
     public WarehouseDTO createWarehouse(WarehouseCreateRequest request) {
@@ -41,8 +43,9 @@ public class WarehouseServiceImpl implements WarehouseService {
                 .siteId(request.getSiteId())
                 .name(request.getName())
                 .code(request.getCode())
+                .address(request.getAddress())
                 .settings(request.getSettings())
-                .isActive(true)
+                .isActive(request.getIsActive() != null ? request.getIsActive() : true)
                 .build();
 
         Warehouse savedWarehouse = warehouseRepository.save(warehouse);
@@ -125,7 +128,11 @@ public class WarehouseServiceImpl implements WarehouseService {
         warehouse.setSiteId(request.getSiteId());
         warehouse.setName(request.getName());
         warehouse.setCode(request.getCode());
+        warehouse.setAddress(request.getAddress());
         warehouse.setSettings(request.getSettings());
+        if (request.getIsActive() != null) {
+            warehouse.setIsActive(request.getIsActive());
+        }
 
         Warehouse updatedWarehouse = warehouseRepository.save(warehouse);
         log.info("Warehouse updated successfully with ID: {}", updatedWarehouse.getId());
@@ -141,6 +148,13 @@ public class WarehouseServiceImpl implements WarehouseService {
 
         Warehouse warehouse = warehouseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Warehouse not found with ID: " + id));
+
+        // Delete associated locations first to avoid FK constraint violation
+        List<com.stock.locationservice.entity.Location> locations = locationRepository.findByWarehouseId(id);
+        if (!locations.isEmpty()) {
+            log.info("Deleting {} location(s) associated with warehouse {}", locations.size(), id);
+            locationRepository.deleteAll(locations);
+        }
 
         warehouseRepository.delete(warehouse);
         log.info("Warehouse deleted successfully with ID: {}", id);
@@ -185,6 +199,7 @@ public class WarehouseServiceImpl implements WarehouseService {
                 .siteName(siteName)
                 .name(warehouse.getName())
                 .code(warehouse.getCode())
+                .address(warehouse.getAddress())
                 .settings(warehouse.getSettings())
                 .isActive(warehouse.getIsActive())
                 .createdAt(warehouse.getCreatedAt())

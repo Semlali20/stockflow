@@ -59,6 +59,9 @@ public class DeliveryNote {
     @Column(name = "inventory_id", length = 100)
     private String inventoryId;
 
+    @Column(name = "location_id", length = 100)
+    private String locationId;
+
     @Column(name = "created_by", length = 255)
     private String createdBy;
 

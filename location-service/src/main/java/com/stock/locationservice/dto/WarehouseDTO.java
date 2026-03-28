@@ -15,6 +15,7 @@ public class WarehouseDTO {
     private String siteName;  // Pour affichage
     private String name;
     private String code;
+    private String address;
     private String settings;
     private Boolean isActive;
     private LocalDateTime createdAt;

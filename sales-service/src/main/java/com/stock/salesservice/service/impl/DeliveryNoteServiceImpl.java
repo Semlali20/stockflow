@@ -43,6 +43,7 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
                 .customerId(request.getCustomerId())
                 .customerName(request.getCustomerName())
                 .inventoryId(request.getInventoryId())
+                .locationId(request.getLocationId())
                 .status(DeliveryNoteStatus.DRAFT)
                 .deliveryDate(request.getDeliveryDate())
                 .deliveryAddress(request.getDeliveryAddress())
@@ -123,6 +124,9 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
         }
         if (request.getInventoryId() != null) {
             deliveryNote.setInventoryId(request.getInventoryId());
+        }
+        if (request.getLocationId() != null) {
+            deliveryNote.setLocationId(request.getLocationId());
         }
 
         // Replace lines
@@ -256,6 +260,7 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
                 .customerId(deliveryNote.getCustomerId())
                 .customerName(deliveryNote.getCustomerName())
                 .inventoryId(deliveryNote.getInventoryId())
+                .locationId(deliveryNote.getLocationId())
                 .status(deliveryNote.getStatus())
                 .deliveryDate(deliveryNote.getDeliveryDate())
                 .deliveryAddress(deliveryNote.getDeliveryAddress())

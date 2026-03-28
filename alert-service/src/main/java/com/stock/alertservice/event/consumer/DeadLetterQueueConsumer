@@ -24,8 +24,7 @@ public class DeadLetterQueueConsumer {
             "inventory.updated.DLQ",
             "item.created.DLQ",
             "movement.completed.DLQ",
-            "location.created.DLQ",
-            "quality.inspection.completed.DLQ"
+            "location.created.DLQ"
         },
         groupId = "dlq-consumer-group"
     )

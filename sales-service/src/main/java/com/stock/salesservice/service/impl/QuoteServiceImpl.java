@@ -55,6 +55,7 @@ public class QuoteServiceImpl implements QuoteService {
                 .validUntil(request.getValidUntil())
                 .notes(request.getNotes())
                 .inventoryId(request.getInventoryId())
+                .locationId(request.getLocationId())
                 .discountPercent(request.getDiscountPercent() != null ? request.getDiscountPercent() : BigDecimal.ZERO)
                 .createdBy(createdBy)
                 .lines(new ArrayList<>())
@@ -138,6 +139,9 @@ public class QuoteServiceImpl implements QuoteService {
         }
         if (request.getInventoryId() != null) {
             quote.setInventoryId(request.getInventoryId());
+        }
+        if (request.getLocationId() != null) {
+            quote.setLocationId(request.getLocationId());
         }
 
         // Replace lines
@@ -362,6 +366,7 @@ public class QuoteServiceImpl implements QuoteService {
                 .validUntil(quote.getValidUntil())
                 .notes(quote.getNotes())
                 .inventoryId(quote.getInventoryId())
+                .locationId(quote.getLocationId())
                 .discountPercent(quote.getDiscountPercent())
                 .subtotal(quote.getSubtotal())
                 .totalAmount(quote.getTotalAmount())

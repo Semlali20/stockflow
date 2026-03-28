@@ -31,6 +31,9 @@ public class Warehouse {
     private String code;
 
 
+    @Column(length = 255)
+    private String address;
+
     @Column
     private String settings;
 

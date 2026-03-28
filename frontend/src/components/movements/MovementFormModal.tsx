@@ -957,7 +957,7 @@ const MovementFormModal = ({
                           <option value="">Select Item</option>
                           {items.map((item) => (
                             <option key={item.id} value={item.id}>
-                              {item.name} - {item.sku}
+                              {item.name}
                             </option>
                           ))}
                         </select>

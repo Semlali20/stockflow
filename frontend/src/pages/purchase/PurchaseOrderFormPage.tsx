@@ -8,12 +8,14 @@ import { toast } from 'react-hot-toast';
 import { purchaseService } from '@/services/purchase.service';
 import { inventoryService } from '@/services/inventory.service';
 import { locationService } from '@/services/location.service';
+import { productService } from '@/services/product.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import type { Supplier, Warehouse, Inventory } from '@/types';
+import type { Supplier, Warehouse, Inventory, Location, Item, Category } from '@/types';
 
 interface POLine {
+  categoryId: string;
   itemId: string;
   itemName: string;
   itemSku: string;
@@ -38,15 +40,23 @@ export const PurchaseOrderFormPage = () => {
   // Data
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [allItems, setAllItems] = useState<Item[]>([]);
   const [lowStockItems, setLowStockItems] = useState<Inventory[]>([]);
+  const [locationInventory, setLocationInventory] = useState<Inventory[]>([]);
   const [lines, setLines] = useState<POLine[]>([]);
 
   // UI state
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
   const [loadingWarehouses, setLoadingWarehouses] = useState(false);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+  const [loadingLocationInventory, setLoadingLocationInventory] = useState(false);
   const [loadingLowStock, setLoadingLowStock] = useState(false);
+  const [itemNamesMap, setItemNamesMap] = useState<Map<string, string>>(new Map());
   const [saving, setSaving] = useState(false);
   const [lowStockThreshold, setLowStockThreshold] = useState(10);
+  const [selectedLocationId, setSelectedLocationId] = useState('');
 
   useEffect(() => {
     setLoadingSuppliers(true);
@@ -65,12 +75,35 @@ export const PurchaseOrderFormPage = () => {
       })
       .catch(() => setWarehouses([]))
       .finally(() => setLoadingWarehouses(false));
+
+    setLoadingLocations(true);
+    locationService.getLocations({ size: 1000 })
+      .then((data: any) => {
+        setLocations(Array.isArray(data) ? data : (data?.content || []));
+      })
+      .catch(() => setLocations([]))
+      .finally(() => setLoadingLocations(false));
+
+    productService.getCategories({ size: 1000 })
+      .then((data: any) => setCategories(Array.isArray(data) ? data : (data?.content || [])))
+      .catch(() => setCategories([]));
+
+    productService.getItems({ size: 1000 })
+      .then((data: any) => setAllItems(Array.isArray(data) ? data : (data?.content || [])))
+      .catch(() => setAllItems([]));
   }, []);
 
   const loadLowStock = useCallback(async (threshold: number) => {
     setLoadingLowStock(true);
     try {
-      const data = await inventoryService.getLowStockItems(threshold);
+      const [data, itemsData] = await Promise.all([
+        inventoryService.getLowStockItems(threshold),
+        productService.getItems({ size: 1000 }).catch(() => ({ content: [] })),
+      ]);
+      const items: any[] = Array.isArray(itemsData) ? itemsData : ((itemsData as any)?.content || []);
+      const map = new Map<string, string>();
+      items.forEach((item: any) => { if (item?.id) map.set(item.id, item.name || item.sku || item.id); });
+      setItemNamesMap(map);
       setLowStockItems(Array.isArray(data) ? data : (data?.content || []));
     } catch {
       setLowStockItems([]);
@@ -83,13 +116,29 @@ export const PurchaseOrderFormPage = () => {
     loadLowStock(lowStockThreshold);
   }, [loadLowStock, lowStockThreshold]);
 
+  const handleLocationChange = async (locationId: string) => {
+    setSelectedLocationId(locationId);
+    if (!locationId) { setLocationInventory([]); return; }
+    setLoadingLocationInventory(true);
+    try {
+      const data = await inventoryService.getInventoriesByLocation(locationId);
+      setLocationInventory(Array.isArray(data) ? data : (data?.content || []));
+    } catch {
+      setLocationInventory([]);
+    } finally {
+      setLoadingLocationInventory(false);
+    }
+  };
+
   const addFromLowStock = (inv: Inventory) => {
     const already = lines.find(l => l.itemId === inv.itemId);
     if (already) { toast.error(t('quoteForm.itemAlreadyAdded')); return; }
-    const suggestedQty = Math.max(1, lowStockThreshold - inv.quantityAvailable + 5);
+    const availableQty = inv.quantityAvailable ?? (inv as any).quantityOnHand ?? 0;
+    const suggestedQty = Math.max(1, lowStockThreshold - availableQty + 5);
     setLines(prev => [...prev, {
+      categoryId: (inv as any).categoryId || '',
       itemId: inv.itemId,
-      itemName: (inv as any).itemName || inv.item?.name || inv.itemId,
+      itemName: itemNamesMap.get(inv.itemId) || (inv as any).itemName || inv.item?.name || inv.itemId,
       itemSku: (inv as any).itemSku || inv.item?.sku || '',
       orderedQuantity: suggestedQty,
       unitPrice: inv.unitCost || 0,
@@ -101,6 +150,7 @@ export const PurchaseOrderFormPage = () => {
 
   const addEmptyLine = () => {
     setLines(prev => [...prev, {
+      categoryId: '',
       itemId: '',
       itemName: '',
       itemSku: '',
@@ -115,8 +165,10 @@ export const PurchaseOrderFormPage = () => {
     setLines(prev => prev.map((l, i) => {
       if (i !== idx) return l;
       const updated = { ...l, [field]: value };
-      const qty = field === 'orderedQuantity' ? Number(value) : Number(updated.orderedQuantity);
-      const price = field === 'unitPrice' ? Number(value) : Number(updated.unitPrice);
+      const rawQty = field === 'orderedQuantity' ? Number(value) : Number(updated.orderedQuantity);
+      const rawPrice = field === 'unitPrice' ? Number(value) : Number(updated.unitPrice);
+      const qty = Number.isNaN(rawQty) ? 0 : rawQty;
+      const price = Number.isNaN(rawPrice) ? 0 : rawPrice;
       updated.totalPrice = qty * price;
       return updated;
     }));
@@ -150,7 +202,25 @@ export const PurchaseOrderFormPage = () => {
           notes: l.notes,
         })),
       });
-      toast.success(t('purchase.orders.created'));
+
+      // Update inventory for each line if a location is selected
+      if (selectedLocationId) {
+        const inventoryUpdates = lines.map(l =>
+          inventoryService.adjustInventory({
+            itemId: l.itemId,
+            locationId: selectedLocationId,
+            quantityChange: l.orderedQuantity,
+            reason: `Purchase order from supplier: ${supplierName || supplierId}`,
+          }).catch(err => {
+            console.warn(`Failed to update inventory for item ${l.itemName}:`, err);
+          })
+        );
+        await Promise.all(inventoryUpdates);
+        toast.success(`Purchase created & inventory updated (+${lines.reduce((s, l) => s + l.orderedQuantity, 0)} units across ${lines.length} item(s))`);
+      } else {
+        toast.success(t('purchase.orders.created'));
+      }
+
       navigate('/purchase/orders');
     } catch {
       toast.error(t('purchase.orders.saveFailed'));
@@ -216,6 +286,20 @@ export const PurchaseOrderFormPage = () => {
                   {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                 </Select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <Select
+                  value={selectedLocationId}
+                  onChange={e => handleLocationChange(e.target.value)}
+                  className="w-full"
+                  disabled={loadingLocations}
+                >
+                  <option value="">Select a location</option>
+                  {locations.map(loc => (
+                    <option key={loc.id} value={loc.id}>{loc.code}</option>
+                  ))}
+                </Select>
+              </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.notes')}</label>
                 <textarea
@@ -227,6 +311,61 @@ export const PurchaseOrderFormPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Location Inventory */}
+          {selectedLocationId && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
+                Items at {locations.find(l => l.id === selectedLocationId)?.code || 'selected location'}
+              </h2>
+              {loadingLocationInventory ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500" />
+                </div>
+              ) : locationInventory.length === 0 ? (
+                <p className="text-gray-400 text-xs text-center py-4">No items at this location</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Available Qty</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
+                        <th className="px-3 py-2" />
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {locationInventory.map(inv => {
+                        const isAdded = lines.some(l => l.itemId === inv.itemId);
+                        const name = itemNamesMap.get(inv.itemId) || (inv as any).itemName || inv.item?.name || inv.itemId;
+                        return (
+                          <tr key={inv.id} className={isAdded ? 'bg-green-50' : ''}>
+                            <td className="px-3 py-2 font-medium text-gray-800">{name}</td>
+                            <td className="px-3 py-2 text-gray-600">{inv.quantityAvailable ?? inv.quantityOnHand}</td>
+                            <td className="px-3 py-2 text-gray-400">{inv.uom || '—'}</td>
+                            <td className="px-3 py-2">
+                              {isAdded ? (
+                                <span className="text-xs text-green-600 font-medium">Added</span>
+                              ) : (
+                                <button
+                                  onClick={() => addFromLowStock(inv)}
+                                  className="text-blue-600 hover:text-blue-800"
+                                  title="Add to order"
+                                >
+                                  <Plus size={14} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Order Lines */}
           <div className="bg-white rounded-lg shadow p-6">
@@ -243,6 +382,7 @@ export const PurchaseOrderFormPage = () => {
                 <table className="min-w-full divide-y divide-gray-200 text-sm">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t('quoteForm.item')}</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t('purchaseForm.orderedQty')}</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t('quoteForm.unitPrice')}</th>
@@ -251,15 +391,47 @@ export const PurchaseOrderFormPage = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {lines.map((line, idx) => (
+                    {lines.map((line, idx) => {
+                      const filteredItems = line.categoryId
+                        ? allItems.filter((it: any) => it.categoryId === line.categoryId)
+                        : allItems;
+                      return (
                       <tr key={idx}>
+                        {/* Category */}
+                        <td className="px-3 py-2 w-40">
+                          <select
+                            value={line.categoryId}
+                            onChange={e => updateLine(idx, 'categoryId', e.target.value)}
+                            className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">All</option>
+                            {categories.map((cat: any) => (
+                              <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                          </select>
+                        </td>
+                        {/* Item */}
                         <td className="px-3 py-2">
-                          <Input
-                            value={line.itemName}
-                            onChange={e => updateLine(idx, 'itemName', e.target.value)}
-                            placeholder={t('purchaseForm.itemNamePlaceholder')}
-                            className="text-sm"
-                          />
+                          <select
+                            value={line.itemId}
+                            onChange={e => {
+                              const item = allItems.find((it: any) => it.id === e.target.value) as any;
+                              setLines(prev => prev.map((l, i) => i !== idx ? l : {
+                                ...l,
+                                itemId: item?.id || '',
+                                itemName: item?.name || '',
+                                itemSku: item?.sku || '',
+                                unitPrice: item?.unitCost || l.unitPrice,
+                                totalPrice: l.orderedQuantity * (item?.unitCost || l.unitPrice),
+                              }));
+                            }}
+                            className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select item</option>
+                            {filteredItems.map((it: any) => (
+                              <option key={it.id} value={it.id}>{it.name}</option>
+                            ))}
+                          </select>
                           {line.currentStock !== undefined && (
                             <div className="text-xs text-orange-600 mt-1">
                               {t('purchaseForm.currentStock')}: {line.currentStock}
@@ -292,7 +464,8 @@ export const PurchaseOrderFormPage = () => {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -348,7 +521,7 @@ export const PurchaseOrderFormPage = () => {
                   return (
                     <div key={inv.id} className={`flex items-center justify-between p-2 rounded-lg text-xs ${isAdded ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
                       <div>
-                        <div className="font-medium text-gray-800">{(inv as any).itemName || inv.item?.name || inv.itemId}</div>
+                        <div className="font-medium text-gray-800">{itemNamesMap.get(inv.itemId) || (inv as any).itemName || inv.item?.name || inv.itemId}</div>
                         <div className="text-orange-700">{t('purchaseForm.availQty')}: {inv.quantityAvailable}</div>
                       </div>
                       {isAdded ? (

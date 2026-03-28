@@ -33,6 +33,8 @@ public class DeliveryNoteRequest {
 
     private String inventoryId;
 
+    private String locationId;
+
     @Valid
     @NotEmpty(message = "At least one delivery note line is required")
     @Builder.Default

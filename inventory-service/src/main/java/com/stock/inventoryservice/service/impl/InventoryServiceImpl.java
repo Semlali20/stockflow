@@ -46,8 +46,12 @@ public class InventoryServiceImpl implements InventoryService {
         log.info("Creating inventory for item: {} at location: {}",
                 request.getItemId(), request.getLocationId());
 
-        // Verify item exists in cache (throws exception if not found)
-        ItemCacheDTO item = itemCacheService.getItem(request.getItemId());
+        // Verify item exists in cache (graceful degradation if Redis/Kafka unavailable)
+        try {
+            itemCacheService.getItem(request.getItemId());
+        } catch (Exception e) {
+            log.warn("Item cache unavailable for item {} (Redis/Kafka may be down), proceeding with inventory creation: {}", request.getItemId(), e.getMessage());
+        }
 
         // Check if inventory already exists
         inventoryRepository.findByItemIdAndLocationId(request.getItemId(), request.getLocationId())
@@ -410,6 +414,47 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElse(0.0);
     }
 
+    @Override
+    public InventoryDTO adjustInventoryByItemAndLocation(String itemId, String locationId, String warehouseId, Double quantityChange, String reason) {
+        log.info("Adjusting inventory for item: {} at location: {} by quantityChange: {} reason: {}", itemId, locationId, quantityChange, reason);
+
+        Inventory inventory = inventoryRepository.findByItemIdAndLocationId(itemId, locationId)
+                .orElseGet(() -> {
+                    // Create inventory record if it doesn't exist yet
+                    log.info("No inventory found for item {} at location {}, creating new record", itemId, locationId);
+                    Inventory newInv = Inventory.builder()
+                            .itemId(itemId)
+                            .locationId(locationId)
+                            .warehouseId(warehouseId != null ? warehouseId : "")
+                            .quantityOnHand(0.0)
+                            .quantityReserved(0.0)
+                            .quantityDamaged(0.0)
+                            .status(InventoryStatus.AVAILABLE)
+                            .build();
+                    return inventoryRepository.save(newInv);
+                });
+
+        Double newQuantity = inventory.getQuantityOnHand() + quantityChange;
+        if (newQuantity < 0) {
+            newQuantity = 0.0;
+        }
+
+        if (quantityChange > 0) {
+            validateLocationCapacity(locationId, quantityChange, inventory.getId());
+        }
+
+        inventory.setQuantityOnHand(newQuantity);
+        inventory.setLastCountDate(LocalDate.now());
+
+        Inventory savedInventory = inventoryRepository.save(inventory);
+        log.info("Inventory adjusted for item {} at location {}: {} -> {}", itemId, locationId, inventory.getQuantityOnHand(), newQuantity);
+
+        publishInventoryEvent(savedInventory, "ADJUSTED");
+        checkLowStockAndCreateAlert(savedInventory);
+
+        return mapToDTO(savedInventory);
+    }
+
     // ========== HELPER METHODS ==========
 
     /**
@@ -421,14 +466,21 @@ public class InventoryServiceImpl implements InventoryService {
      * @param excludeInventoryId Inventory ID to exclude from current total (for updates)
      */
     private void validateLocationCapacity(String locationId, Double additionalQuantity, String excludeInventoryId) {
-        log.debug("Validating location capacity for location: {}, additional quantity: {}", 
+        log.debug("Validating location capacity for location: {}, additional quantity: {}",
                 locationId, additionalQuantity);
 
         // Fetch location details from location-service
-        LocationResponseDTO location = locationClient.getLocationById(locationId);
+        LocationResponseDTO location;
+        try {
+            location = locationClient.getLocationById(locationId);
+        } catch (Exception e) {
+            log.warn("Location service unavailable, skipping capacity validation for location {}: {}", locationId, e.getMessage());
+            return;
+        }
 
         if (location == null) {
-            throw new ResourceNotFoundException("Location not found with ID: " + locationId);
+            log.warn("Location {} not found, skipping capacity validation", locationId);
+            return;
         }
 
         // Check if location is active
@@ -469,16 +521,13 @@ public class InventoryServiceImpl implements InventoryService {
                     location.getCode(), locationCapacity, currentTotalQuantity,
                     additionalQuantity, newTotalQuantity, percentageFull);
 
-            // Create CRITICAL alert
-            alertClient.createLocationCapacityAlert(
-                    "CRITICAL",
-                    locationId,
-                    location.getCode(),
-                    message,
-                    newTotalQuantity,
-                    locationCapacity,
-                    percentageFull
-            );
+            try {
+                alertClient.createLocationCapacityAlert(
+                        "CRITICAL", locationId, location.getCode(), message,
+                        newTotalQuantity, locationCapacity, percentageFull);
+            } catch (Exception e) {
+                log.warn("Alert service unavailable, skipping capacity alert: {}", e.getMessage());
+            }
 
             throw new LocationCapacityExceededException(message);
         }
@@ -489,15 +538,13 @@ public class InventoryServiceImpl implements InventoryService {
                     "Location %s is CRITICALLY FULL at %.1f%% capacity (%.2f / %.2f units)",
                     location.getCode(), percentageFull, newTotalQuantity, locationCapacity);
 
-            alertClient.createLocationCapacityAlert(
-                    "CRITICAL",
-                    locationId,
-                    location.getCode(),
-                    message,
-                    newTotalQuantity,
-                    locationCapacity,
-                    percentageFull
-            );
+            try {
+                alertClient.createLocationCapacityAlert(
+                        "CRITICAL", locationId, location.getCode(), message,
+                        newTotalQuantity, locationCapacity, percentageFull);
+            } catch (Exception e) {
+                log.warn("Alert service unavailable, skipping capacity alert: {}", e.getMessage());
+            }
 
             log.warn("🚨 CRITICAL: {}", message);
         }
@@ -508,15 +555,13 @@ public class InventoryServiceImpl implements InventoryService {
                     "Location %s is %.1f%% full (%.2f / %.2f units) - approaching capacity limit",
                     location.getCode(), percentageFull, newTotalQuantity, locationCapacity);
 
-            alertClient.createLocationCapacityAlert(
-                    "WARNING",
-                    locationId,
-                    location.getCode(),
-                    message,
-                    newTotalQuantity,
-                    locationCapacity,
-                    percentageFull
-            );
+            try {
+                alertClient.createLocationCapacityAlert(
+                        "WARNING", locationId, location.getCode(), message,
+                        newTotalQuantity, locationCapacity, percentageFull);
+            } catch (Exception e) {
+                log.warn("Alert service unavailable, skipping capacity alert: {}", e.getMessage());
+            }
 
             log.warn("⚠️ WARNING: {}", message);
         }
@@ -544,25 +589,34 @@ public class InventoryServiceImpl implements InventoryService {
                 .violationType(isBelowThreshold ? "LOW_STOCK" : null)
                 .build();
     
-        eventPublisher.publishInventoryEvent(event);
-        
+        try {
+            eventPublisher.publishInventoryEvent(event);
+        } catch (Exception e) {
+            log.warn("Failed to publish inventory event for {} (Kafka may be unavailable): {}", inventory.getId(), e.getMessage());
+        }
+
         if (isBelowThreshold) {
             publishStockBelowThresholdEvent(inventory);
         }
     }
+
     private void publishStockBelowThresholdEvent(Inventory inventory) {
-    StockBelowThresholdEvent event = StockBelowThresholdEvent.builder()
-            .itemId(inventory.getItemId())
-            .locationId(inventory.getLocationId())
-            .warehouseId(inventory.getWarehouseId())
-            .currentQuantity(inventory.getQuantityOnHand())
-            .threshold(5.0)
-            .alertLevel(inventory.getQuantityOnHand() < 3.0 ? "CRITICAL" : "WARNING")
-            .timestamp(LocalDateTime.now())
-            .build();
-            
-    eventPublisher.publishStockBelowThreshold(event);
-}
+        StockBelowThresholdEvent event = StockBelowThresholdEvent.builder()
+                .itemId(inventory.getItemId())
+                .locationId(inventory.getLocationId())
+                .warehouseId(inventory.getWarehouseId())
+                .currentQuantity(inventory.getQuantityOnHand())
+                .threshold(5.0)
+                .alertLevel(inventory.getQuantityOnHand() < 3.0 ? "CRITICAL" : "WARNING")
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        try {
+            eventPublisher.publishStockBelowThreshold(event);
+        } catch (Exception e) {
+            log.warn("Failed to publish stock below threshold event (Kafka may be unavailable): {}", e.getMessage());
+        }
+    }
 
     /**
      * 🚨 Check if inventory is low and create alert via AlertClient

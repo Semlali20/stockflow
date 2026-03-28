@@ -27,11 +27,6 @@ scrape_configs:
     static_configs:
       - targets: ['location-service:8085']
 
-  - job_name: 'quality-service'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets: ['quality-service:8087']
-
   - job_name: 'alert-service'
     metrics_path: '/actuator/prometheus'
     static_configs:

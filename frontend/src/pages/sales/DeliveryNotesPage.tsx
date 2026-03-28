@@ -11,6 +11,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { salesService } from '@/services/sales.service';
+import { inventoryService } from '@/services/inventory.service';
 import { DeliveryNote, DeliveryNoteStatus, Customer } from '@/types';
 import { toast } from 'react-hot-toast';
 
@@ -603,10 +604,33 @@ const DeliveryNotesPage = () => {
 
   const handleAction = async (action: string, note: DeliveryNote) => {
     try {
-      if (action === 'validate') { await salesService.validateDeliveryNote(note.id); toast.success(t('sales.deliveryNotes.validated')); }
+      if (action === 'validate') {
+        await salesService.validateDeliveryNote(note.id);
+        // Deduct inventory only when NOT linked to a quote and a location is set
+        if (!note.quoteId && note.locationId) {
+          await Promise.allSettled(
+            (note.lines || [])
+              .filter(l => l.itemId)
+              .map(l =>
+                inventoryService.adjustInventory({
+                  itemId: l.itemId,
+                  locationId: note.locationId!,
+                  warehouseId: note.inventoryId,
+                  quantityChange: -l.deliveredQuantity,
+                  reason: `Delivery note ${note.reference} validated — ${l.itemName}`,
+                })
+              )
+          );
+        }
+        toast.success(t('sales.deliveryNotes.validated'));
+      }
       else if (action === 'ship') { await salesService.shipDeliveryNote(note.id); toast.success(t('sales.deliveryNotes.shipped')); }
       else if (action === 'deliver') { await salesService.deliverDeliveryNote(note.id); toast.success(t('sales.deliveryNotes.delivered')); }
-      else if (action === 'cancel') { await salesService.cancelDeliveryNote(note.id); toast.success(t('sales.deliveryNotes.cancelled')); }
+      else if (action === 'cancel') {
+        // Cancel: inventory stays unchanged — just update status
+        await salesService.cancelDeliveryNote(note.id);
+        toast.success(t('sales.deliveryNotes.cancelled'));
+      }
       fetchNotes();
     } catch {
       toast.error(t('sales.deliveryNotes.actionFailed'));

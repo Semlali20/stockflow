@@ -92,27 +92,28 @@ export const WarehousesPage: React.FC = () => {
       (wh.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (wh.code?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesSite = !filterSite || wh.siteId === filterSite;
-    const matchesStatus = !filterStatus || wh.status === filterStatus;
+    const matchesStatus = !filterStatus ||
+      (filterStatus === 'ACTIVE' ? wh.isActive !== false : wh.isActive === false);
     return matchesSearch && matchesSite && matchesStatus;
   });
 
   const stats = {
     total: warehouses.length,
-    active: warehouses.filter(w => w?.status === 'ACTIVE').length,
-    inactive: warehouses.filter(w => w?.status === 'INACTIVE').length,
+    active: warehouses.filter(w => w?.isActive !== false).length,
+    inactive: warehouses.filter(w => w?.isActive === false).length,
     sites: sites.length,
   };
 
-  const getStatusBadge = (status: string) => {
-    const s = status || 'UNKNOWN';
-    const isActive = s === 'ACTIVE';
+  const getStatusBadge = (isActive?: boolean) => {
     return (
       <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
-        isActive 
-          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
+        isActive !== false
+          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
           : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
       }`}>
-        {t(`locations.warehouses.status.${s.toLowerCase()}`, { defaultValue: s })}
+        {isActive !== false
+          ? t('locations.warehouses.status.active')
+          : t('locations.warehouses.status.inactive')}
       </span>
     );
   };
@@ -232,7 +233,7 @@ export const WarehousesPage: React.FC = () => {
                       {sites.find(s => s.id === wh.siteId)?.name || wh.siteId}
                     </td>
                     <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400 truncate max-w-[200px]">{wh.address}</td>
-                    <td className="px-6 py-4">{getStatusBadge(wh.status)}</td>
+                    <td className="px-6 py-4">{getStatusBadge(wh.isActive)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => handleEditClick(wh)} className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>

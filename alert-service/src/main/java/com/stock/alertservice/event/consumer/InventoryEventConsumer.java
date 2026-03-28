@@ -4,6 +4,7 @@ import com.stock.alertservice.dto.response.AlertResponse;
 import com.stock.alertservice.enums.AlertLevel;
 import com.stock.alertservice.enums.AlertType;
 import com.stock.alertservice.event.incoming.InventoryEvent;
+import com.stock.alertservice.event.incoming.StockBelowThresholdEvent;
 import com.stock.alertservice.service.AlertService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,17 +65,17 @@ public class InventoryEventConsumer {
     @KafkaListener(
             topics = "stock.below.threshold",
             groupId = "alert-service-group",
-            containerFactory = "inventoryEventListenerFactory"
+            containerFactory = "stockBelowThresholdListenerFactory"
     )
     public void handleStockBelowThreshold(
-            @Payload InventoryEvent event,
+            @Payload StockBelowThresholdEvent event,
             @Header(KafkaHeaders.RECEIVED_KEY) String key
     ) {
         log.info("⚠️ Received stock.below.threshold event - Item: {}, Location: {}, Quantity: {}",
-                event.getItemId(), event.getLocationId(), event.getQuantity());
+                event.getItemId(), event.getLocationId(), event.getCurrentQuantity());
 
         try {
-            createLowStockAlert(event);
+            createLowStockAlertFromThreshold(event);
         } catch (Exception e) {
             log.error("❌ Error processing stock.below.threshold event for item: {}", event.getItemId(), e);
         }
@@ -86,17 +87,17 @@ public class InventoryEventConsumer {
     @KafkaListener(
             topics = "inventory.low-stock",
             groupId = "alert-service-group",
-            containerFactory = "inventoryEventListenerFactory"
+            containerFactory = "stockBelowThresholdListenerFactory"
     )
     public void handleInventoryLowStock(
-            @Payload InventoryEvent event,
+            @Payload StockBelowThresholdEvent event,
             @Header(KafkaHeaders.RECEIVED_KEY) String key
     ) {
         log.info("⚠️ Received inventory.low-stock event - Item: {}, Location: {}, Quantity: {}",
-                event.getItemId(), event.getLocationId(), event.getQuantity());
+                event.getItemId(), event.getLocationId(), event.getCurrentQuantity());
 
         try {
-            createLowStockAlert(event);
+            createLowStockAlertFromThreshold(event);
         } catch (Exception e) {
             log.error("❌ Error processing inventory.low-stock event for item: {}", event.getItemId(), e);
         }
@@ -107,13 +108,15 @@ public class InventoryEventConsumer {
      */
     private void createStockAlert(InventoryEvent event) {
         AlertLevel level = determineAlertLevel(event);
-        
+        Double qty = event.getQuantity() != null ? event.getQuantity() : 0.0;
+        Double minThreshold = event.getMinThreshold() != null ? event.getMinThreshold() : 0.0;
+
         String message = String.format(
                 "Stock threshold violated for item %s at location %s. Current: %.2f, Min Threshold: %.2f",
                 event.getItemId(),
                 event.getLocationId(),
-                event.getQuantity(),
-                event.getMinThreshold()
+                qty,
+                minThreshold
         );
 
         Map<String, Object> data = buildAlertData(event);
@@ -135,11 +138,12 @@ public class InventoryEventConsumer {
      * Create a critical stock alert (less than 5 units)
      */
     private void createCriticalStockAlert(InventoryEvent event) {
+        Double qty = event.getQuantity() != null ? event.getQuantity() : 0.0;
         String message = String.format(
                 "EMERGENCY: Item %s at location %s has only %.2f units remaining!",
                 event.getItemId(),
                 event.getLocationId(),
-                event.getQuantity()
+                qty
         );
 
         Map<String, Object> data = buildAlertData(event);
@@ -160,18 +164,53 @@ public class InventoryEventConsumer {
     }
 
     /**
-     * Create a low stock alert
+     * Create a low stock alert from StockBelowThresholdEvent
+     */
+    private void createLowStockAlertFromThreshold(StockBelowThresholdEvent event) {
+        AlertLevel level = event.getCurrentQuantity() != null && event.getCurrentQuantity() < 5.0
+                ? AlertLevel.EMERGENCY
+                : AlertLevel.WARNING;
+
+        Double qty = event.getCurrentQuantity() != null ? event.getCurrentQuantity() : 0.0;
+        String message = String.format(
+                "Low stock detected for item %s at location %s. Current quantity: %.2f",
+                event.getItemId(),
+                event.getLocationId(),
+                qty
+        );
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("itemId", event.getItemId());
+        data.put("locationId", event.getLocationId());
+        data.put("currentQuantity", qty);
+        data.put("threshold", event.getThreshold());
+        data.put("alertReason", "LOW_STOCK");
+
+        AlertResponse alert = alertService.createAlert(
+                AlertType.LOW_STOCK,
+                level,
+                "ITEM",
+                event.getItemId(),
+                message,
+                data,
+                null
+        );
+
+        log.info("⚠️ Created low stock alert from threshold event: {}", alert.getId());
+    }
+
+    /**
+     * Create a low stock alert from InventoryEvent
      */
     private void createLowStockAlert(InventoryEvent event) {
-        AlertLevel level = event.getQuantity() != null && event.getQuantity() < 5.0 
-                ? AlertLevel.EMERGENCY 
-                : AlertLevel.WARNING;
+        Double qty = event.getQuantity() != null ? event.getQuantity() : 0.0;
+        AlertLevel level = qty < 5.0 ? AlertLevel.EMERGENCY : AlertLevel.WARNING;
 
         String message = String.format(
                 "Low stock detected for item %s at location %s. Current quantity: %.2f",
                 event.getItemId(),
                 event.getLocationId(),
-                event.getQuantity()
+                qty
         );
 
         Map<String, Object> data = buildAlertData(event);

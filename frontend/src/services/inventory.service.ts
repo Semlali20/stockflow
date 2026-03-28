@@ -8,8 +8,8 @@ export interface InventoryCreateRequest {
   locationId: string;
   lotId?: string;
   serialId?: string;
-  quantity: number;
-  reservedQuantity?: number;
+  quantityOnHand: number;
+  quantityReserved?: number;
   quantityDamaged?: number;
   uom: string;
   status: string;
@@ -24,8 +24,8 @@ export interface InventoryUpdateRequest {
   locationId?: string;
   lotId?: string;
   serialId?: string;
-  quantity?: number;
-  reservedQuantity?: number;
+  quantityOnHand?: number;
+  quantityReserved?: number;
   quantityDamaged?: number;
   uom?: string;
   status?: string;
@@ -172,6 +172,7 @@ export const inventoryService = {
   adjustInventory: async (data: {
     itemId: string;
     locationId: string;
+    warehouseId?: string;
     quantityChange: number;
     reason: string;
   }): Promise<any> => {

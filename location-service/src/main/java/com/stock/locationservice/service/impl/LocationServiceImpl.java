@@ -54,13 +54,17 @@ public class LocationServiceImpl implements LocationService {
                 .capacity(request.getCapacity())
                 .restrictions(request.getRestrictions())
                 .coordinates(request.getCoordinates())
-                .isActive(true)
+                .isActive(request.getIsActive() != null ? request.getIsActive() : true)
                 .build();
 
         Location savedLocation = locationRepository.save(location);
         log.info("Location created successfully with ID: {}", savedLocation.getId());
         LocationDTO dto = mapToDTO(savedLocation, warehouse.getName());
-        eventPublisher.publishLocationCreated(dto); // ✅ Now publishing events!
+        try {
+            eventPublisher.publishLocationCreated(dto);
+        } catch (Exception e) {
+            log.warn("Failed to publish location created event for location {} (Kafka may be unavailable): {}", savedLocation.getId(), e.getMessage());
+        }
 
         return dto;
     }
@@ -165,6 +169,9 @@ public class LocationServiceImpl implements LocationService {
         location.setCapacity(request.getCapacity());
         location.setRestrictions(request.getRestrictions());
         location.setCoordinates(request.getCoordinates());
+        if (request.getIsActive() != null) {
+            location.setIsActive(request.getIsActive());
+        }
 
         Location updatedLocation = locationRepository.save(location);
         log.info("Location updated successfully with ID: {}", updatedLocation.getId());

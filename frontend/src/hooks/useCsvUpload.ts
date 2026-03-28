@@ -25,6 +25,13 @@ interface UseCsvUploadReturn extends UploadState {
   reset: () => void;
 }
 
+const ACCEPTED_EXTENSIONS = ['.csv', '.xlsx', '.xls', '.pdf'];
+
+export function isAcceptedFileType(filename: string): boolean {
+  const lower = filename.toLowerCase();
+  return ACCEPTED_EXTENSIONS.some(ext => lower.endsWith(ext));
+}
+
 export function useCsvUpload(): UseCsvUploadReturn {
   const [state, setState] = useState<UploadState>({
     isUploading: false,
@@ -34,8 +41,8 @@ export function useCsvUpload(): UseCsvUploadReturn {
   });
 
   const uploadCsv = useCallback(async (file: File, endpoint: string) => {
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      toast.error('Please upload a valid CSV file');
+    if (!isAcceptedFileType(file.name)) {
+      toast.error('Please upload a CSV, XLSX, or PDF file');
       return;
     }
 

@@ -8,10 +8,11 @@ import { toast } from 'react-hot-toast';
 import { salesService } from '@/services/sales.service';
 import { inventoryService } from '@/services/inventory.service';
 import { locationService } from '@/services/location.service';
+import { productService } from '@/services/product.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import type { Customer, Warehouse, Inventory } from '@/types';
+import type { Customer, Warehouse, Inventory, Location, Item, Category } from '@/types';
 
 interface QuoteLine {
   itemId: string;
@@ -40,12 +41,22 @@ export const QuoteFormPage = () => {
   // Data
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [inventoryItems, setInventoryItems] = useState<Inventory[]>([]);
   const [lines, setLines] = useState<QuoteLine[]>([]);
+  const [itemNamesMap, setItemNamesMap] = useState<Record<string, string>>({});
+  const [selectedLocationId, setSelectedLocationId] = useState('');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [allItems, setAllItems] = useState<Item[]>([]);
+  const [inventoryQtyMap, setInventoryQtyMap] = useState<Record<string, number>>({});
+  // Add-row selection state
+  const [addCategoryId, setAddCategoryId] = useState('');
+  const [addItemId, setAddItemId] = useState('');
 
   // UI state
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [loadingWarehouses, setLoadingWarehouses] = useState(false);
+  const [loadingLocations, setLoadingLocations] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -66,7 +77,40 @@ export const QuoteFormPage = () => {
       })
       .catch(() => setWarehouses([]))
       .finally(() => setLoadingWarehouses(false));
+
+    setLoadingLocations(true);
+    locationService.getLocations({ size: 1000 })
+      .then((data: any) => {
+        setLocations(Array.isArray(data) ? data : (data?.content || []));
+      })
+      .catch(() => setLocations([]))
+      .finally(() => setLoadingLocations(false));
+
+    productService.getItems({ size: 1000 })
+      .then((res: any) => {
+        const items = Array.isArray(res) ? res : (res?.data?.content || res?.content || []);
+        const map: Record<string, string> = {};
+        items.forEach((item: any) => { if (item.id) map[item.id] = item.name || item.id; });
+        setItemNamesMap(map);
+        setAllItems(items);
+      })
+      .catch(() => {});
+
+    productService.getCategories({ size: 1000 })
+      .then((res: any) => {
+        const cats = Array.isArray(res) ? res : (res?.data?.content || res?.content || []);
+        setCategories(cats);
+      })
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const map: Record<string, number> = {};
+    inventoryItems.forEach(inv => {
+      map[inv.itemId] = (map[inv.itemId] || 0) + (inv.quantityOnHand || inv.quantityAvailable || 0);
+    });
+    setInventoryQtyMap(map);
+  }, [inventoryItems]);
 
   const loadInventoryItems = useCallback(async (warehouseId: string) => {
     if (!warehouseId) { setInventoryItems([]); return; }
@@ -84,8 +128,35 @@ export const QuoteFormPage = () => {
 
   const handleWarehouseChange = (warehouseId: string) => {
     setInventoryId(warehouseId);
+    setSelectedLocationId('');
     setLines([]);
     loadInventoryItems(warehouseId);
+  };
+
+  const handleLocationChange = async (locationId: string) => {
+    setSelectedLocationId(locationId);
+    setLines([]);
+    // If a warehouse is already selected, keep warehouse-level inventory (total across all locations)
+    // Only fetch by location if no warehouse is selected
+    if (!locationId) {
+      if (inventoryId) loadInventoryItems(inventoryId);
+      else setInventoryItems([]);
+      return;
+    }
+    if (inventoryId) {
+      // Already have warehouse inventory loaded — no need to re-fetch
+      return;
+    }
+    setLoadingItems(true);
+    try {
+      const data = await inventoryService.getInventoriesByLocation(locationId);
+      setInventoryItems(Array.isArray(data) ? data : (data?.content || []));
+    } catch {
+      setInventoryItems([]);
+      toast.error(t('quoteForm.errorLoadingItems'));
+    } finally {
+      setLoadingItems(false);
+    }
   };
 
   const addItem = (inv: Inventory) => {
@@ -93,7 +164,7 @@ export const QuoteFormPage = () => {
     if (already) { toast.error(t('quoteForm.itemAlreadyAdded')); return; }
     const newLine: QuoteLine = {
       itemId: inv.itemId,
-      itemName: (inv as any).itemName || inv.item?.name || inv.itemId,
+      itemName: itemNamesMap[inv.itemId] || (inv as any).itemName || inv.item?.name || inv.itemId,
       itemSku: (inv as any).itemSku || inv.item?.sku || '',
       availableQty: inv.quantityAvailable,
       quantity: 1,
@@ -109,7 +180,11 @@ export const QuoteFormPage = () => {
     setLines(prev => prev.map((l, i) => {
       if (i !== idx) return l;
       const updated = { ...l, [field]: value };
-      const qty = field === 'quantity' ? Number(value) : Number(updated.quantity);
+      if (field === 'quantity') {
+        const clamped = Math.min(Math.max(1, Number(value)), l.availableQty || Number(value));
+        updated.quantity = clamped;
+      }
+      const qty = Number(updated.quantity);
       const price = field === 'unitPrice' ? Number(value) : Number(updated.unitPrice);
       const disc = field === 'discountPercent' ? Number(value) : Number(updated.discountPercent);
       const gross = qty * price;
@@ -131,6 +206,7 @@ export const QuoteFormPage = () => {
     discountPercent,
     notes,
     inventoryId,
+    locationId: selectedLocationId || undefined,
     lines: lines.map(l => ({
       itemId: l.itemId,
       itemName: l.itemName,
@@ -218,21 +294,6 @@ export const QuoteFormPage = () => {
                 </Select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('sales.quotes.validUntil')}</label>
-                <Input type="date" value={validUntil} onChange={e => setValidUntil(e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('sales.quotes.discount')}</label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  value={discountPercent}
-                  onChange={e => setDiscountPercent(Number(e.target.value))}
-                />
-              </div>
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('quoteForm.warehouse')}</label>
                 <Select
                   value={inventoryId}
@@ -243,6 +304,22 @@ export const QuoteFormPage = () => {
                   <option value="">{t('quoteForm.selectWarehouse')}</option>
                   {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                 </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <Select
+                  value={selectedLocationId}
+                  onChange={e => handleLocationChange(e.target.value)}
+                  className="w-full"
+                  disabled={loadingLocations}
+                >
+                  <option value="">Select Location</option>
+                  {locations.map(l => <option key={l.id} value={l.id}>{(l as any).code || l.name}</option>)}
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('sales.quotes.validUntil')}</label>
+                <Input type="date" value={validUntil} onChange={e => setValidUntil(e.target.value)} />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.notes')}</label>
@@ -258,7 +335,7 @@ export const QuoteFormPage = () => {
           </div>
 
           {/* Inventory Items Selection */}
-          {inventoryId && (
+          {(inventoryId || selectedLocationId) && (
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Package size={18} />
@@ -268,48 +345,95 @@ export const QuoteFormPage = () => {
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
                 </div>
-              ) : inventoryItems.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">{t('quoteForm.noItemsInWarehouse')}</p>
               ) : (
-                <div className="overflow-x-auto max-h-64 overflow-y-auto">
+                <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead className="bg-gray-50 sticky top-0">
+                    <thead className="bg-gray-50">
                       <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t('quoteForm.item')}</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t('quoteForm.availableQty')}</th>
                         <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">{t('common.actions')}</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
-                      {inventoryItems.map(inv => {
-                        const isAdded = lines.some(l => l.itemId === inv.itemId);
+                      {/* Add row */}
+                      {(() => {
+                        const filteredItems = addCategoryId
+                          ? allItems.filter((it: any) => it.categoryId === addCategoryId)
+                          : allItems;
+                        const availQty = addItemId && addItemId in inventoryQtyMap
+                          ? inventoryQtyMap[addItemId]
+                          : null;
+                        const selectedInv = addItemId ? inventoryItems.find(inv => inv.itemId === addItemId) : null;
+                        const alreadyAdded = addItemId ? lines.some(l => l.itemId === addItemId) : false;
                         return (
-                          <tr key={inv.id} className={isAdded ? 'bg-green-50' : 'hover:bg-gray-50'}>
-                            <td className="px-3 py-2">
-                              <div className="font-medium">{(inv as any).itemName || inv.item?.name || inv.itemId}</div>
-                              <div className="text-xs text-gray-400">{(inv as any).itemSku || inv.item?.sku}</div>
+                          <tr className="bg-blue-50">
+                            <td className="px-3 py-2 w-40">
+                              <Select
+                                value={addCategoryId}
+                                onChange={e => { setAddCategoryId(e.target.value); setAddItemId(''); }}
+                                className="w-full text-sm"
+                              >
+                                <option value="">All Categories</option>
+                                {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                              </Select>
                             </td>
                             <td className="px-3 py-2">
-                              <span className={`font-medium ${inv.quantityAvailable <= 0 ? 'text-red-600' : 'text-green-700'}`}>
-                                {inv.quantityAvailable}
-                              </span>
+                              <Select
+                                value={addItemId}
+                                onChange={e => setAddItemId(e.target.value)}
+                                className="w-full text-sm"
+                              >
+                                <option value="">Select Item</option>
+                                {filteredItems.map((it: any) => <option key={it.id} value={it.id}>{it.name}</option>)}
+                              </Select>
+                            </td>
+                            <td className="px-3 py-2 w-28">
+                              {availQty !== null ? (
+                                <span className={`font-medium ${availQty <= 0 ? 'text-red-600' : 'text-green-700'}`}>
+                                  {availQty}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">—</span>
+                              )}
                             </td>
                             <td className="px-3 py-2 text-right">
-                              {isAdded ? (
+                              {alreadyAdded ? (
                                 <span className="text-xs text-green-600 font-medium">{t('quoteForm.added')}</span>
                               ) : (
                                 <button
-                                  onClick={() => addItem(inv)}
-                                  disabled={inv.quantityAvailable <= 0}
-                                  className="text-blue-600 hover:text-blue-800 disabled:text-gray-400"
+                                  onClick={() => {
+                                    if (!addItemId) return;
+                                    const it = allItems.find((x: any) => x.id === addItemId) as any;
+                                    if (!it) return;
+                                    const already = lines.find(l => l.itemId === addItemId);
+                                    if (already) { toast.error(t('quoteForm.itemAlreadyAdded')); return; }
+                                    const qty = availQty ?? 0;
+                                    setLines(prev => [...prev, {
+                                      itemId: it.id,
+                                      itemName: it.name || it.id,
+                                      itemSku: it.sku || '',
+                                      availableQty: qty,
+                                      quantity: 1,
+                                      unitPrice: selectedInv?.unitCost || it.unitPrice || it.price || 0,
+                                      discountPercent: 0,
+                                      totalPrice: selectedInv?.unitCost || it.unitPrice || it.price || 0,
+                                      notes: '',
+                                    }]);
+                                    setAddItemId('');
+                                    setAddCategoryId('');
+                                  }}
+                                  disabled={!addItemId}
+                                  className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
-                                  <Plus size={16} />
+                                  <Plus size={12} /> Add
                                 </button>
                               )}
                             </td>
                           </tr>
                         );
-                      })}
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -350,11 +474,8 @@ export const QuoteFormPage = () => {
                             max={line.availableQty}
                             value={line.quantity}
                             onChange={e => updateLine(idx, 'quantity', e.target.value)}
-                            className={`w-20 text-sm ${line.quantity > line.availableQty ? 'border-red-500' : ''}`}
+                            className="w-20 text-sm"
                           />
-                          {line.quantity > line.availableQty && (
-                            <p className="text-red-500 text-xs mt-1">{t('quoteForm.exceedsStock')}</p>
-                          )}
                         </td>
                         <td className="px-3 py-2 w-28">
                           <Input
@@ -411,9 +532,6 @@ export const QuoteFormPage = () => {
               </div>
               <div className="border-t pt-3 text-xs text-gray-400">
                 <p>{t('quoteForm.linesCount', { count: lines.length })}</p>
-                {lines.some(l => l.quantity > l.availableQty) && (
-                  <p className="text-red-500 mt-1">{t('quoteForm.stockWarning')}</p>
-                )}
               </div>
             </div>
           </div>

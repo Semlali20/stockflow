@@ -27,6 +27,7 @@ public class QuoteResponse {
     private LocalDate validUntil;
     private String notes;
     private String inventoryId;
+    private String locationId;
     private BigDecimal discountPercent;
     private BigDecimal subtotal;
     private BigDecimal totalAmount;

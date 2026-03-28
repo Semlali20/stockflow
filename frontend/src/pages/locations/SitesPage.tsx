@@ -205,7 +205,6 @@ export const SitesPage: React.FC = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-neutral-50 dark:bg-neutral-900/50 border-b border-neutral-200 dark:border-neutral-700">
-                <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.sites.table.code')}</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.sites.table.name')}</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.sites.table.type')}</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.sites.table.address')}</th>
@@ -215,13 +214,12 @@ export const SitesPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
               {loading ? (
-                <tr><td colSpan={6} className="px-6 py-10 text-center text-neutral-500">{t('common.loading')}</td></tr>
+                <tr><td colSpan={5} className="px-6 py-10 text-center text-neutral-500">{t('common.loading')}</td></tr>
               ) : filteredSites.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-10 text-center text-neutral-500">{t('locations.sites.messages.noSites')}</td></tr>
+                <tr><td colSpan={5} className="px-6 py-10 text-center text-neutral-500">{t('locations.sites.messages.noSites')}</td></tr>
               ) : (
                 filteredSites.map((site) => (
                   <tr key={site.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-mono text-neutral-600 dark:text-neutral-400">{site.code}</td>
                     <td className="px-6 py-4 text-sm font-medium dark:text-white">{site.name}</td>
                     <td className="px-6 py-4 text-sm">
                       <span className="px-2 py-1 rounded-md bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300">

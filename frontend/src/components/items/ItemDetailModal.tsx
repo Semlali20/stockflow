@@ -169,9 +169,9 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 
                 <div className="bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-blue-300 transition-colors">
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                    {t('products.items.detail.categoryId')}
+                    {t('products.items.detail.category')}
                   </label>
-                  <p className="text-lg font-bold text-gray-900">{item.categoryId || 'N/A'}</p>
+                  <p className="text-lg font-bold text-gray-900">{item.categoryName || item.categoryId || 'N/A'}</p>
                 </div>
               </div>
 

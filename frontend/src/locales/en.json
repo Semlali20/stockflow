@@ -51,6 +51,8 @@
     "actions": "Actions",
     "allStatuses": "All Statuses",
     "selectSupplier": "Select a supplier",
+    "export": "Export",
+    "import": "Import",
     "exportCsv": "Export CSV",
     "importCsv": "Import CSV",
     "report": "Report",
@@ -305,6 +307,7 @@
         "shelfLifeValue": "{{count}} days",
         "sku": "SKU",
         "categoryId": "Category ID",
+        "category": "Category",
         "tags": "Tags",
         "temperatureControls": "Temperature Controls",
         "customAttributes": "Custom Attributes",
@@ -675,10 +678,17 @@
         "sold": "Sold",
         "defective": "Defective"
       },
+      "status": {
+        "inStock": "In Stock",
+        "sold": "Sold",
+        "defective": "Defective",
+        "returning": "Returning",
+        "scrapped": "Scrapped"
+      },
       "table": {
         "code": "Code",
         "serialNumber": "Serial Number",
-        "itemId": "Item ID",
+        "itemId": "Item",
         "location": "Location"
       },
       "messages": {

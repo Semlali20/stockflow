@@ -25,6 +25,7 @@ public interface InventoryService {
 
     // Inventory Adjustments
     InventoryDTO adjustQuantity(String id, InventoryAdjustmentRequest request);
+    InventoryDTO adjustInventoryByItemAndLocation(String itemId, String locationId, String warehouseId, Double quantityChange, String reason);
     InventoryDTO reserveQuantity(String id, Double quantity);
     InventoryDTO releaseReservation(String id, Double quantity);
 

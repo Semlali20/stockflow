@@ -2,6 +2,7 @@ package com.stock.alertservice.config;
 
 import com.stock.alertservice.event.incoming.InventoryEvent;
 import com.stock.alertservice.event.incoming.ItemEvent;
+import com.stock.alertservice.event.incoming.StockBelowThresholdEvent;
 import com.stock.alertservice.event.incoming.UserEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -138,6 +139,33 @@ public class KafkaConsumerConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(inventoryEventConsumerFactory());
+        factory.setConcurrency(3);
+        factory.getContainerProperties().setPollTimeout(3000);
+        factory.setCommonErrorHandler(errorHandler());
+
+        return factory;
+    }
+
+    // ========== StockBelowThresholdEvent Consumer ==========
+
+    @Bean
+    public ConsumerFactory<String, StockBelowThresholdEvent> stockBelowThresholdConsumerFactory() {
+        Map<String, Object> props = consumerConfigs();
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, StockBelowThresholdEvent.class.getName());
+
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new StringDeserializer(),
+                new ErrorHandlingDeserializer<>(new JsonDeserializer<>(StockBelowThresholdEvent.class, false))
+        );
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, StockBelowThresholdEvent> stockBelowThresholdListenerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, StockBelowThresholdEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+
+        factory.setConsumerFactory(stockBelowThresholdConsumerFactory());
         factory.setConcurrency(3);
         factory.getContainerProperties().setPollTimeout(3000);
         factory.setCommonErrorHandler(errorHandler());

@@ -181,6 +181,22 @@ public class InventoryController {
 
     // ========== INVENTORY OPERATIONS ==========
 
+    @PostMapping("/adjust")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER', 'MANAGER')")
+    @Operation(summary = "Adjust inventory by item+location", description = "Adjust inventory by itemId+locationId with a quantity delta")
+    public ResponseEntity<InventoryDTO> adjustInventoryByItemAndLocation(
+            @RequestBody java.util.Map<String, Object> body) {
+        String itemId = (String) body.get("itemId");
+        String locationId = (String) body.get("locationId");
+        String warehouseId = (String) body.get("warehouseId");
+        Double quantityChange = body.get("quantityChange") instanceof Number
+                ? ((Number) body.get("quantityChange")).doubleValue() : 0.0;
+        String reason = (String) body.getOrDefault("reason", "");
+        log.info("REST request to adjust inventory for item: {} at location: {} by: {}", itemId, locationId, quantityChange);
+        InventoryDTO result = inventoryService.adjustInventoryByItemAndLocation(itemId, locationId, warehouseId, quantityChange, reason);
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping("/{id}/adjust")
     @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_MANAGER', 'MANAGER')")
     @Operation(summary = "Adjust inventory quantity", description = "Adjust inventory quantity (cycle count, correction)")

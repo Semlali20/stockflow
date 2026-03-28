@@ -65,24 +65,27 @@ public class ItemServiceImpl implements ItemService {
 
         ItemDTO dto = mapToDTO(savedItem, category.getName());
 
-        // Publish event
-        ItemEvent event = ItemEvent.builder()
-                .id(savedItem.getId())
-                .sku(savedItem.getSku())
-                .name(savedItem.getName())
-                .categoryId(savedItem.getCategoryId())
-                .itemVariantId(null)
-                .isActive(savedItem.getIsActive())
-                // ADD THESE MISSING FIELDS:
-                .isSerialized(savedItem.getIsSerialized())
-                .isLotManaged(savedItem.getIsLotManaged())
-                .shelfLifeDays(savedItem.getShelfLifeDays())
-                .hazardousMaterial(savedItem.getHazardousMaterial())
-                .temperatureControl(savedItem.getTemperatureControl())
-                .timestamp(LocalDateTime.now())
-                .eventType("CREATED")
-                .build();
-        eventPublisher.publishItemCreated(event);
+        // Publish event (non-blocking — failure must not roll back the saved item)
+        try {
+            ItemEvent event = ItemEvent.builder()
+                    .id(savedItem.getId())
+                    .sku(savedItem.getSku())
+                    .name(savedItem.getName())
+                    .categoryId(savedItem.getCategoryId())
+                    .itemVariantId(null)
+                    .isActive(savedItem.getIsActive())
+                    .isSerialized(savedItem.getIsSerialized())
+                    .isLotManaged(savedItem.getIsLotManaged())
+                    .shelfLifeDays(savedItem.getShelfLifeDays())
+                    .hazardousMaterial(savedItem.getHazardousMaterial())
+                    .temperatureControl(savedItem.getTemperatureControl())
+                    .timestamp(LocalDateTime.now())
+                    .eventType("CREATED")
+                    .build();
+            eventPublisher.publishItemCreated(event);
+        } catch (Exception e) {
+            log.warn("Failed to publish item created event for item {} (Kafka may be unavailable): {}", savedItem.getId(), e.getMessage());
+        }
 
         return dto;
     }
@@ -206,23 +209,27 @@ public class ItemServiceImpl implements ItemService {
         String categoryName = getCategoryName(updatedItem.getCategoryId());
         ItemDTO dto = mapToDTO(updatedItem, categoryName);
 
-        // Publish event
-        ItemEvent event = ItemEvent.builder()
-                .id(updatedItem.getId())
-                .sku(updatedItem.getSku())
-                .name(updatedItem.getName())
-                .categoryId(updatedItem.getCategoryId())
-                .itemVariantId(null)
-                .isActive(updatedItem.getIsActive())
-                // ADD THESE MISSING FIELDS:
-                .isSerialized(updatedItem.getIsSerialized())
-                .isLotManaged(updatedItem.getIsLotManaged())
-                .shelfLifeDays(updatedItem.getShelfLifeDays())
-                .hazardousMaterial(updatedItem.getHazardousMaterial())
-                .temperatureControl(updatedItem.getTemperatureControl())
-                .timestamp(LocalDateTime.now())
-                .eventType("UPDATED")
-                .build();
+        // Publish event (non-blocking — failure must not roll back the saved item)
+        try {
+            ItemEvent event = ItemEvent.builder()
+                    .id(updatedItem.getId())
+                    .sku(updatedItem.getSku())
+                    .name(updatedItem.getName())
+                    .categoryId(updatedItem.getCategoryId())
+                    .itemVariantId(null)
+                    .isActive(updatedItem.getIsActive())
+                    .isSerialized(updatedItem.getIsSerialized())
+                    .isLotManaged(updatedItem.getIsLotManaged())
+                    .shelfLifeDays(updatedItem.getShelfLifeDays())
+                    .hazardousMaterial(updatedItem.getHazardousMaterial())
+                    .temperatureControl(updatedItem.getTemperatureControl())
+                    .timestamp(LocalDateTime.now())
+                    .eventType("UPDATED")
+                    .build();
+            eventPublisher.publishItemUpdated(event);
+        } catch (Exception e) {
+            log.warn("Failed to publish item updated event for item {} (Kafka may be unavailable): {}", updatedItem.getId(), e.getMessage());
+        }
 
         return dto;
     }
@@ -237,24 +244,27 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.delete(item);
         log.info("Item deleted successfully with ID: {}", id);
 
-        // Publish event
-        ItemEvent event = ItemEvent.builder()
-                .id(item.getId())
-                .sku(item.getSku())
-                .name(item.getName())
-                .categoryId(item.getCategoryId())
-                .itemVariantId(null)
-                .isActive(false)
-                // ADD THESE MISSING FIELDS:
-                .isSerialized(item.getIsSerialized())
-                .isLotManaged(item.getIsLotManaged())
-                .shelfLifeDays(item.getShelfLifeDays())
-                .hazardousMaterial(item.getHazardousMaterial())
-                .temperatureControl(item.getTemperatureControl())
-                .timestamp(LocalDateTime.now())
-                .eventType("DELETED")
-                .build();
-        eventPublisher.publishItemDeleted(event);
+        // Publish event (non-blocking — failure must not affect the deletion)
+        try {
+            ItemEvent event = ItemEvent.builder()
+                    .id(item.getId())
+                    .sku(item.getSku())
+                    .name(item.getName())
+                    .categoryId(item.getCategoryId())
+                    .itemVariantId(null)
+                    .isActive(false)
+                    .isSerialized(item.getIsSerialized())
+                    .isLotManaged(item.getIsLotManaged())
+                    .shelfLifeDays(item.getShelfLifeDays())
+                    .hazardousMaterial(item.getHazardousMaterial())
+                    .temperatureControl(item.getTemperatureControl())
+                    .timestamp(LocalDateTime.now())
+                    .eventType("DELETED")
+                    .build();
+            eventPublisher.publishItemDeleted(event);
+        } catch (Exception e) {
+            log.warn("Failed to publish item deleted event for item {} (Kafka may be unavailable): {}", id, e.getMessage());
+        }
     }
 
     @Override
