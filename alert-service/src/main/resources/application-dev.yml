@@ -75,6 +75,11 @@ app:
       delay-seconds: 2
     cleanup:
       old-notifications-days: 60
+  webhooks:
+    - url: ${WEBHOOK_URL_1:}
+      name: "Dev Webhook"
+      authToken: ${WEBHOOK_TOKEN_1:}
+      enabled: true
 
 # ==============================================
 # CORS CONFIGURATION

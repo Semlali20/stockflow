@@ -18,7 +18,6 @@ import {
   AreaChart, Area,
   BarChart, Bar,
   PieChart, Pie, Cell,
-  RadialBarChart, RadialBar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer,
 } from 'recharts';
@@ -27,7 +26,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboard } from '@/hooks/useDashboard';
 import { cn } from '@/utils/cn';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 
 // ─────────────────────────────────────────────────────────
@@ -50,56 +49,6 @@ const fmt = (n: number) => {
   return String(n);
 };
 
-const timeAgo = (dateStr: string) => {
-  try { return formatDistanceToNow(new Date(dateStr), { addSuffix: true }); }
-  catch { return '—'; }
-};
-
-// ─────────────────────────────────────────────────────────
-// DESIGN TOKENS
-// ─────────────────────────────────────────────────────────
-
-const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-  ACTIVE:       { bg: 'bg-red-50 dark:bg-red-900/20',    text: 'text-red-700 dark:text-red-300',     dot: 'bg-red-500' },
-  PENDING:      { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-700 dark:text-amber-300', dot: 'bg-amber-500' },
-  IN_PROGRESS:  { bg: 'bg-blue-50 dark:bg-blue-900/20',  text: 'text-blue-700 dark:text-blue-300',   dot: 'bg-blue-500' },
-  COMPLETED:    { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-700 dark:text-emerald-300', dot: 'bg-emerald-500' },
-  ACKNOWLEDGED: { bg: 'bg-indigo-50 dark:bg-indigo-900/20', text: 'text-indigo-700 dark:text-indigo-300', dot: 'bg-indigo-500' },
-  RESOLVED:     { bg: 'bg-gray-100 dark:bg-gray-800',    text: 'text-gray-600 dark:text-gray-400',   dot: 'bg-gray-400' },
-  ESCALATED:    { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-700 dark:text-orange-300', dot: 'bg-orange-500' },
-  CANCELLED:    { bg: 'bg-gray-100 dark:bg-gray-800',    text: 'text-gray-500 dark:text-gray-400',   dot: 'bg-gray-400' },
-  DRAFT:        { bg: 'bg-slate-100 dark:bg-slate-800',  text: 'text-slate-600 dark:text-slate-400', dot: 'bg-slate-400' },
-};
-
-const LEVEL_COLORS: Record<string, { bg: string; text: string; icon: string }> = {
-  EMERGENCY: { bg: 'bg-red-100 dark:bg-red-900/30',    text: 'text-red-700 dark:text-red-300',    icon: 'text-red-600' },
-  WARNING:   { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300', icon: 'text-amber-600' },
-  INFO:      { bg: 'bg-sky-100 dark:bg-sky-900/30',    text: 'text-sky-700 dark:text-sky-300',    icon: 'text-sky-600' },
-  CRITICAL:  { bg: 'bg-red-100 dark:bg-red-900/30',    text: 'text-red-700 dark:text-red-300',    icon: 'text-red-600' },
-};
-
-// ─────────────────────────────────────────────────────────
-// MICRO COMPONENTS
-// ─────────────────────────────────────────────────────────
-
-const StatusPill = ({ status }: { status: string }) => {
-  const s = STATUS_COLORS[status] ?? { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-400', dot: 'bg-gray-400' };
-  return (
-    <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold', s.bg, s.text)}>
-      <span className={cn('w-1.5 h-1.5 rounded-full', s.dot)} />
-      {status.replace(/_/g, ' ')}
-    </span>
-  );
-};
-
-const LevelPill = ({ level }: { level: string }) => {
-  const s = LEVEL_COLORS[level] ?? LEVEL_COLORS['INFO'];
-  return (
-    <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold tracking-wide', s.bg, s.text)}>
-      {level}
-    </span>
-  );
-};
 
 // ─────────────────────────────────────────────────────────
 // KPI CARD  (redesigned, gradient accent bar)
@@ -209,68 +158,6 @@ const ChartPanel = ({ title, subtitle, action, children, className, delay = 0 }:
 // ALERT / MOVEMENT LIST ROW
 // ─────────────────────────────────────────────────────────
 
-const MovementRow = ({ m, i, onClick }: { m: any; i: number; onClick: () => void }) => {
-  const typeColors: Record<string, string> = {
-    RECEIPT: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
-    ISSUE: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
-    TRANSFER: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-    ADJUSTMENT: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-    RETURN: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',
-    PICKING: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300',
-  };
-  const tc = typeColors[m.type] ?? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400';
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: i * 0.05 }}
-      onClick={onClick}
-      className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700/40 cursor-pointer transition-colors group"
-    >
-      <div className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center shrink-0">
-        <Truck className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-          {m.referenceNumber ?? `MOV-${m.id?.slice(0, 8) ?? '—'}`}
-        </p>
-        <p className="text-xs text-neutral-400 mt-0.5">{timeAgo(m.createdAt)}</p>
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <span className={cn('hidden sm:inline-flex px-2 py-0.5 rounded-md text-[11px] font-semibold', tc)}>
-          {m.type}
-        </span>
-        <StatusPill status={m.status} />
-      </div>
-    </motion.div>
-  );
-};
-
-const AlertRow = ({ a, i, onClick }: { a: any; i: number; onClick: () => void }) => {
-  const levelInfo = LEVEL_COLORS[a.level] ?? LEVEL_COLORS['INFO'];
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: i * 0.05 }}
-      onClick={onClick}
-      className="flex items-start gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700/40 cursor-pointer transition-colors"
-    >
-      <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5', levelInfo.bg)}>
-        <Bell className={cn('w-4 h-4', levelInfo.icon)} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 line-clamp-2 leading-snug">{a.message}</p>
-        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          <LevelPill level={a.level} />
-          <span className="text-xs text-neutral-400">{timeAgo(a.createdAt)}</span>
-        </div>
-      </div>
-      <StatusPill status={a.status} />
-    </motion.div>
-  );
-};
 
 // ─────────────────────────────────────────────────────────
 // CUSTOM RECHARTS TOOLTIP
@@ -491,26 +378,6 @@ const SystemTile = ({ label, value, icon: Icon, color, to }: {
   );
 };
 
-// ─────────────────────────────────────────────────────────
-// GENERATE SYNTHETIC WEEKLY TREND DATA
-// (Shows last 7 "data points" using live stats as anchors)
-// ─────────────────────────────────────────────────────────
-
-const buildTrendData = (total: number, pending: number, t: any) => {
-  // Synthetic trend: ramp up to current totals over 7 points
-  const days = [
-    t('common.days.mon'), t('common.days.tue'), t('common.days.wed'), 
-    t('common.days.thu'), t('common.days.fri'), t('common.days.sat'), t('common.days.sun')
-  ];
-  return days.map((day, i) => {
-    const factor = (i + 1) / 7;
-    return {
-      day,
-      [t('dashboard.services.movements')]: Math.round(total * factor * (0.9 + Math.random() * 0.2)),
-      [t('dashboard.movementStatus.pending')]: Math.round(pending * (1 - factor * 0.5) * (0.8 + Math.random() * 0.4)),
-    };
-  });
-};
 
 // ─────────────────────────────────────────────────────────
 // MAIN DASHBOARD
@@ -530,8 +397,12 @@ export const DashboardPage = () => {
   const firstName = user?.firstName ?? user?.username ?? 'there';
 
   const trendData = useMemo(
-    () => buildTrendData(stats.totalMovements, stats.pendingMovements, t),
-    [stats.totalMovements, stats.pendingMovements, t],
+    () => data.movementTrend.map(d => ({
+      day: d.day,
+      [t('dashboard.services.movements')]: d.movements,
+      [t('dashboard.movementStatus.pending')]: d.pending,
+    })),
+    [data.movementTrend, t],
   );
 
   const movTypeData = useMemo(
@@ -551,11 +422,22 @@ export const DashboardPage = () => {
     return d;
   }, [stats, t]);
 
-  const alertRadialData = useMemo(() => [
-    { name: t('dashboard.alertStatus.resolved'),     value: data.alertStats?.resolvedAlerts ?? 0,     fill: '#10B981' },
-    { name: t('dashboard.alertStatus.acknowledged'), value: data.alertStats?.acknowledgedAlerts ?? 0,  fill: '#6366F1' },
-    { name: t('dashboard.alertStatus.active'),       value: data.alertStats?.activeAlerts ?? stats.activeAlerts, fill: '#EF4444' },
-  ].filter(x => x.value > 0), [data.alertStats, stats.activeAlerts, t]);
+  const alertLevelData = useMemo(() => {
+    const levelColors: Record<string, string> = {
+      EMERGENCY: '#EF4444',
+      CRITICAL:  '#F97316',
+      WARNING:   '#F59E0B',
+      INFO:      '#3B82F6',
+    };
+    return Object.entries(stats.alertsByLevel)
+      .filter(([, v]) => v > 0)
+      .map(([level, count]) => ({
+        name: level.charAt(0) + level.slice(1).toLowerCase(),
+        count,
+        fill: levelColors[level] ?? '#94A3B8',
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [stats.alertsByLevel]);
 
   if (isLoading) return <Loading />;
 
@@ -894,7 +776,7 @@ export const DashboardPage = () => {
                     }}
                   />
                   <Bar dataKey="count" name="Mouvements" radius={[8, 8, 0, 0]}>
-                    {movTypeData.map((entry, i) => (
+                    {movTypeData.map((_entry, i) => (
                       <Cell key={i} fill={`url(#barGrad${i})`} />
                     ))}
                   </Bar>
@@ -922,29 +804,28 @@ export const DashboardPage = () => {
           subtitle={t('dashboard.panels.alertOverviewDesc')}
           delay={0.25}
         >
-          {alertRadialData.length > 0 ? (
+          {alertLevelData.length > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={170}>
-                <RadialBarChart
-                  cx="50%" cy="50%"
-                  innerRadius="25%"
-                  outerRadius="90%"
-                  data={alertRadialData}
-                  startAngle={90}
-                  endAngle={-270}
-                >
-                  <RadialBar dataKey="value" cornerRadius={6} background={{ fill: '#F8FAFC' }} />
+                <BarChart data={alertLevelData} layout="vertical" margin={{ top: 0, right: 12, left: 0, bottom: 0 }} barSize={18}>
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} width={70} />
                   <Tooltip content={<ChartTooltip />} />
-                </RadialBarChart>
+                  <Bar dataKey="count" radius={[0, 6, 6, 0]}>
+                    {alertLevelData.map((entry, i) => (
+                      <Cell key={i} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
               <div className="space-y-1.5 mt-1">
-                {alertRadialData.map(d => (
+                {alertLevelData.map(d => (
                   <div key={d.name} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ background: d.fill }} />
                       <span className="text-neutral-600 dark:text-neutral-400">{d.name}</span>
                     </div>
-                    <span className="font-semibold text-neutral-800 dark:text-neutral-200">{fmt(d.value)}</span>
+                    <span className="font-semibold text-neutral-800 dark:text-neutral-200">{fmt(d.count)}</span>
                   </div>
                 ))}
               </div>
@@ -959,17 +840,17 @@ export const DashboardPage = () => {
       </div>
 
       {/* ══════════════════════════════════════════════════
-          ROW 4 — Recent Movements + Recent Alerts feeds
+          ROW 4 — Purchase Orders + Sales Pipeline
       ══════════════════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-        {/* Recent Movements */}
+        {/* Purchase Orders by status */}
         <ChartPanel
-          title={t('dashboard.panels.recentMovements')}
-          subtitle={t('dashboard.panels.recentMovementsDesc')}
+          title="Purchase Orders"
+          subtitle="Breakdown by status"
           action={
             <button
-              onClick={() => navigate('/movements')}
+              onClick={() => navigate('/purchase/orders')}
               className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 transition-colors"
             >
               {t('dashboard.panels.viewAll')} <ChevronRight className="w-3.5 h-3.5" />
@@ -977,24 +858,42 @@ export const DashboardPage = () => {
           }
           delay={0.3}
         >
-          {data.recentMovements.length === 0 ? (
-            <EmptyFeed message={t('dashboard.panels.noRecentMovements')} />
+          {data.purchaseByStatus.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={data.purchaseByStatus} layout="vertical" margin={{ top: 0, right: 12, left: 0, bottom: 0 }} barSize={18}>
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="status" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} width={80} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Bar dataKey="count" name="Orders" radius={[0, 6, 6, 0]}>
+                    {data.purchaseByStatus.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-700">
+                {data.purchaseByStatus.map((d, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
+                    <span>{d.status}</span>
+                    <span className="font-semibold text-neutral-700 dark:text-neutral-300">({d.count})</span>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
-            <div className="space-y-1">
-              {data.recentMovements.slice(0, 6).map((m, i) => (
-                <MovementRow key={m.id} m={m} i={i} onClick={() => navigate('/movements')} />
-              ))}
-            </div>
+            <EmptyFeed message="No purchase orders yet" />
           )}
         </ChartPanel>
 
-        {/* Recent Alerts */}
+        {/* Top Sold Items — by delivered quantity */}
         <ChartPanel
-          title={t('dashboard.panels.recentAlerts')}
-          subtitle={t('dashboard.panels.recentAlertsDesc')}
+          title="Top Sold Items"
+          subtitle="Most delivered items by quantity"
           action={
             <button
-              onClick={() => navigate('/alerts')}
+              onClick={() => navigate('/sales/delivery-notes')}
               className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 transition-colors"
             >
               {t('dashboard.panels.viewAll')} <ChevronRight className="w-3.5 h-3.5" />
@@ -1002,14 +901,40 @@ export const DashboardPage = () => {
           }
           delay={0.35}
         >
-          {data.recentAlerts.length === 0 ? (
-            <EmptyFeed message={t('dashboard.panels.noRecentAlerts')} />
+          {data.topSalesItems.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={data.topSalesItems} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }} barSize={16}>
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    tick={{ fontSize: 11, fill: '#94A3B8' }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={110}
+                    tickFormatter={(v: string) => v.length > 14 ? v.slice(0, 13) + '…' : v}
+                  />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Bar dataKey="quantity" name="Qty Delivered" radius={[0, 6, 6, 0]}>
+                    {data.topSalesItems.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-700">
+                {data.topSalesItems.map((d, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
+                    <span className="truncate max-w-[100px]">{d.name}</span>
+                    <span className="font-semibold text-neutral-700 dark:text-neutral-300">({fmt(d.quantity)})</span>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
-            <div className="space-y-1">
-              {data.recentAlerts.slice(0, 6).map((a, i) => (
-                <AlertRow key={a.id} a={a} i={i} onClick={() => navigate('/alerts')} />
-              ))}
-            </div>
+            <EmptyFeed message="No delivery data yet" />
           )}
         </ChartPanel>
       </div>

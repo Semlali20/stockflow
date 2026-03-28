@@ -178,7 +178,10 @@
       "Bash(grep -r \"hooks\\\\|PostToolUse\\\\|Stop\" '/c/Users/Legion/Downloads/stock-management-suspicious-goldstine - Copy/stock-management-suspicious-goldstine/.claude' --include=*.json)",
       "Bash(grep -r \"Preview Required\\\\|dev server\\\\|preview_start\" /c/Users/Legion/.claude/ --include=*.md --include=*.json --include=*.py -l)",
       "Bash(/dev/null --include=*.json --include=*.js --include=*.py --include=*.md)",
-      "Bash(del \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova\\\\alert-service\\\\src\\\\main\\\\resources\\\\templates\\\\email-quality-alert.html\")"
+      "Bash(del \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stock-management-suspicious-goldstine - Copy\\\\stock-management-suspicious-goldstine\\\\.claude\\\\worktrees\\\\zealous-tereshkova\\\\alert-service\\\\src\\\\main\\\\resources\\\\templates\\\\email-quality-alert.html\")",
+      "Bash(grep -E \"\\\\.\\(json|md|py|js\\)$\")",
+      "Bash(grep -r 'Preview Required' /c/Users/Legion/.claude/ --include=*.py --include=*.md --include=*.json)",
+      "Bash(grep -r \"dev server\\\\|preview_start\" /c/Users/Legion/.claude --include=*.py --include=*.json --include=*.md -l)"
     ],
     "deny": [],
     "ask": []

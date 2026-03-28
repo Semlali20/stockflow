@@ -19,6 +19,7 @@ import com.stock.alertservice.exception.RuleNotFoundException;
 import com.stock.alertservice.repository.AlertRepository;
 import com.stock.alertservice.repository.RuleRepository;
 import com.stock.alertservice.service.AlertService;
+import com.stock.alertservice.service.AlertWebhookDispatcher;
 import com.stock.alertservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ public class AlertServiceImpl implements AlertService {
     private final AlertRepository alertRepository;
     private final RuleRepository ruleRepository;
     private final NotificationService notificationService;
+    private final AlertWebhookDispatcher alertWebhookDispatcher;
 
     @Override
     public AlertResponse createAlert(
@@ -102,6 +104,9 @@ public class AlertServiceImpl implements AlertService {
         } catch (Exception e) {
             log.error("Failed to send notification for alert: {}", savedAlert.getId(), e);
         }
+
+        // Dispatch webhooks automatically (async, non-blocking)
+        alertWebhookDispatcher.dispatch(savedAlert);
 
         return mapToResponse(savedAlert);
     }

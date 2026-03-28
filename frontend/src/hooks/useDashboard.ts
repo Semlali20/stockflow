@@ -129,6 +129,13 @@ export interface MovementByType {
   color: string;
 }
 
+export interface MovementTrendDay {
+  day: string;
+  date: string;
+  movements: number;
+  pending: number;
+}
+
 export interface StockDistribution {
   name: string;
   value: number;
@@ -147,9 +154,12 @@ export interface DashboardData {
   recentAlerts: RecentAlert[];
   lowStockItems: LowStockItem[];
   movementsByType: MovementByType[];
+  movementTrend: MovementTrendDay[];
   stockDistribution: StockDistribution[];
   alertDistribution: AlertDistribution[];
   alertStats: AlertStatistics | null;
+  purchaseByStatus: Array<{ status: string; count: number; color: string }>;
+  topSalesItems: Array<{ name: string; quantity: number; color: string }>;
 }
 
 // ============================================================
@@ -180,9 +190,12 @@ export const EMPTY_DASHBOARD: DashboardData = {
   recentAlerts: [],
   lowStockItems: [],
   movementsByType: [],
+  movementTrend: [],
   stockDistribution: [],
   alertDistribution: [],
   alertStats: null,
+  purchaseByStatus: [],
+  topSalesItems: [],
 };
 
 // ============================================================
@@ -275,10 +288,11 @@ export const useDashboard = (userRoles: string[] = []) => {
     ]);
 
     // ── Batch 2: low stock + recent data ─────────────────────────────
-    const [lowStockRes, recentMovementsRes, recentAlertsRes] = await Promise.all([
-      safe(() => inventoryService.getLowStockItems(10)),   // plain array
-      safe(() => movementService.getMovements({ size: 8 })), // Page
-      safe(() => alertService.getAlerts({ size: 8 })),       // PageResponse
+    const [lowStockRes, recentMovementsRes, recentAlertsRes, trendMovementsRes] = await Promise.all([
+      safe(() => inventoryService.getLowStockItems(10)),        // plain array
+      safe(() => movementService.getMovements({ size: 8 })),    // Page (for recent feed)
+      safe(() => alertService.getAlerts({ size: 8 })),          // PageResponse
+      safe(() => movementService.getMovements({ size: 300 })),  // Page (for 7-day trend)
     ]);
 
     // ── Batch 3: movement breakdown by type ──────────────────────────
@@ -428,15 +442,95 @@ export const useDashboard = (userRoles: string[] = []) => {
       locationId: inv.locationId,
     }));
 
+    // Enrich low-stock items with item names from product service (when missing)
+    const missingNameItems = lowStockItems.filter(i => !i.itemName && i.itemId);
+    if (missingNameItems.length > 0) {
+      const uniqueIds = [...new Set(missingNameItems.map(i => i.itemId))];
+      const itemResponses = await Promise.all(
+        uniqueIds.map(id => safe(() => productService.getItemById(id)))
+      );
+      const nameMap: Record<string, string> = {};
+      uniqueIds.forEach((id, idx) => {
+        const it = itemResponses[idx] as any;
+        if (it?.name) nameMap[id] = it.name;
+      });
+      lowStockItems.forEach(item => {
+        if (!item.itemName && item.itemId && nameMap[item.itemId]) {
+          item.itemName = nameMap[item.itemId];
+        }
+      });
+    }
+
+    // ── 7-day movement trend (real data grouped by day) ───────────────
+    const trendAllMovements = contentOf<Movement>(trendMovementsRes);
+    const movementTrend: MovementTrendDay[] = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      const dateStr = d.toISOString().split('T')[0];
+      const dayMovs = trendAllMovements.filter((m: any) => m.createdAt?.startsWith(dateStr));
+      return {
+        day: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        date: dateStr,
+        movements: dayMovs.length,
+        pending: dayMovs.filter((m: any) => m.status === 'PENDING').length,
+      };
+    });
+
+    // ── Batch 6: purchase status breakdown + top sold items ──────────
+    let purchaseByStatus: Array<{ status: string; count: number; color: string }> = [];
+    let topSalesItems: Array<{ name: string; quantity: number; color: string }> = [];
+    try {
+      const [allPOsRes, allDNsRes] = await Promise.all([
+        safe(() => purchaseService.getPurchaseOrders({ size: 200 })),
+        safe(() => salesService.getDeliveryNotes({ size: 200 })),
+      ]);
+
+      const poColors: Record<string, string> = {
+        DRAFT: '#94A3B8', CONFIRMED: '#3B82F6', SENT: '#8B5CF6',
+        RECEIVED: '#10B981', CANCELLED: '#EF4444',
+      };
+      const allPOs = contentOf<any>(allPOsRes);
+      const poMap: Record<string, number> = {};
+      allPOs.forEach((po: any) => { const s = po.status ?? 'UNKNOWN'; poMap[s] = (poMap[s] ?? 0) + 1; });
+      purchaseByStatus = Object.entries(poMap)
+        .map(([status, count]) => ({
+          status: status.charAt(0) + status.slice(1).toLowerCase(),
+          count,
+          color: poColors[status] ?? '#94A3B8',
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      // Aggregate delivered quantities by item name across all delivery note lines
+      const itemQtyMap: Record<string, number> = {};
+      const allDNs = contentOf<any>(allDNsRes);
+      allDNs.forEach((dn: any) => {
+        const lines: any[] = Array.isArray(dn.lines) ? dn.lines : [];
+        lines.forEach((line: any) => {
+          const name = line.itemName ?? line.itemId ?? 'Unknown';
+          const qty  = Number(line.deliveredQuantity ?? line.quantity ?? 0);
+          itemQtyMap[name] = (itemQtyMap[name] ?? 0) + qty;
+        });
+      });
+
+      const palette = ['#6366F1','#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#14B8A6','#F97316'];
+      topSalesItems = Object.entries(itemQtyMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([name, quantity], i) => ({ name, quantity, color: palette[i % palette.length] }));
+    } catch { /* silent — commercial services may not be running */ }
+
     setData({
       stats,
       recentMovements,
       recentAlerts,
       lowStockItems,
       movementsByType,
+      movementTrend,
       stockDistribution,
       alertDistribution,
       alertStats: alertStatsRes,
+      purchaseByStatus,
+      topSalesItems,
     });
 
     setLastUpdated(new Date());

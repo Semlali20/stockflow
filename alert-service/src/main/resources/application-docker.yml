@@ -109,3 +109,12 @@ app:
       delay-seconds: 2
     cleanup:
       old-notifications-days: 60
+  webhooks:
+    - url: ${WEBHOOK_URL_1:}
+      name: "Primary Webhook"
+      authToken: ${WEBHOOK_TOKEN_1:}
+      enabled: true
+    - url: ${WEBHOOK_URL_2:}
+      name: "Secondary Webhook"
+      authToken: ${WEBHOOK_TOKEN_2:}
+      enabled: true
