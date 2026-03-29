@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -416,23 +417,41 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public InventoryDTO adjustInventoryByItemAndLocation(String itemId, String locationId, String warehouseId, Double quantityChange, String reason) {
-        log.info("Adjusting inventory for item: {} at location: {} by quantityChange: {} reason: {}", itemId, locationId, quantityChange, reason);
+        log.info("Adjusting inventory for item: {} at location: {} warehouseId: {} by quantityChange: {} reason: {}", itemId, locationId, warehouseId, quantityChange, reason);
 
-        Inventory inventory = inventoryRepository.findByItemIdAndLocationId(itemId, locationId)
-                .orElseGet(() -> {
-                    // Create inventory record if it doesn't exist yet
-                    log.info("No inventory found for item {} at location {}, creating new record", itemId, locationId);
-                    Inventory newInv = Inventory.builder()
-                            .itemId(itemId)
-                            .locationId(locationId)
-                            .warehouseId(warehouseId != null ? warehouseId : "")
-                            .quantityOnHand(0.0)
-                            .quantityReserved(0.0)
-                            .quantityDamaged(0.0)
-                            .status(InventoryStatus.AVAILABLE)
-                            .build();
-                    return inventoryRepository.save(newInv);
-                });
+        // 1. Exact match: itemId + locationId
+        Optional<Inventory> inventoryOpt = (locationId != null && !locationId.isBlank())
+                ? inventoryRepository.findByItemIdAndLocationId(itemId, locationId)
+                : Optional.empty();
+
+        // 2. Fallback: any record for this item in the same warehouse
+        if (inventoryOpt.isEmpty() && warehouseId != null && !warehouseId.isBlank()) {
+            log.info("No inventory found for item {} at locationId={}, falling back to warehouse={}", itemId, locationId, warehouseId);
+            inventoryOpt = inventoryRepository.findByItemId(itemId).stream()
+                    .filter(i -> warehouseId.equals(i.getWarehouseId()))
+                    .findFirst();
+        }
+
+        // 3. Last resort: any record for this item regardless of location
+        if (inventoryOpt.isEmpty()) {
+            log.info("No inventory found for item {} in warehouse={}, falling back to any record", itemId, warehouseId);
+            List<Inventory> all = inventoryRepository.findByItemId(itemId);
+            if (!all.isEmpty()) inventoryOpt = Optional.of(all.get(0));
+        }
+
+        Inventory inventory = inventoryOpt.orElseGet(() -> {
+            log.info("No inventory record exists at all for item {}, creating new record", itemId);
+            Inventory newInv = Inventory.builder()
+                    .itemId(itemId)
+                    .locationId(locationId)
+                    .warehouseId(warehouseId != null ? warehouseId : "")
+                    .quantityOnHand(0.0)
+                    .quantityReserved(0.0)
+                    .quantityDamaged(0.0)
+                    .status(InventoryStatus.AVAILABLE)
+                    .build();
+            return inventoryRepository.save(newInv);
+        });
 
         Double newQuantity = inventory.getQuantityOnHand() + quantityChange;
         if (newQuantity < 0) {

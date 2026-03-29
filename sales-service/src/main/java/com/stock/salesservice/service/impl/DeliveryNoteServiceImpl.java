@@ -185,8 +185,13 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
                 headers.set("Authorization", authToken);
             }
 
+            List<String> failures = new ArrayList<>();
+
             for (DeliveryNoteLine line : updated.getLines()) {
-                if (line.getItemId() == null) continue;
+                if (line.getItemId() == null) {
+                    log.warn("Skipping line with null itemId in delivery note {}", updated.getReference());
+                    continue;
+                }
                 int qty = line.getDeliveredQuantity() != null ? line.getDeliveredQuantity() : line.getOrderedQuantity();
                 if (qty <= 0) continue;
 
@@ -204,10 +209,22 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
                             requestEntity,
                             Object.class
                     );
-                    log.info("Inventory decreased for item {} by {}", line.getItemId(), qty);
+                    log.info("Inventory decreased for item {} ({}) by {}", line.getItemName(), line.getItemId(), qty);
                 } catch (Exception e) {
-                    log.warn("Failed to adjust inventory for item {}: {}", line.getItemId(), e.getMessage());
+                    log.error("Failed to adjust inventory for item {} ({}): {}", line.getItemName(), line.getItemId(), e.getMessage());
+                    failures.add(line.getItemName() != null ? line.getItemName() : line.getItemId());
                 }
+            }
+
+            // If any inventory adjustment failed, revert the delivery note back to DRAFT
+            if (!failures.isEmpty()) {
+                deliveryNote.setStatus(DeliveryNoteStatus.DRAFT);
+                deliveryNoteRepository.save(deliveryNote);
+                throw new BusinessException(
+                    "Validation failed: inventory could not be adjusted for the following items: "
+                    + String.join(", ", failures)
+                    + ". Delivery note reverted to DRAFT."
+                );
             }
         }
 

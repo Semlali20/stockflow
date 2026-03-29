@@ -46,7 +46,8 @@ public class SecurityConfig {
                                 "/actuator/health",
                                 "/actuator/info",
                                 "/v3/api-docs/**",
-                                "/swagger-ui/**"
+                                "/swagger-ui/**",
+                                "/api/inventory/adjust"  // internal service-to-service: sales-service calls this
                         ).permitAll()
                         .anyRequest().authenticated()  // ✅ Protected: requires valid JWT
                 )

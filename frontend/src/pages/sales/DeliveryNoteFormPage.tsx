@@ -374,7 +374,7 @@ export const DeliveryNoteFormPage = () => {
         deliveryAddress,
         notes,
         lines: lines.map(l => ({
-          itemId: l.isManualRow ? undefined : l.itemId,
+          itemId: l.itemId || undefined,
           itemName: l.itemName,
           itemSku: l.itemSku,
           orderedQuantity: l.orderedQuantity,
