@@ -364,6 +364,7 @@ const AVAILABLE_ROLES = [
 ];
 
 const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> = ({ onClose, onCreated }) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ username: '', email: '', password: '', firstName: '', lastName: '', role: 'USER' });
   const [autoGenPassword, setAutoGenPassword] = useState(true); // default: auto-generate
   const [showPwd, setShowPwd] = useState(false);
@@ -549,10 +550,10 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
                       </span>
                     )}
                     <span className={cn('text-[11px] font-bold leading-tight', active ? meta.color : 'text-neutral-700 dark:text-neutral-200')}>
-                      {meta.label}
+                      {t(meta.label)}
                     </span>
                     <span className="text-[9px] text-neutral-400 dark:text-neutral-500 leading-tight line-clamp-2">
-                      {meta.description}
+                      {t(meta.description)}
                     </span>
                   </button>
                 );

@@ -240,8 +240,9 @@ export const InventoryPageEnhanced: React.FC = () => {
         doc.text(`Page ${i} / ${pageCount}`, pageW - 28, pageH - 4);
       }
 
-      doc.save(`inventory-${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('PDF downloaded successfully');
+      const pdfUrl = doc.output('bloburl');
+      window.open(pdfUrl, '_blank');
+      toast.success('PDF opened in new tab');
     } catch (err) {
       console.error(err);
       toast.error('Failed to export PDF');

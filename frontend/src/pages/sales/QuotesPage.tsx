@@ -629,7 +629,8 @@ const QuotesPage = () => {
     doc.text("Devis valable 30 jours à compter de la date d'émission.", 14, H - 20);
     doc.text('Pour toute question, contactez notre service commercial.', 14, H - 14);
 
-    doc.save(`devis-${quote.reference}.pdf`);
+    const pdfUrl = doc.output('bloburl');
+    window.open(pdfUrl, '_blank');
   };
 
   const filtered = useMemo(() =>

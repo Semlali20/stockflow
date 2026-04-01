@@ -579,7 +579,8 @@ const DeliveryNotesPage = () => {
     doc.text('Merci de vérifier la marchandise à la réception et de signaler toute anomalie.', 14, H - 20);
     doc.text('Pour toute réclamation, contactez notre service logistique.', 14, H - 14);
 
-    doc.save(`bon-livraison-${note.reference}.pdf`);
+    const pdfUrl = doc.output('bloburl');
+    window.open(pdfUrl, '_blank');
   };
 
   const filtered = useMemo(() =>

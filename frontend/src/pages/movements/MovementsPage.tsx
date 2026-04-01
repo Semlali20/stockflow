@@ -346,7 +346,8 @@ const MovementsPage = () => {
       },
     });
 
-    doc.save('movements.pdf');
+    const pdfUrl = doc.output('bloburl');
+    window.open(pdfUrl, '_blank');
     setShowExportMenu(false);
   };
 
