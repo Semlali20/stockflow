@@ -3,6 +3,7 @@ package com.stock.salesservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -48,6 +49,16 @@ public class DeliveryNoteLine {
 
     @Column(name = "serial_id", length = 100)
     private String serialId;
+
+    @Column(name = "unit_price", precision = 19, scale = 2)
+    private BigDecimal unitPrice;
+
+    @Column(name = "discount_percent", precision = 5, scale = 2)
+    @Builder.Default
+    private BigDecimal discountPercent = BigDecimal.ZERO;
+
+    @Column(name = "total_price", precision = 19, scale = 2)
+    private BigDecimal totalPrice;
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;

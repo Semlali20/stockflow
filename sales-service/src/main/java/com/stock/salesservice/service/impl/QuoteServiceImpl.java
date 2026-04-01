@@ -272,6 +272,8 @@ public class QuoteServiceImpl implements QuoteService {
                 .customerId(quote.getCustomerId())
                 .customerName(quote.getCustomerName())
                 .inventoryId(quote.getInventoryId())
+                .locationId(quote.getLocationId())
+                .totalAmount(quote.getTotalAmount())
                 .status(DeliveryNoteStatus.DRAFT)
                 .deliveryDate(request.getDeliveryDate())
                 .deliveryAddress(request.getDeliveryAddress())
@@ -287,7 +289,9 @@ public class QuoteServiceImpl implements QuoteService {
                     .itemName(quoteLine.getItemName())
                     .itemSku(quoteLine.getItemSku())
                     .orderedQuantity(quoteLine.getQuantity())
-                    .deliveredQuantity(0)
+                    .unitPrice(quoteLine.getUnitPrice())
+                    .discountPercent(quoteLine.getDiscountPercent())
+                    .totalPrice(quoteLine.getTotalPrice())
                     .build();
             deliveryNote.addLine(deliveryLine);
         });

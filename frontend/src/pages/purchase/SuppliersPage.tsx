@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PERMISSIONS } from '@/config/permissions';
 import {
   Plus, Search, RefreshCw, Truck, X, ChevronDown, Edit2, Trash2,
 } from 'lucide-react';
@@ -395,6 +397,7 @@ const DeleteConfirmModal = ({
 
 const SuppliersPage = () => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -463,14 +466,16 @@ const SuppliersPage = () => {
             <p className="text-xs text-neutral-500 dark:text-neutral-400">{suppliers.length} {t('purchase.suppliers.count')}</p>
           </div>
         </div>
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={() => { setSelectedSupplier(null); setIsFormOpen(true); }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-md shadow-blue-500/25 hover:from-blue-700 hover:to-indigo-700 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          {t('purchase.suppliers.new')}
-        </motion.button>
+        {hasPermission(PERMISSIONS.PRODUCTS_CREATE) && (
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={() => { setSelectedSupplier(null); setIsFormOpen(true); }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-md shadow-blue-500/25 hover:from-blue-700 hover:to-indigo-700 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            {t('purchase.suppliers.new')}
+          </motion.button>
+        )}
       </div>
 
       {/* Filters */}
@@ -562,20 +567,24 @@ const SuppliersPage = () => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleEdit(supplier)}
-                          className="p-1.5 rounded-lg text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
-                          title={t('common.edit')}
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(supplier)}
-                          className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                          title={t('common.delete')}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {hasPermission(PERMISSIONS.PRODUCTS_EDIT) && (
+                          <button
+                            onClick={() => handleEdit(supplier)}
+                            className="p-1.5 rounded-lg text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                            title={t('common.edit')}
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {hasPermission(PERMISSIONS.PRODUCTS_DELETE) && (
+                          <button
+                            onClick={() => handleDeleteClick(supplier)}
+                            className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            title={t('common.delete')}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </motion.tr>

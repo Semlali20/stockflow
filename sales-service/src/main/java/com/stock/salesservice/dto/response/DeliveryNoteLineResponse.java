@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -21,5 +22,8 @@ public class DeliveryNoteLineResponse {
     private Integer deliveredQuantity;
     private String lotId;
     private String serialId;
+    private BigDecimal unitPrice;
+    private BigDecimal discountPercent;
+    private BigDecimal totalPrice;
     private String notes;
 }

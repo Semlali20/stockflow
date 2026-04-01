@@ -73,6 +73,9 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
                         .deliveredQuantity(lineReq.getDeliveredQuantity() != null ? lineReq.getDeliveredQuantity() : 0)
                         .lotId(lineReq.getLotId())
                         .serialId(lineReq.getSerialId())
+                        .unitPrice(lineReq.getUnitPrice())
+                        .discountPercent(lineReq.getDiscountPercent())
+                        .totalPrice(lineReq.getTotalPrice())
                         .notes(lineReq.getNotes())
                         .build();
                 deliveryNote.addLine(line);
@@ -138,6 +141,9 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
                         .deliveredQuantity(lineReq.getDeliveredQuantity() != null ? lineReq.getDeliveredQuantity() : 0)
                         .lotId(lineReq.getLotId())
                         .serialId(lineReq.getSerialId())
+                        .unitPrice(lineReq.getUnitPrice())
+                        .discountPercent(lineReq.getDiscountPercent())
+                        .totalPrice(lineReq.getTotalPrice())
                         .notes(lineReq.getNotes())
                         .build();
                 deliveryNote.addLine(line);
@@ -192,7 +198,9 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
                     log.warn("Skipping line with null itemId in delivery note {}", updated.getReference());
                     continue;
                 }
-                int qty = line.getDeliveredQuantity() != null ? line.getDeliveredQuantity() : line.getOrderedQuantity();
+                int qty = (line.getDeliveredQuantity() != null && line.getDeliveredQuantity() > 0)
+                        ? line.getDeliveredQuantity()
+                        : line.getOrderedQuantity();
                 if (qty <= 0) continue;
 
                 try {
@@ -261,6 +269,7 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
                 .customerName(deliveryNote.getCustomerName())
                 .inventoryId(deliveryNote.getInventoryId())
                 .locationId(deliveryNote.getLocationId())
+                .totalAmount(deliveryNote.getTotalAmount())
                 .status(deliveryNote.getStatus())
                 .deliveryDate(deliveryNote.getDeliveryDate())
                 .deliveryAddress(deliveryNote.getDeliveryAddress())
@@ -282,6 +291,9 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
                 .deliveredQuantity(line.getDeliveredQuantity())
                 .lotId(line.getLotId())
                 .serialId(line.getSerialId())
+                .unitPrice(line.getUnitPrice())
+                .discountPercent(line.getDiscountPercent())
+                .totalPrice(line.getTotalPrice())
                 .notes(line.getNotes())
                 .build();
     }

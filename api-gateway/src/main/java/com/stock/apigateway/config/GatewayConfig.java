@@ -71,6 +71,19 @@ public class GatewayConfig {
                                 .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri(authServiceUrl))
 
+                // Auth Service - JWT REQUIRED (roles & permissions management)
+                .route("auth-service-roles", r -> r
+                        .path("/api/roles/**")
+                        .filters(f -> f
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                        .uri(authServiceUrl))
+
+                .route("auth-service-permissions", r -> r
+                        .path("/api/permissions/**")
+                        .filters(f -> f
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                        .uri(authServiceUrl))
+
                 // Product Service - JWT only
                 .route("product-service", r -> r
                         .path("/api/item-variants/**", "/api/categories/**", "/api/items/**")

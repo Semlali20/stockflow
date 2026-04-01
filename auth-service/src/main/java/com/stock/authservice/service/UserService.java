@@ -407,6 +407,32 @@ public class UserService {
         return ApiResponse.success("User unlocked successfully", null);
     }
 
+    // ==================== RESET PASSWORD BY ADMIN ====================
+
+    @Transactional
+    public ApiResponse<Void> resetPasswordByAdmin(String userId) {
+        log.info("Admin resetting password for user: {}", userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        String newRawPassword = generateSecurePassword();
+        user.setPasswordHash(passwordEncoder.encode(newRawPassword));
+        user.setLastPasswordChange(LocalDateTime.now());
+        userRepository.save(user);
+
+        // Send the new password by email
+        emailService.sendPasswordResetByAdminEmail(
+                user.getEmail(),
+                user.getUsername(),
+                user.getFirstName(),
+                newRawPassword
+        );
+
+        log.info("Password reset by admin for user: {}", user.getUsername());
+        return ApiResponse.success("New password sent to " + user.getEmail(), null);
+    }
+
     // ==================== ROLE MANAGEMENT ====================
 
     @Transactional

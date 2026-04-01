@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PERMISSIONS } from '@/config/permissions';
 import {
   Plus, Search, RefreshCw, FileText, X, ChevronDown,
   Eye, Edit2, Trash2, Send, CheckCircle2, XCircle, Truck, Download,
@@ -447,6 +449,7 @@ const QuoteFormModal = ({
 const QuotesPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -685,14 +688,16 @@ const QuotesPage = () => {
             <p className="text-xs text-neutral-500">{filtered.length} quote(s)</p>
           </div>
         </div>
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={() => navigate('/sales/quotes/new')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-md shadow-violet-500/25 hover:from-violet-700 hover:to-purple-700 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          {t('sales.quotes.new')}
-        </motion.button>
+        {hasPermission(PERMISSIONS.PRODUCTS_CREATE) && (
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={() => navigate('/sales/quotes/new')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-md shadow-violet-500/25 hover:from-violet-700 hover:to-purple-700 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            {t('sales.quotes.new')}
+          </motion.button>
+        )}
       </div>
 
       {/* Filters */}
@@ -792,7 +797,7 @@ const QuotesPage = () => {
                           <Download className="w-3.5 h-3.5" />
                         </button>
                         {/* Edit (DRAFT) */}
-                        {quote.status === 'DRAFT' && (
+                        {quote.status === 'DRAFT' && hasPermission(PERMISSIONS.PRODUCTS_EDIT) && (
                           <button onClick={() => { setSelectedQuote(quote); setIsFormOpen(true); }} className="p-1.5 rounded-lg text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" title={t('common.edit')}>
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -822,7 +827,7 @@ const QuotesPage = () => {
                           </button>
                         )}
                         {/* Delete (DRAFT or REJECTED) */}
-                        {(quote.status === 'DRAFT' || quote.status === 'REJECTED') && (
+                        {(quote.status === 'DRAFT' || quote.status === 'REJECTED') && hasPermission(PERMISSIONS.PRODUCTS_DELETE) && (
                           <button onClick={() => handleAction('delete', quote)} className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('common.delete')}>
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

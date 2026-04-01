@@ -13,6 +13,8 @@ import autoTable from 'jspdf-autotable';
 import { salesService } from '@/services/sales.service';
 import { DeliveryNote, DeliveryNoteStatus, Customer } from '@/types';
 import { toast } from 'react-hot-toast';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PERMISSIONS } from '@/config/permissions';
 
 // ─── StyledSelect ─────────────────────────────────────────────────────────────
 
@@ -156,6 +158,7 @@ interface DNLineRow {
   itemSku: string;
   orderedQuantity: string;
   deliveredQuantity: string;
+  unitPrice: string;
   lotId: string;
   serialId: string;
 }
@@ -167,6 +170,7 @@ const newDNLineRow = (): DNLineRow => ({
   itemSku: '',
   orderedQuantity: '',
   deliveredQuantity: '',
+  unitPrice: '',
   lotId: '',
   serialId: '',
 });
@@ -210,6 +214,7 @@ const DeliveryNoteFormModal = ({
           itemSku: l.itemSku ?? '',
           orderedQuantity: l.orderedQuantity.toString(),
           deliveredQuantity: l.deliveredQuantity.toString(),
+          unitPrice: l.unitPrice != null ? l.unitPrice.toString() : '',
           lotId: l.lotId ?? '',
           serialId: l.serialId ?? '',
         })));
@@ -246,6 +251,7 @@ const DeliveryNoteFormModal = ({
           itemSku: l.itemSku || undefined,
           orderedQuantity: parseFloat(l.orderedQuantity) || 0,
           deliveredQuantity: parseFloat(l.deliveredQuantity) || 0,
+          unitPrice: l.unitPrice ? parseFloat(l.unitPrice) : undefined,
           lotId: l.lotId || undefined,
           serialId: l.serialId || undefined,
         })),
@@ -360,27 +366,16 @@ const DeliveryNoteFormModal = ({
                 </div>
                 <div className="space-y-2">
                   {lines.map((line, idx) => (
-                    <div key={line.id} className="grid grid-cols-12 gap-2 items-center p-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
-                      <div className="col-span-3">
-                        <input value={line.itemName} onChange={(e) => handleLineChange(idx, 'itemName', e.target.value)} placeholder="Item name" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
-                      </div>
-                      <div className="col-span-2">
-                        <input value={line.itemSku} onChange={(e) => handleLineChange(idx, 'itemSku', e.target.value)} placeholder="SKU" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
-                      </div>
-                      <div className="col-span-2">
-                        <input type="number" min="0" value={line.orderedQuantity} onChange={(e) => handleLineChange(idx, 'orderedQuantity', e.target.value)} placeholder="Ordered" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
-                      </div>
-                      <div className="col-span-2">
-                        <input type="number" min="0" value={line.deliveredQuantity} onChange={(e) => handleLineChange(idx, 'deliveredQuantity', e.target.value)} placeholder="Delivered" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
-                      </div>
-                      <div className="col-span-2">
-                        <input value={line.lotId || line.serialId} onChange={(e) => handleLineChange(idx, 'lotId', e.target.value)} placeholder="Lot/Serial" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
-                      </div>
-                      <div className="col-span-1 flex justify-center">
-                        <button type="button" onClick={() => setLines(prev => prev.filter((_, i) => i !== idx))} disabled={lines.length === 1} className="p-1 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-30 transition-colors">
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                    <div key={line.id} className="grid grid-cols-13 gap-2 items-center p-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800" style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.5fr auto' }}>
+                      <input value={line.itemName} onChange={(e) => handleLineChange(idx, 'itemName', e.target.value)} placeholder="Item name" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                      <input value={line.itemSku} onChange={(e) => handleLineChange(idx, 'itemSku', e.target.value)} placeholder="SKU" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                      <input type="number" min="0" value={line.orderedQuantity} onChange={(e) => handleLineChange(idx, 'orderedQuantity', e.target.value)} placeholder="Ordered" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                      <input type="number" min="0" value={line.deliveredQuantity} onChange={(e) => handleLineChange(idx, 'deliveredQuantity', e.target.value)} placeholder="Delivered" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                      <input type="number" min="0" step="0.01" value={line.unitPrice} onChange={(e) => handleLineChange(idx, 'unitPrice', e.target.value)} placeholder="Unit price" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                      <input value={line.lotId || line.serialId} onChange={(e) => handleLineChange(idx, 'lotId', e.target.value)} placeholder="Lot/Serial" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                      <button type="button" onClick={() => setLines(prev => prev.filter((_, i) => i !== idx))} disabled={lines.length === 1} className="p-1 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-30 transition-colors">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -407,6 +402,7 @@ const DeliveryNoteFormModal = ({
 const DeliveryNotesPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [notes, setNotes] = useState<DeliveryNote[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -634,14 +630,16 @@ const DeliveryNotesPage = () => {
             <p className="text-xs text-neutral-500">{filtered.length} delivery note(s)</p>
           </div>
         </div>
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={() => navigate('/sales/delivery-notes/new')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 text-white text-sm font-semibold shadow-md shadow-cyan-500/25 hover:from-cyan-700 hover:to-teal-700 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          {t('sales.deliveryNotes.new')}
-        </motion.button>
+        {hasPermission(PERMISSIONS.MOVEMENTS_CREATE) && (
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={() => navigate('/sales/delivery-notes/new')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 text-white text-sm font-semibold shadow-md shadow-cyan-500/25 hover:from-cyan-700 hover:to-teal-700 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            {t('sales.deliveryNotes.new')}
+          </motion.button>
+        )}
       </div>
 
       {/* Filters */}
@@ -735,7 +733,7 @@ const DeliveryNotesPage = () => {
                           <Download className="w-3.5 h-3.5" />
                         </button>
                         {/* Edit (DRAFT) */}
-                        {note.status === 'DRAFT' && (
+                        {note.status === 'DRAFT' && hasPermission(PERMISSIONS.MOVEMENTS_EDIT) && (
                           <button onClick={() => { setSelectedNote(note); setIsFormOpen(true); }} className="p-1.5 rounded-lg text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" title={t('common.edit')}>
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -747,7 +745,7 @@ const DeliveryNotesPage = () => {
                           </button>
                         )}
                         {/* Delete (DRAFT) */}
-                        {note.status === 'DRAFT' && (
+                        {note.status === 'DRAFT' && hasPermission(PERMISSIONS.MOVEMENTS_DELETE) && (
                           <button onClick={() => handleAction('delete', note)} className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('common.delete')}>
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

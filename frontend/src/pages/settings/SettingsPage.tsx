@@ -1,5 +1,6 @@
 // frontend/src/pages/settings/SettingsPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
+import RolesManagementTab from './RolesManagementTab';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings,
@@ -38,12 +39,8 @@ import {
   Check,
 } from 'lucide-react';
 import {
-  ROLES,
-  ROLE_PERMISSIONS,
   ROLE_META,
-  PERMISSION_GROUPS,
   type RoleName,
-  type Permission,
 } from '@/config/permissions';
 import toast from 'react-hot-toast';
 import { confirmWarning, confirmDelete } from '@/utils/confirmDialog';
@@ -1255,6 +1252,109 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
   );
 };
 
+// ─── RESET PASSWORD CONFIRM DIALOG ───────────────────────────────────────────
+
+interface ResetPasswordConfirmDialogProps {
+  username: string;
+  email: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isResetting: boolean;
+}
+
+const ResetPasswordConfirmDialog: React.FC<ResetPasswordConfirmDialogProps> = ({
+  username, email, onConfirm, onCancel, isResetting,
+}) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    {/* Backdrop */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      onClick={!isResetting ? onCancel : undefined}
+    />
+
+    {/* Dialog card */}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.88, y: 24 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.88, y: 24 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+      className="relative w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden"
+    >
+      {/* Violet accent top bar */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500" />
+
+      <div className="p-7">
+        {/* Icon + title row */}
+        <div className="flex items-start gap-4 mb-5">
+          <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center shadow-inner">
+            <KeyRound className="w-7 h-7 text-violet-500" />
+          </div>
+          <div className="pt-1">
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-50 leading-tight">
+              Reset Password
+            </h2>
+            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+              A new password will be generated and emailed
+            </p>
+          </div>
+        </div>
+
+        {/* User info card */}
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 mb-5">
+          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white font-bold text-base shrink-0 shadow-sm">
+            {username[0].toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-neutral-900 dark:text-neutral-100 truncate">@{username}</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{email}</p>
+          </div>
+        </div>
+
+        {/* Info message */}
+        <div className="flex items-start gap-3 p-4 rounded-2xl bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 mb-6">
+          <KeyRound className="w-5 h-5 text-violet-500 shrink-0 mt-0.5" />
+          <p className="text-sm text-violet-700 dark:text-violet-300 leading-relaxed">
+            A secure password will be generated and sent to <strong>{email}</strong>. The user must log in and change it immediately.
+          </p>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isResetting}
+            className="flex-1 px-5 py-3 rounded-2xl text-sm font-semibold border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isResetting}
+            className="flex-1 px-5 py-3 rounded-2xl text-sm font-bold bg-gradient-to-r from-violet-500 to-purple-600 text-white hover:from-violet-600 hover:to-purple-700 disabled:opacity-60 transition-all shadow-sm shadow-violet-200 dark:shadow-violet-900/30 flex items-center justify-center gap-2"
+          >
+            {isResetting ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Sending…
+              </>
+            ) : (
+              <>
+                <KeyRound className="w-4 h-4" />
+                Send New Password
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  </div>
+);
+
 // ─── USER MANAGEMENT TAB ─────────────────────────────────────────────────────
 
 const UserManagementTab: React.FC = () => {
@@ -1270,6 +1370,8 @@ const UserManagementTab: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; username: string; email: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [resetTarget, setResetTarget] = useState<{ id: string; username: string; email: string } | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
   const pageSize = 10;
 
   const fetchUsers = useCallback(async (p = page) => {
@@ -1304,6 +1406,26 @@ const UserManagementTab: React.FC = () => {
 
   const doDelete = (userId: string, username: string, email: string) => {
     setDeleteTarget({ id: userId, username, email });
+  };
+
+  const doResetPassword = (userId: string, username: string, email: string) => {
+    setResetTarget({ id: userId, username, email });
+  };
+
+  const confirmResetPassword = async () => {
+    if (!resetTarget) return;
+    setIsResetting(true);
+    setActionLoading(resetTarget.id + 'reset-password');
+    try {
+      const res = await apiClient.post(`${API_ENDPOINTS.USERS.USERS}/${resetTarget.id}/reset-password`);
+      toast.success(res.data?.message ?? `New password sent to ${resetTarget.email}`);
+      setResetTarget(null);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Failed to reset password');
+    } finally {
+      setIsResetting(false);
+      setActionLoading(null);
+    }
   };
 
   const confirmDelete = async () => {
@@ -1425,6 +1547,9 @@ const UserManagementTab: React.FC = () => {
                           {busy('lock') ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
                         </button>
                       )}
+                      <button title="Reset & send new password" disabled={!!actionLoading} onClick={() => doResetPassword(u.id, u.username, u.email)} className="p-1.5 rounded-lg text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/20 disabled:opacity-40">
+                        {busy('reset-password') ? <RefreshCw className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                      </button>
                       <button title={t('users.actions.delete')} disabled={!!actionLoading} onClick={() => doDelete(u.id, u.username, u.email)} className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-40">
                         {busy('delete') ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                       </button>
@@ -1448,6 +1573,15 @@ const UserManagementTab: React.FC = () => {
             onConfirm={confirmDelete}
             onCancel={() => setDeleteTarget(null)}
             isDeleting={isDeleting}
+          />
+        )}
+        {resetTarget && (
+          <ResetPasswordConfirmDialog
+            username={resetTarget.username}
+            email={resetTarget.email}
+            onConfirm={confirmResetPassword}
+            onCancel={() => setResetTarget(null)}
+            isResetting={isResetting}
           />
         )}
       </AnimatePresence>
@@ -1584,141 +1718,7 @@ const AuditLogsTab: React.FC = () => {
 
 // ─── PERMISSIONS TAB ─────────────────────────────────────────────────────────
 
-const ROLE_LIST = Object.values(ROLES) as RoleName[];
-
-const PermissionsTab: React.FC = () => {
-  const { t } = useTranslation();
-  const [selectedRole, setSelectedRole] = useState<RoleName>(ROLES.MANAGER as RoleName);
-
-  const rolePerms = new Set<Permission>(ROLE_PERMISSIONS[selectedRole] ?? []);
-
-  return (
-    <div className="space-y-5">
-      {/* Header */}
-      <SectionTitle
-        icon={<Key className="w-5 h-5" />}
-        title={t('permissions.matrixTitle')}
-        subtitle={t('permissions.matrixSubtitle')}
-      />
-
-      {/* Role selector */}
-      <div className="flex flex-wrap gap-2">
-        {ROLE_LIST.map(role => {
-          const meta = ROLE_META[role];
-          const active = selectedRole === role;
-          return (
-            <button
-              key={role}
-              onClick={() => setSelectedRole(role)}
-              className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all border',
-                active
-                  ? `${meta.bg} ${meta.color} border-current shadow-sm`
-                  : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700',
-              )}
-            >
-              <span className={cn('w-2 h-2 rounded-full shrink-0', active ? 'bg-current' : 'bg-neutral-400')} />
-              {t(meta.label)}
-              {role === ROLES.ADMIN && (
-                <span className="text-[9px] font-bold uppercase bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-200 px-1.5 rounded-full">{t('permissions.fullBadge')}</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Selected role info */}
-      <div className={cn('flex items-center gap-3 p-4 rounded-xl border', ROLE_META[selectedRole].bg)}>
-        <Shield className={cn('w-5 h-5 shrink-0', ROLE_META[selectedRole].color)} />
-        <div>
-          <p className={cn('font-semibold text-sm', ROLE_META[selectedRole].color)}>{t(ROLE_META[selectedRole].label)}</p>
-          <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">{t(ROLE_META[selectedRole].description)}</p>
-        </div>
-        <div className="ml-auto shrink-0">
-          <span className={cn('text-xs font-bold px-2 py-1 rounded-lg', ROLE_META[selectedRole].bg, ROLE_META[selectedRole].color)}>
-            {t('permissions.count', { count: rolePerms.size })}
-          </span>
-        </div>
-      </div>
-
-      {/* Permission groups grid */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {PERMISSION_GROUPS.map(group => {
-          const grantedCount = group.permissions.filter(p => rolePerms.has(p.key)).length;
-          const allGranted = grantedCount === group.permissions.length;
-          const noneGranted = grantedCount === 0;
-
-          return (
-            <div key={group.label} className="rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-              {/* Group header */}
-              <div className={cn(
-                'flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-700',
-                allGranted
-                  ? 'bg-green-50 dark:bg-green-900/20'
-                  : noneGranted
-                  ? 'bg-neutral-50 dark:bg-neutral-800/60'
-                  : 'bg-blue-50 dark:bg-blue-900/10',
-              )}>
-                <div className="flex items-center gap-2">
-                  <span className={cn(
-                    'text-sm font-bold',
-                    allGranted ? 'text-green-700 dark:text-green-400' : noneGranted ? 'text-neutral-400' : 'text-blue-700 dark:text-blue-400',
-                  )}>
-                    {t(group.label)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className={cn(
-                    'text-[11px] font-semibold px-2 py-0.5 rounded-full',
-                    allGranted ? 'bg-green-200 dark:bg-green-900 text-green-700 dark:text-green-300'
-                    : noneGranted ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500'
-                    : 'bg-blue-200 dark:bg-blue-900 text-blue-700 dark:text-blue-300',
-                  )}>
-                    {grantedCount}/{group.permissions.length}
-                  </span>
-                </div>
-              </div>
-
-              {/* Permission rows */}
-              <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                {group.permissions.map(perm => {
-                  const granted = rolePerms.has(perm.key);
-                  return (
-                    <div
-                      key={perm.key}
-                      className={cn(
-                        'flex items-center justify-between px-4 py-2.5',
-                        granted ? '' : 'opacity-50',
-                      )}
-                    >
-                      <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">{t(perm.label)}</span>
-                      <div className={cn(
-                        'flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full',
-                        granted
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400',
-                      )}>
-                        {granted
-                          ? <><Check className="w-3 h-3" /> {t('permissions.granted')}</>
-                          : <><XCircle className="w-3 h-3" /> {t('permissions.denied')}</>
-                        }
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Legend note */}
-      <p className="text-xs text-neutral-400 dark:text-neutral-600 text-center pb-2">
-        {t('permissions.footer')}
-      </p>
-    </div>
-  );
-};
+const PermissionsTab: React.FC = () => <RolesManagementTab />;
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 

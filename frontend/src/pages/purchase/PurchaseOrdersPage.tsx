@@ -11,6 +11,8 @@ import {
 import { purchaseService } from '@/services/purchase.service';
 import { PurchaseOrder, PurchaseOrderStatus, Supplier } from '@/types';
 import { toast } from 'react-hot-toast';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PERMISSIONS } from '@/config/permissions';
 
 // ─── StyledSelect ─────────────────────────────────────────────────────────────
 
@@ -480,6 +482,7 @@ const DeleteConfirmModal = ({
 const PurchaseOrdersPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(false);
@@ -690,7 +693,7 @@ const PurchaseOrdersPage = () => {
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         {/* Edit (DRAFT only) */}
-                        {order.status === 'DRAFT' && (
+                        {order.status === 'DRAFT' && hasPermission(PERMISSIONS.PRODUCTS_EDIT) && (
                           <button
                             onClick={() => { setSelectedOrder(order); setIsFormOpen(true); }}
                             className="p-1.5 rounded-lg text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
@@ -730,7 +733,7 @@ const PurchaseOrdersPage = () => {
                           </button>
                         )}
                         {/* Delete (DRAFT) */}
-                        {order.status === 'DRAFT' && (
+                        {order.status === 'DRAFT' && hasPermission(PERMISSIONS.PRODUCTS_DELETE) && (
                           <button
                             onClick={() => { setSelectedOrder(order); setIsDeleteOpen(true); }}
                             className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"

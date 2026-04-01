@@ -217,6 +217,19 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    // ==================== RESET PASSWORD BY ADMIN ====================
+
+    @PostMapping("/{id}/reset-password")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Reset user password", description = "Admin generates and emails a new password to the user")
+    public ResponseEntity<ApiResponse<Void>> resetPasswordByAdmin(@PathVariable String id) {
+        log.info("POST /api/users/{}/reset-password - Admin reset password", id);
+
+        ApiResponse<Void> response = userService.resetPasswordByAdmin(id);
+
+        return ResponseEntity.ok(response);
+    }
+
     // ==================== ROLE MANAGEMENT ====================
 
     @PostMapping("/{id}/roles")

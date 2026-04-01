@@ -1,8 +1,11 @@
 // frontend/src/pages/movements/MovementsPage.tsx
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PERMISSIONS } from '@/config/permissions';
 import {
   Plus, Search, RefreshCw, Package, FileText,
   Activity, CheckCircle2, TrendingUp, X, SlidersHorizontal,
@@ -14,7 +17,6 @@ import { alertService } from '@/services/alert.service';
 import { Movement, MovementType, MovementStatus } from '@/types';
 import { toast } from 'react-hot-toast';
 import { confirmDelete } from '@/utils/confirmDialog';
-import MovementFormModal from '@/components/movements/MovementFormModal';
 import MovementDetailModal from '@/components/movements/MovementDetailModal';
 import MovementCard from '@/components/movements/Movementcard';
 import { useFileDownload } from '@/hooks/useFileDownload';
@@ -53,6 +55,8 @@ const StyledSelect = ({
 // ─── Component ───────────────────────────────────────────────────────
 const MovementsPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [movements, setMovements] = useState<Movement[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -62,7 +66,6 @@ const MovementsPage = () => {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
 
@@ -416,17 +419,19 @@ const MovementsPage = () => {
               )}
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02, y: -1 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white
-                bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500
-                shadow-lg shadow-indigo-500/25 transition-all duration-200"
-            >
-              <Plus className="w-4 h-4" />
-              {t('movements.newMovement')}
-            </motion.button>
+            {hasPermission(PERMISSIONS.MOVEMENTS_CREATE) && (
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate('/movements/new')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white
+                  bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500
+                  shadow-lg shadow-indigo-500/25 transition-all duration-200"
+              >
+                <Plus className="w-4 h-4" />
+                {t('movements.newMovement')}
+              </motion.button>
+            )}
           </div>
         </div>
 
@@ -590,7 +595,7 @@ const MovementsPage = () => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setIsCreateModalOpen(true)}
+                  onClick={() => navigate('/movements/new')}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white
                     bg-gradient-to-r from-indigo-600 to-violet-600 shadow-lg shadow-indigo-500/25"
                 >
@@ -634,13 +639,6 @@ const MovementsPage = () => {
         />
       )}
 
-      {isCreateModalOpen && (
-        <MovementFormModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSuccess={() => fetchMovements(true)}
-        />
-      )}
 
     </div>
   );

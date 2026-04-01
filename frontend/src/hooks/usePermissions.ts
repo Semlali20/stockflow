@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import {
-  PERMISSIONS,
   ROLE_PERMISSIONS,
   ROLES,
   type Permission,
@@ -17,14 +16,29 @@ export function usePermissions() {
     return raw.map(r => r.toUpperCase().replace(/^ROLE_/, '') as RoleName);
   }, [user]);
 
+  /**
+   * Permissions come directly from the backend (dynamic).
+   * The backend resolves the actual permissions for every role the user has,
+   * including any custom roles created by the admin.
+   * We fall back to the hardcoded ROLE_PERMISSIONS map only if the backend
+   * hasn't sent permissions yet (e.g. very old cached user object).
+   */
   const permissions: Set<Permission> = useMemo(() => {
     const set = new Set<Permission>();
-    for (const role of roles) {
-      const perms = ROLE_PERMISSIONS[role] ?? [];
-      for (const p of perms) set.add(p);
+
+    if (user?.permissions && user.permissions.length > 0) {
+      // ✅ Use real backend permissions (dynamic — works for custom roles too)
+      for (const p of user.permissions) set.add(p as Permission);
+    } else {
+      // Fallback: derive from hardcoded role→permission map
+      for (const role of roles) {
+        const perms = ROLE_PERMISSIONS[role] ?? [];
+        for (const p of perms) set.add(p);
+      }
     }
+
     return set;
-  }, [roles]);
+  }, [user?.permissions, roles]);
 
   const hasPermission = (permission: Permission): boolean =>
     permissions.has(permission);
@@ -55,7 +69,6 @@ export function usePermissions() {
     isAuditor,
     isWarehouseManager,
     isSupervisor,
-    // shorthand checkers from PERMISSIONS const for external use
     can: hasPermission,
   };
 }

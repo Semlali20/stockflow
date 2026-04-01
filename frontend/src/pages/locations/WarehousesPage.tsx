@@ -9,6 +9,8 @@ import {
 import { locationService } from '@/services/location.service';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PERMISSIONS } from '@/config/permissions';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -18,6 +20,7 @@ import { Warehouse as WarehouseType, Site } from '@/types';
 
 export const WarehousesPage: React.FC = () => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const [warehouses, setWarehouses] = useState<WarehouseType[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(false);
@@ -130,10 +133,12 @@ export const WarehousesPage: React.FC = () => {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             {t('common.refresh')}
           </Button>
-          <Button onClick={handleCreateClick} className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            {t('locations.warehouses.newWarehouse')}
-          </Button>
+          {hasPermission(PERMISSIONS.LOCATIONS_CREATE) && (
+            <Button onClick={handleCreateClick} className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              {t('locations.warehouses.newWarehouse')}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -236,8 +241,12 @@ export const WarehousesPage: React.FC = () => {
                     <td className="px-6 py-4">{getStatusBadge(wh.isActive)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => handleEditClick(wh)} className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
-                        <button onClick={() => handleDeleteClick(wh)} className="p-2 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                        {hasPermission(PERMISSIONS.LOCATIONS_EDIT) && (
+                          <button onClick={() => handleEditClick(wh)} className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
+                        )}
+                        {hasPermission(PERMISSIONS.LOCATIONS_DELETE) && (
+                          <button onClick={() => handleDeleteClick(wh)} className="p-2 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                        )}
                       </div>
                     </td>
                   </tr>

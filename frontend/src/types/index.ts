@@ -571,6 +571,7 @@ export interface User {
   profileImageUrl?: string;
   role?: string;
   roles?: string[];
+  permissions?: string[];   // real permissions from backend (dynamic)
   status: string;
   isActive?: boolean;
   isLocked?: boolean;

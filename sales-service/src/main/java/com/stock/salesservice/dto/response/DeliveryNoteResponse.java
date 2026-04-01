@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ public class DeliveryNoteResponse {
     private String notes;
     private String inventoryId;
     private String locationId;
+    private BigDecimal totalAmount;
     private String createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

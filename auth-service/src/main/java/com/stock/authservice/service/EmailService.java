@@ -122,6 +122,54 @@ public class EmailService {
     }
 
     /**
+     * Send new password email when admin resets a user's password
+     */
+    public void sendPasswordResetByAdminEmail(String email, String username, String firstName, String newPassword) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(email);
+            helper.setSubject("Your Password Has Been Reset — Stock Management System");
+
+            String displayName = (firstName != null && !firstName.isBlank()) ? firstName : username;
+            String html = String.format("""
+                    <!DOCTYPE html>
+                    <html>
+                    <head><meta charset="UTF-8"></head>
+                    <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px;">
+                      <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;padding:32px;text-align:center;margin-bottom:24px;">
+                        <h1 style="color:#fff;margin:0;font-size:22px;">Password Reset</h1>
+                        <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;">Stock Management System</p>
+                      </div>
+                      <p>Hello <strong>%s</strong>,</p>
+                      <p>An administrator has reset your account password. Your new temporary password is:</p>
+                      <div style="background:#f4f4f4;border-left:4px solid #667eea;border-radius:6px;padding:16px 20px;margin:20px 0;text-align:center;">
+                        <span style="font-family:monospace;font-size:22px;font-weight:bold;letter-spacing:4px;color:#333;">%s</span>
+                      </div>
+                      <p>Please log in and <strong>change your password immediately</strong> for security.</p>
+                      <p style="text-align:center;margin:28px 0;">
+                        <a href="%s" style="background:#667eea;color:#fff;padding:12px 32px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">Log In Now</a>
+                      </p>
+                      <p style="color:#888;font-size:12px;">If you did not request this change, please contact your administrator immediately.</p>
+                      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+                      <p style="color:#aaa;font-size:11px;text-align:center;">Stock Management System — Automated Security Notification</p>
+                    </body>
+                    </html>
+                    """, displayName, newPassword, frontendUrl + "/login");
+
+            helper.setText(html, true);
+            mailSender.send(message);
+
+            log.info("Password-reset-by-admin email sent to: {}", email);
+        } catch (MessagingException e) {
+            log.error("Failed to send password-reset-by-admin email to: {}", email, e);
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
+    }
+
+    /**
      * Send password reset email
      */
     public void sendPasswordResetEmail(String email, String token) {

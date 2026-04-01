@@ -17,9 +17,12 @@ import { useFileDownload } from '@/hooks/useFileDownload';
 import { API_ENDPOINTS } from '@/config/constants';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PERMISSIONS } from '@/config/permissions';
 
 export const CategoriesPage = () => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -285,20 +288,24 @@ export const CategoriesPage = () => {
           </div>
 
           {/* Import */}
-          <Button
-            variant="outline"
-            size="sm"
-            icon={<Upload size={15} />}
-            onClick={() => setIsImportModalOpen(true)}
-          >
-            {t('common.import')}
-          </Button>
+          {hasPermission(PERMISSIONS.CATEGORIES_CREATE) && (
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<Upload size={15} />}
+              onClick={() => setIsImportModalOpen(true)}
+            >
+              {t('common.import')}
+            </Button>
+          )}
 
           {/* New Category */}
-          <Button onClick={handleCreate} className="flex items-center gap-2">
-            <Plus size={20} />
-            {t('products.categories.newCategory')}
-          </Button>
+          {hasPermission(PERMISSIONS.CATEGORIES_CREATE) && (
+            <Button onClick={handleCreate} className="flex items-center gap-2">
+              <Plus size={20} />
+              {t('products.categories.newCategory')}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -389,12 +396,16 @@ export const CategoriesPage = () => {
                           <button onClick={() => handleView(category)} className="text-blue-600 hover:text-blue-900" title={t('common.view')}>
                             <Eye size={18} />
                           </button>
-                          <button onClick={() => handleEdit(category)} className="text-yellow-600 hover:text-yellow-900" title={t('common.edit')}>
-                            <Edit size={18} />
-                          </button>
-                          <button onClick={() => handleDelete(category)} className="text-red-600 hover:text-red-900" title={t('common.delete')}>
-                            <Trash2 size={18} />
-                          </button>
+                          {hasPermission(PERMISSIONS.CATEGORIES_EDIT) && (
+                            <button onClick={() => handleEdit(category)} className="text-yellow-600 hover:text-yellow-900" title={t('common.edit')}>
+                              <Edit size={18} />
+                            </button>
+                          )}
+                          {hasPermission(PERMISSIONS.CATEGORIES_DELETE) && (
+                            <button onClick={() => handleDelete(category)} className="text-red-600 hover:text-red-900" title={t('common.delete')}>
+                              <Trash2 size={18} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

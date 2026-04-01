@@ -92,6 +92,21 @@
       DELIVERY_NOTE_BY_ID: (id: string) => `/api/delivery-notes/${id}`,
     },
 
+    // Roles & Permissions
+    ROLES: {
+      ROLES: '/api/roles',
+      ROLE_BY_ID: (id: string) => `/api/roles/${id}`,
+      ROLE_PERMISSIONS: (id: string) => `/api/roles/${id}/permissions`,
+      ROLE_ACTIVATE: (id: string) => `/api/roles/${id}/activate`,
+      ROLE_DEACTIVATE: (id: string) => `/api/roles/${id}/deactivate`,
+    },
+
+    PERMISSIONS: {
+      PERMISSIONS: '/api/permissions',
+      PERMISSION_BY_ID: (id: string) => `/api/permissions/${id}`,
+      PERMISSIONS_BY_CATEGORY: (cat: string) => `/api/permissions/category/${cat}`,
+    },
+
     // Alerts
     ALERTS: {
       ALERTS: '/api/alerts',

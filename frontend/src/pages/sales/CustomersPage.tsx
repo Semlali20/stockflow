@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { usePermissions } from '@/hooks/usePermissions';
+import { PERMISSIONS } from '@/config/permissions';
 import {
   Plus, Search, RefreshCw, UserCheck, X, ChevronDown, Edit2, Trash2,
 } from 'lucide-react';
@@ -344,6 +346,7 @@ const DeleteConfirmModal = ({
 
 const CustomersPage = () => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -400,14 +403,16 @@ const CustomersPage = () => {
             <p className="text-xs text-neutral-500">{customers.length} {t('sales.customers.count')}</p>
           </div>
         </div>
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={() => { setSelectedCustomer(null); setIsFormOpen(true); }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-sm font-semibold shadow-md shadow-teal-500/25 hover:from-teal-700 hover:to-emerald-700 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          {t('sales.customers.new')}
-        </motion.button>
+        {hasPermission(PERMISSIONS.PRODUCTS_CREATE) && (
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={() => { setSelectedCustomer(null); setIsFormOpen(true); }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-sm font-semibold shadow-md shadow-teal-500/25 hover:from-teal-700 hover:to-emerald-700 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            {t('sales.customers.new')}
+          </motion.button>
+        )}
       </div>
 
       {/* Filters */}
@@ -499,20 +504,24 @@ const CustomersPage = () => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => { setSelectedCustomer(customer); setIsFormOpen(true); }}
-                          className="p-1.5 rounded-lg text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
-                          title={t('common.edit')}
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => { setSelectedCustomer(customer); setIsDeleteOpen(true); }}
-                          className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                          title={t('common.delete')}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {hasPermission(PERMISSIONS.PRODUCTS_EDIT) && (
+                          <button
+                            onClick={() => { setSelectedCustomer(customer); setIsFormOpen(true); }}
+                            className="p-1.5 rounded-lg text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                            title={t('common.edit')}
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {hasPermission(PERMISSIONS.PRODUCTS_DELETE) && (
+                          <button
+                            onClick={() => { setSelectedCustomer(customer); setIsDeleteOpen(true); }}
+                            className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            title={t('common.delete')}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </motion.tr>

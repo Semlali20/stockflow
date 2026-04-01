@@ -38,6 +38,7 @@ import { LocationsPage } from '@/pages/locations/LocationsPage';
 
 // Movements Pages
 import MovementsPage from '@/pages/movements/MovementsPage';
+import CreateMovementPage from '@/pages/movements/CreateMovementPage';
 
 // Purchase Pages
 import SuppliersPage from '@/pages/purchase/SuppliersPage';
@@ -252,6 +253,14 @@ function App() {
           element={
             <PermissionRoute permission={PERMISSIONS.MOVEMENTS_VIEW}>
               <MainLayout><MovementsPage /></MainLayout>
+            </PermissionRoute>
+          }
+        />
+        <Route
+          path="/movements/new"
+          element={
+            <PermissionRoute permission={PERMISSIONS.MOVEMENTS_VIEW}>
+              <MainLayout><CreateMovementPage /></MainLayout>
             </PermissionRoute>
           }
         />
