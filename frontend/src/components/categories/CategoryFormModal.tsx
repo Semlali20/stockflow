@@ -329,15 +329,6 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
               )}
             </div>
 
-            {/* Preview */}
-            {attributeSchemas.length > 0 && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs font-medium text-blue-800 mb-2">{t('products.categories.form.jsonPreview')}</p>
-                <pre className="text-xs text-blue-700 overflow-x-auto">
-                  {JSON.stringify({ attributeSchemas }, null, 2)}
-                </pre>
-              </div>
-            )}
           </div>
 
           {/* Form Actions */}

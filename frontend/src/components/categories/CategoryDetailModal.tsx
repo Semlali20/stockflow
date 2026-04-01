@@ -173,18 +173,6 @@ export const CategoryDetailModal: React.FC<CategoryDetailModalProps> = ({
                 })}
               </div>
 
-              {/* JSON Preview */}
-              <details className="mt-4">
-                <summary className="cursor-pointer text-sm font-semibold text-indigo-900 hover:text-indigo-700 flex items-center gap-2 p-3 bg-indigo-100 rounded-lg">
-                  <Code size={16} />
-                  {t('products.categories.detail.viewJson')}
-                </summary>
-                <div className="mt-3 bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                  <pre className="text-xs text-green-400 font-mono">
-                    {JSON.stringify({ attributeSchemas: parsedSchemas }, null, 2)}
-                  </pre>
-                </div>
-              </details>
             </div>
           )}
 

@@ -325,24 +325,6 @@ export const ItemVariantFormModal: React.FC<ItemVariantFormModalProps> = ({
               )}
             </div>
 
-            {/* Preview */}
-            {variantAttributes.length > 0 && (
-              <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <p className="text-xs font-medium text-purple-800 mb-2">{t('products.variants.form.jsonPreview')}</p>
-                <pre className="text-xs text-purple-700 overflow-x-auto">
-                  {JSON.stringify(
-                    variantAttributes.reduce((obj, attr) => {
-                      if (attr.key && attr.value) {
-                        obj[attr.key] = attr.value;
-                      }
-                      return obj;
-                    }, {} as Record<string, string>),
-                    null,
-                    2
-                  )}
-                </pre>
-              </div>
-            )}
 
             {/* Help Text */}
             <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
