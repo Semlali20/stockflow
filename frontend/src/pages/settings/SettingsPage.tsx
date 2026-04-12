@@ -97,6 +97,8 @@ interface AuditLog {
   userId?: string;
   username?: string;
   action: string;
+  resourceType?: string;
+  resourceId?: string;
   status: 'SUCCESS' | 'FAILURE';
   ipAddress?: string;
   userAgent?: string;
@@ -1592,6 +1594,29 @@ const UserManagementTab: React.FC = () => {
 
 // ─── AUDIT LOGS TAB ───────────────────────────────────────────────────────────
 
+// Resource type → display label + color
+const RESOURCE_META: Record<string, { label: string; color: string; bg: string }> = {
+  PRODUCT:        { label: 'Product',       color: 'text-violet-700 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/20' },
+  CATEGORY:       { label: 'Category',      color: 'text-purple-700 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+  VARIANT:        { label: 'Variant',       color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50/60 dark:bg-purple-900/10' },
+  QUOTE:          { label: 'Quote',         color: 'text-blue-700 dark:text-blue-400',     bg: 'bg-blue-50 dark:bg-blue-900/20' },
+  CUSTOMER:       { label: 'Customer',      color: 'text-cyan-700 dark:text-cyan-400',     bg: 'bg-cyan-50 dark:bg-cyan-900/20' },
+  DELIVERY_NOTE:  { label: 'Delivery Note', color: 'text-teal-700 dark:text-teal-400',     bg: 'bg-teal-50 dark:bg-teal-900/20' },
+  INVENTORY:      { label: 'Inventory',     color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+  LOT:            { label: 'Lot',           color: 'text-green-700 dark:text-green-400',   bg: 'bg-green-50 dark:bg-green-900/20' },
+  SERIAL:         { label: 'Serial',        color: 'text-lime-700 dark:text-lime-400',     bg: 'bg-lime-50 dark:bg-lime-900/20' },
+  MOVEMENT:       { label: 'Movement',      color: 'text-amber-700 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/20' },
+  MOVEMENT_LINE:  { label: 'Mvt. Line',     color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50/60 dark:bg-amber-900/10' },
+  MOVEMENT_TASK:  { label: 'Mvt. Task',     color: 'text-orange-700 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-900/20' },
+  PURCHASE_ORDER: { label: 'Purchase Order',color: 'text-rose-700 dark:text-rose-400',     bg: 'bg-rose-50 dark:bg-rose-900/20' },
+  SUPPLIER:       { label: 'Supplier',      color: 'text-pink-700 dark:text-pink-400',     bg: 'bg-pink-50 dark:bg-pink-900/20' },
+  LOCATION:       { label: 'Location',      color: 'text-indigo-700 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+  SITE:           { label: 'Site',          color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50/60 dark:bg-indigo-900/10' },
+  WAREHOUSE:      { label: 'Warehouse',     color: 'text-blue-600 dark:text-blue-400',     bg: 'bg-blue-50/60 dark:bg-blue-900/10' },
+};
+
+type AuditFilter = 'all' | 'failed' | 'security' | 'crud';
+
 const AuditLogsTab: React.FC = () => {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -1599,15 +1624,18 @@ const AuditLogsTab: React.FC = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
-  const [filter, setFilter] = useState<'all' | 'failed' | 'security'>('all');
+  const [filter, setFilter] = useState<AuditFilter>('all');
+  const [resourceFilter, setResourceFilter] = useState('');
   const [search, setSearch] = useState('');
-  const pageSize = 15;
+  const pageSize = 20;
 
   const fetchLogs = useCallback(async (p = page, f = filter) => {
     setLoading(true);
-    const endpoint = f === 'failed' ? '/api/audit/failed-logins' : f === 'security' ? '/api/audit/security-events' : '/api/audit';
-    // Only the main /api/audit endpoint accepts sortBy / sortDirection
-    const params = f === 'all'
+    const endpoint =
+      f === 'failed'   ? '/api/audit/failed-logins' :
+      f === 'security' ? '/api/audit/security-events' :
+      '/api/audit';
+    const params = f === 'all' || f === 'crud'
       ? { page: p, size: pageSize, sortBy: 'timestamp', sortDirection: 'DESC' }
       : { page: p, size: pageSize };
     const res = await safe(() => apiClient.get(endpoint, { params }));
@@ -1621,54 +1649,101 @@ const AuditLogsTab: React.FC = () => {
 
   useEffect(() => { fetchLogs(page, filter); }, [page, filter]);
 
-  const filtered = search
-    ? logs.filter(l =>
-        (l.username ?? '').toLowerCase().includes(search.toLowerCase()) ||
-        l.action.toLowerCase().includes(search.toLowerCase()) ||
-        (l.ipAddress ?? '').includes(search)
-      )
-    : logs;
+  // CRUD filter is client-side on top of all logs
+  const CRUD_ACTIONS = ['CREATE', 'UPDATE', 'DELETE', 'STATUS_CHANGE', 'IMPORT', 'EXPORT'];
+  const filtered = logs.filter(l => {
+    if (filter === 'crud' && !CRUD_ACTIONS.some(a => l.action.includes(a))) return false;
+    if (resourceFilter && l.resourceType !== resourceFilter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return (
+        (l.username ?? '').toLowerCase().includes(q) ||
+        l.action.toLowerCase().includes(q) ||
+        (l.resourceType ?? '').toLowerCase().includes(q) ||
+        (l.details ?? '').toLowerCase().includes(q) ||
+        (l.ipAddress ?? '').includes(q)
+      );
+    }
+    return true;
+  });
 
   const actionColor = (action: string) => {
     const a = action.toUpperCase();
-    if (a.includes('LOGIN')) return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20';
-    if (a.includes('LOGOUT')) return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-700';
-    if (a.includes('CREATE') || a.includes('REGISTER')) return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20';
-    if (a.includes('DELETE')) return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
-    if (a.includes('UPDATE') || a.includes('CHANGE') || a.includes('RESET')) return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20';
-    if (a.includes('LOCK') || a.includes('UNLOCK')) return 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20';
+    if (a === 'CREATE')        return 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20';
+    if (a === 'UPDATE')        return 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20';
+    if (a === 'DELETE')        return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
+    if (a === 'STATUS_CHANGE') return 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20';
+    if (a === 'IMPORT')        return 'text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20';
+    if (a.includes('LOGIN'))   return 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20';
+    if (a.includes('LOGOUT'))  return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-700';
+    if (a.includes('LOCK'))    return 'text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20';
+    if (a.includes('PASSWORD') || a.includes('RESET')) return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20';
     return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-700';
   };
 
+  // Unique resource types present in current page
+  const presentTypes = Array.from(new Set(logs.map(l => l.resourceType).filter(Boolean))) as string[];
+
+  const FILTER_TABS: { id: AuditFilter; label: string }[] = [
+    { id: 'all',      label: t('audit.allLogs') },
+    { id: 'crud',     label: 'CRUD' },
+    { id: 'failed',   label: t('audit.failedLogins') },
+    { id: 'security', label: t('audit.securityEvents') },
+  ];
+
+  const crudCount  = logs.filter(l => CRUD_ACTIONS.some(a => l.action.includes(a))).length;
+  const createCount = logs.filter(l => l.action === 'CREATE').length;
+  const updateCount = logs.filter(l => l.action === 'UPDATE').length;
+  const deleteCount = logs.filter(l => l.action === 'DELETE').length;
+
   return (
     <div className="space-y-4">
+      {/* ── Toolbar ── */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex gap-2">
-          {(['all', 'failed', 'security'] as const).map(f => (
-            <button key={f} onClick={() => { setFilter(f); setPage(0); }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${filter === f ? 'bg-blue-500 text-white' : 'border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}>
-              {f === 'all' ? t('audit.allLogs') : f === 'failed' ? t('audit.failedLogins') : t('audit.securityEvents')}
+        <div className="flex gap-1.5 flex-wrap">
+          {FILTER_TABS.map(f => (
+            <button key={f.id} onClick={() => { setFilter(f.id); setPage(0); setResourceFilter(''); }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                filter === f.id
+                  ? 'bg-primary-600 text-white shadow-sm'
+                  : 'border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+              }`}>
+              {f.label}
             </button>
           ))}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* Resource type filter */}
+          {presentTypes.length > 0 && (
+            <select
+              value={resourceFilter}
+              onChange={e => setResourceFilter(e.target.value)}
+              className="text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-400"
+            >
+              <option value="">All resources</option>
+              {presentTypes.map(rt => (
+                <option key={rt} value={rt}>{RESOURCE_META[rt]?.label ?? rt}</option>
+              ))}
+            </select>
+          )}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-            <input type="text" placeholder={t('audit.searchPlaceholder')} value={search} onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 w-48" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400" />
+            <input type="text" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)}
+              className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-400 w-40" />
           </div>
-          <button onClick={() => fetchLogs(page, filter)} className="p-2 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700" title={t('common.refresh')}>
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <button onClick={() => fetchLogs(page, filter)} className="p-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
+      {/* ── Stats ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: t('audit.totalLogs'), value: totalElements, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-          { label: t('audit.successful'), value: logs.filter(l => l.status === 'SUCCESS').length, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
-          { label: t('audit.failed'), value: logs.filter(l => l.status === 'FAILURE').length, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
-          { label: t('audit.uniqueUsers'), value: new Set(logs.map(l => l.username).filter(Boolean)).size, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+          { label: t('audit.totalLogs'),   value: totalElements,                                       color: 'text-primary-600',  bg: 'bg-primary-50 dark:bg-primary-900/20' },
+          { label: 'CRUD Operations',       value: crudCount,                                           color: 'text-emerald-600',  bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+          { label: t('audit.failed'),       value: logs.filter(l => l.status === 'FAILURE').length,    color: 'text-red-600',      bg: 'bg-red-50 dark:bg-red-900/20' },
+          { label: t('audit.uniqueUsers'),  value: new Set(logs.map(l => l.username).filter(Boolean)).size, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-xl p-3`}>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">{s.label}</p>
@@ -1677,37 +1752,74 @@ const AuditLogsTab: React.FC = () => {
         ))}
       </div>
 
+      {/* ── CRUD breakdown pills (only when in CRUD mode) ── */}
+      {filter === 'crud' && (
+        <div className="flex gap-2 flex-wrap text-xs">
+          {[
+            { label: `Create (${createCount})`, color: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' },
+            { label: `Update (${updateCount})`, color: 'text-amber-700 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' },
+            { label: `Delete (${deleteCount})`, color: 'text-red-700 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' },
+          ].map(p => (
+            <span key={p.label} className={`px-2.5 py-1 rounded-full font-semibold border ${p.color}`}>{p.label}</span>
+          ))}
+        </div>
+      )}
+
+      {/* ── Table ── */}
       <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-700">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800/60">
-            <tr>{[
-              t('audit.table.timestamp'),
-              t('audit.table.user'),
-              t('audit.table.action'),
-              t('audit.table.status'),
-              t('audit.table.ipAddress'),
-              t('audit.table.details')
-            ].map(h => (
-              <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">{h}</th>
-            ))}</tr>
+            <tr>
+              {['Timestamp', 'User', 'Action', 'Resource', 'Description', 'Status', 'IP'].map(h => (
+                <th key={h} className="px-3 py-3 text-left text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide whitespace-nowrap">{h}</th>
+              ))}
+            </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
             {loading ? Array.from({ length: 8 }).map((_, i) => (
-              <tr key={i}>{Array.from({ length: 6 }).map((__, j) => (
-                <td key={j} className="px-4 py-3"><div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /></td>
+              <tr key={i}>{Array.from({ length: 7 }).map((__, j) => (
+                <td key={j} className="px-3 py-3"><div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /></td>
               ))}</tr>
             )) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-neutral-400">{t('audit.noLogsFound')}</td></tr>
-            ) : filtered.map(log => (
-              <tr key={log.id} className={`hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors ${log.status === 'FAILURE' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
-                <td className="px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{new Date(log.timestamp).toLocaleString()}</td>
-                <td className="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-200">{log.username ?? log.userId ?? '—'}</td>
-                <td className="px-4 py-3"><span className={`inline-block px-2 py-0.5 rounded-lg text-xs font-semibold ${actionColor(log.action)}`}>{log.action}</span></td>
-                <td className="px-4 py-3"><AuditStatusBadge status={log.status} /></td>
-                <td className="px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 font-mono">{log.ipAddress ?? '—'}</td>
-                <td className="px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 max-w-xs truncate" title={log.details}>{log.details ?? '—'}</td>
-              </tr>
-            ))}
+              <tr><td colSpan={7} className="px-4 py-10 text-center text-neutral-400 text-sm">{t('audit.noLogsFound')}</td></tr>
+            ) : filtered.map(log => {
+              const rm = log.resourceType ? RESOURCE_META[log.resourceType] : null;
+              return (
+                <tr key={log.id} className={`hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors ${log.status === 'FAILURE' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
+                  <td className="px-3 py-2.5 text-xs text-neutral-500 dark:text-neutral-400 whitespace-nowrap font-mono">
+                    {new Date(log.timestamp).toLocaleString()}
+                  </td>
+                  <td className="px-3 py-2.5 font-semibold text-neutral-800 dark:text-neutral-200 text-xs">
+                    {log.username ?? log.userId ?? '—'}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <span className={`inline-block px-2 py-0.5 rounded-lg text-xs font-bold ${actionColor(log.action)}`}>
+                      {log.action}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    {rm ? (
+                      <span className={`inline-block px-2 py-0.5 rounded-lg text-xs font-semibold ${rm.color} ${rm.bg}`}>
+                        {rm.label}
+                      </span>
+                    ) : log.resourceType ? (
+                      <span className="inline-block px-2 py-0.5 rounded-lg text-xs font-semibold text-neutral-600 bg-neutral-100 dark:bg-neutral-700">
+                        {log.resourceType}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-neutral-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2.5 text-xs text-neutral-600 dark:text-neutral-400 max-w-[200px] truncate" title={log.details ?? undefined}>
+                    {log.details ?? '—'}
+                  </td>
+                  <td className="px-3 py-2.5"><AuditStatusBadge status={log.status} /></td>
+                  <td className="px-3 py-2.5 text-xs text-neutral-500 dark:text-neutral-400 font-mono whitespace-nowrap">
+                    {log.ipAddress ?? '—'}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

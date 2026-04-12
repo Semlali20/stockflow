@@ -78,7 +78,12 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3, type: 'spring' }}
-      className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-b border-neutral-200/50 dark:border-neutral-700/50 z-50 shadow-lg"
+      className="fixed top-0 left-0 right-0 h-16 backdrop-blur-xl border-b z-50"
+      style={{
+        background: 'var(--theme-header)',
+        borderBottomColor: 'var(--theme-border-line)',
+        boxShadow: '0 1px 0 rgba(79,70,229,0.06), 0 4px 16px rgba(0,0,0,0.06)',
+      }}
     >
       <div className="flex items-center justify-between h-full px-4 lg:px-6 max-w-full">
         {/* Left Section */}
@@ -99,14 +104,29 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             whileHover={{ scale: 1.02 }}
             onClick={() => navigate(ROUTES.DASHBOARD)}
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 via-purple-500 to-accent-teal flex items-center justify-center shadow-lg shadow-primary-500/30">
-              <Package className="w-5 h-5 text-white" />
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #06B6D4 100%)',
+                boxShadow: '0 4px 12px rgba(79,70,229,0.40), inset 0 1px 0 rgba(255,255,255,0.2)',
+              }}
+            >
+              <Package className="w-5 h-5 text-white" strokeWidth={2} />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-bold bg-gradient-to-r from-primary-600 via-purple-600 to-accent-teal bg-clip-text text-transparent">
+              <h1
+                className="text-lg font-bold bg-clip-text text-transparent"
+                style={{
+                  fontFamily: 'Syne, system-ui, sans-serif',
+                  letterSpacing: '-0.03em',
+                  backgroundImage: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #06B6D4 100%)',
+                }}
+              >
                 StockFlow
               </h1>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 -mt-1">Management System</p>
+              <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 dark:text-neutral-500 -mt-0.5">
+                Management System
+              </p>
             </div>
           </motion.div>
 

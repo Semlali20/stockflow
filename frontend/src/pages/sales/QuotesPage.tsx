@@ -75,94 +75,260 @@ const StatusBadge = ({ status }: { status: QuoteStatus }) => {
   );
 };
 
-// ─── Detail Modal ─────────────────────────────────────────────────────────────
+// ─── Detail Modal — PDF-accurate A4 preview ───────────────────────────────────
 
-const DetailModal = ({ open, onClose, quote }: { open: boolean; onClose: () => void; quote: Quote | null }) => {
-  const { t } = useTranslation();
+const DetailModal = ({
+  open,
+  onClose,
+  quote,
+  onDownload,
+}: {
+  open: boolean;
+  onClose: () => void;
+  quote: Quote | null;
+  onDownload: (q: Quote) => void;
+}) => {
   if (!open || !quote) return null;
+
+  const fmtDate = (d?: string) =>
+    d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
+  const fmtPrice = (v: number) =>
+    v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
+
+  const subtotal = quote.subtotal ?? (quote.lines || []).reduce((s, l) => s + l.totalPrice, 0);
+  const total = quote.totalAmount ?? subtotal;
+  const discountAmount = subtotal - total;
+
+  const statusLabelMap: Record<QuoteStatus, string> = {
+    DRAFT: 'BROUILLON', SENT: 'ENVOYÉ', ACCEPTED: 'ACCEPTÉ',
+    REJECTED: 'REJETÉ', EXPIRED: 'EXPIRÉ', CONVERTED: 'CONVERTI',
+  };
+  const statusColorMap: Record<QuoteStatus, { color: string; bg: string }> = {
+    DRAFT:     { color: '#6b5500', bg: '#fef9c3' },
+    SENT:      { color: '#1e40af', bg: '#dbeafe' },
+    ACCEPTED:  { color: '#1a5e3f', bg: '#d1fae5' },
+    REJECTED:  { color: '#9f1239', bg: '#ffe4e6' },
+    EXPIRED:   { color: '#7c2d12', bg: '#ffedd5' },
+    CONVERTED: { color: '#581c87', bg: '#f3e8ff' },
+  };
+  const { color: statusColor, bg: statusBg } = statusColorMap[quote.status] ?? statusColorMap.DRAFT;
+
   return (
     <AnimatePresence>
       {open && (
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-            className="w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden"
+            initial={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.97, opacity: 0 }}
+            transition={{ type: 'spring', damping: 24, stiffness: 200 }}
+            className="w-full max-w-4xl flex flex-col rounded-2xl overflow-hidden shadow-2xl"
+            style={{ maxHeight: '92vh' }}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
-              <div>
-                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">{quote.reference}</h2>
-                <p className="text-xs text-neutral-500">{quote.customerName}</p>
-              </div>
-              <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
-              <div className="flex items-center gap-3 flex-wrap">
+            {/* ── Modal toolbar ── */}
+            <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-neutral-200 shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-sm text-[#1a2e4a]">{quote.reference}</span>
                 <StatusBadge status={quote.status} />
-                {quote.validUntil && (
-                  <span className="text-xs text-neutral-500">
-                    {t('sales.quotes.validUntil')}: {new Date(quote.validUntil).toLocaleDateString()}
-                  </span>
-                )}
               </div>
-              {quote.notes && (
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
-                  {quote.notes}
-                </p>
-              )}
-              {/* Lines */}
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-3">Lines</h3>
-                {quote.lines?.length ? (
-                  <div className="overflow-x-auto rounded-xl border border-neutral-100 dark:border-neutral-800">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/30">
-                          <th className="text-left px-3 py-2 text-xs font-semibold text-neutral-400">Item</th>
-                          <th className="text-right px-3 py-2 text-xs font-semibold text-neutral-400">Qty</th>
-                          <th className="text-right px-3 py-2 text-xs font-semibold text-neutral-400">Unit Price</th>
-                          <th className="text-right px-3 py-2 text-xs font-semibold text-neutral-400">Discount</th>
-                          <th className="text-right px-3 py-2 text-xs font-semibold text-neutral-400">Total</th>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onDownload(quote)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a2e4a] text-white text-xs font-semibold hover:bg-[#243d60] transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Télécharger PDF
+                </button>
+                <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-neutral-100 text-neutral-500 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* ── Paper preview ── */}
+            <div className="overflow-y-auto bg-neutral-300 p-5" style={{ flex: 1 }}>
+              {/* A4 white paper */}
+              <div
+                className="mx-auto bg-white shadow-xl"
+                style={{
+                  width: '210mm',
+                  minHeight: '297mm',
+                  padding: '14mm',
+                  fontFamily: 'Helvetica, Arial, sans-serif',
+                  color: '#2d3748',
+                  position: 'relative',
+                }}
+              >
+
+                {/* ── HEADER ── */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6mm' }}>
+                  {/* Left: Title + Company */}
+                  <div>
+                    <div style={{ fontSize: '22pt', fontWeight: 900, color: '#1a2e4a', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
+                      DEVIS
+                    </div>
+                    <div style={{ fontSize: '9pt', fontWeight: 700, color: '#1a2e4a', marginTop: '3mm' }}>
+                      TechSupply Maroc
+                    </div>
+                    <div style={{ fontSize: '7.5pt', color: '#777', marginTop: '1mm' }}>Casablanca, Maroc</div>
+                    <div style={{ fontSize: '7.5pt', color: '#777', marginTop: '0.5mm' }}>contact@techsupply.ma · +212 5XX XXX XXX</div>
+                  </div>
+
+                  {/* Right: Logo + Doc info */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3mm' }}>
+                    <div style={{ border: '1px solid #ced4da', borderRadius: '4px', padding: '4px 14px', color: '#adb5bd', fontSize: '8pt', background: '#f8f9fc', letterSpacing: '2px', fontWeight: 600 }}>
+                      LOGO
+                    </div>
+                    <div style={{ border: '1px solid #d2dae6', borderRadius: '4px', background: '#f8fafd', padding: '5px 10px', minWidth: '150px' }}>
+                      {([
+                        ['DEVIS N°', quote.reference],
+                        ['DATE', fmtDate(quote.createdAt)],
+                        quote.validUntil ? ['VALIDITÉ', fmtDate(quote.validUntil)] : null,
+                        ['STATUT', statusLabelMap[quote.status]],
+                      ] as ([string, string] | null)[]).filter(Boolean).map(([label, value]: any) => (
+                        <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '3px' }}>
+                          <span style={{ fontSize: '6.5pt', fontWeight: 700, color: '#1a2e4a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</span>
+                          <span style={{
+                            fontSize: '7.5pt',
+                            color: label === 'STATUT' ? statusColor : '#2d3748',
+                            fontWeight: label === 'STATUT' ? 700 : 400,
+                            background: label === 'STATUT' ? statusBg : 'transparent',
+                            padding: label === 'STATUT' ? '1px 5px' : '0',
+                            borderRadius: label === 'STATUT' ? '3px' : '0',
+                          }}>{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── TOP SEPARATOR ── */}
+                <div style={{ borderTop: '1.5px solid #1a2e4a', marginBottom: '5mm' }} />
+
+                {/* ── FACTURÉ À + META ── */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '5mm' }}>
+                  <div>
+                    <div style={{ fontSize: '7pt', fontWeight: 700, color: '#1a2e4a', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2mm' }}>
+                      Facturé à
+                    </div>
+                    <div style={{ fontSize: '10.5pt', fontWeight: 700, color: '#1a2e4a', marginBottom: '1.5mm' }}>
+                      {quote.customerName}
+                    </div>
+                    {quote.notes && (
+                      <div style={{ fontSize: '7.5pt', color: '#888', marginTop: '2mm', fontStyle: 'italic', maxWidth: '80mm' }}>
+                        {quote.notes}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ textAlign: 'right', minWidth: '90mm' }}>
+                    {([
+                      ['CRÉÉ LE', fmtDate(quote.createdAt)],
+                      quote.validUntil ? ['VALIDE JUSQU\'AU', fmtDate(quote.validUntil)] : null,
+                    ] as ([string, string] | null)[]).filter(Boolean).map(([label, value]: any) => (
+                      <div key={label} style={{ display: 'flex', justifyContent: 'flex-end', gap: '8mm', marginBottom: '2.5mm' }}>
+                        <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1a2e4a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</span>
+                        <span style={{ fontSize: '8.5pt', color: '#2d3748', minWidth: '40mm', textAlign: 'right' }}>{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── SECTION SEPARATOR ── */}
+                <div style={{ borderTop: '0.5px solid #ced4da', marginBottom: '4mm' }} />
+
+                {/* ── ITEMS TABLE ── */}
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8.5pt' }}>
+                  <thead>
+                    <tr>
+                      {[
+                        { label: 'DÉSIGNATION', align: 'left' },
+                        { label: 'QTÉ', align: 'center' },
+                        { label: 'PRIX UNIT. HT', align: 'right' },
+                        { label: 'REMISE', align: 'center' },
+                        { label: 'MONTANT HT', align: 'right' },
+                      ].map((h) => (
+                        <th key={h.label} style={{ background: '#1a2e4a', color: '#fff', fontWeight: 700, padding: '4mm 5mm', textAlign: h.align as React.CSSProperties['textAlign'], fontSize: '8pt', letterSpacing: '0.3px' }}>
+                          {h.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(quote.lines || []).length === 0 ? (
+                      <tr>
+                        <td colSpan={5} style={{ padding: '8mm', textAlign: 'center', color: '#aaa', fontStyle: 'italic', fontSize: '8pt', border: '1px solid #dee2e6' }}>
+                          Aucune ligne
+                        </td>
+                      </tr>
+                    ) : (
+                      (quote.lines || []).map((line, idx) => (
+                        <tr key={line.id} style={{ background: idx % 2 === 0 ? '#ffffff' : '#f8f9fa' }}>
+                          <td style={{ padding: '3.5mm 5mm', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748' }}>
+                            <div style={{ fontWeight: 600 }}>{line.itemName}</div>
+                            {line.itemSku && <div style={{ fontSize: '7pt', color: '#888', marginTop: '0.5mm' }}>SKU: {line.itemSku}</div>}
+                          </td>
+                          <td style={{ padding: '3.5mm 5mm', textAlign: 'center', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748', fontFamily: 'monospace' }}>
+                            {line.quantity}
+                          </td>
+                          <td style={{ padding: '3.5mm 5mm', textAlign: 'right', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                            {fmtPrice(line.unitPrice)}
+                          </td>
+                          <td style={{ padding: '3.5mm 5mm', textAlign: 'center', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: line.discountPercent > 0 ? '#b45309' : '#aaa' }}>
+                            {line.discountPercent > 0 ? `-${line.discountPercent}%` : '—'}
+                          </td>
+                          <td style={{ padding: '3.5mm 5mm', textAlign: 'right', borderBottom: '1px solid #dee2e6', color: '#1a2e4a', fontWeight: 600, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                            {fmtPrice(line.totalPrice)}
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {quote.lines.map((line) => (
-                          <tr key={line.id} className="border-b border-neutral-50 dark:border-neutral-800/50">
-                            <td className="px-3 py-2 font-medium">{line.itemName}</td>
-                            <td className="px-3 py-2 text-right">{line.quantity}</td>
-                            <td className="px-3 py-2 text-right">{line.unitPrice.toFixed(2)}</td>
-                            <td className="px-3 py-2 text-right">{line.discountPercent}%</td>
-                            <td className="px-3 py-2 text-right font-semibold">{line.totalPrice.toFixed(2)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+
+                {/* ── SUMMARY BOX ── */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6mm' }}>
+                  <div style={{ border: '1px solid #d2dae6', borderRadius: '4px', background: '#f8fafd', padding: '5mm 8mm', minWidth: '100mm' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5mm' }}>
+                      <span style={{ fontSize: '8pt', color: '#555' }}>Sous-total HT</span>
+                      <span style={{ fontSize: '8.5pt', color: '#2d3748', fontFamily: 'monospace' }}>{fmtPrice(subtotal)}</span>
+                    </div>
+                    {discountAmount > 0.001 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5mm' }}>
+                        <span style={{ fontSize: '8pt', color: '#b45309' }}>Remise globale ({quote.discountPercent}%)</span>
+                        <span style={{ fontSize: '8.5pt', color: '#b45309', fontFamily: 'monospace' }}>-{fmtPrice(discountAmount)}</span>
+                      </div>
+                    )}
+                    <div style={{ borderTop: '1px solid #d2dae6', margin: '2.5mm 0' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '10pt', fontWeight: 700, color: '#1a2e4a' }}>TOTAL HT</span>
+                      <span style={{ fontSize: '11pt', fontWeight: 700, color: '#1a2e4a', fontFamily: 'monospace' }}>{fmtPrice(total)}</span>
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-sm text-neutral-400 text-center py-6">No lines</p>
-                )}
-              </div>
-              {/* Totals */}
-              <div className="flex flex-col items-end gap-1 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                <div className="flex gap-4 text-sm">
-                  <span className="text-neutral-500">{t('sales.quotes.subtotal')}:</span>
-                  <span className="font-medium">{quote.subtotal?.toFixed(2)}</span>
                 </div>
-                {quote.discountPercent > 0 && (
-                  <div className="flex gap-4 text-sm">
-                    <span className="text-neutral-500">{t('sales.quotes.discount')}:</span>
-                    <span className="font-medium text-red-500">-{quote.discountPercent}%</span>
-                  </div>
-                )}
-                <div className="flex gap-4 text-sm font-bold">
-                  <span className="text-neutral-700 dark:text-neutral-300">{t('sales.quotes.total')}:</span>
-                  <span className="text-indigo-700 dark:text-indigo-400">{quote.totalAmount?.toFixed(2)}</span>
+
+                {/* ── SPACER ── */}
+                <div style={{ minHeight: '12mm' }} />
+
+                {/* ── FOOTER SEPARATOR ── */}
+                <div style={{ borderTop: '1px solid #1a2e4a', marginTop: '4mm', marginBottom: '4mm' }} />
+
+                {/* ── SIGNATURE ZONE ── */}
+                <div style={{ display: 'flex', gap: '8mm', marginBottom: '5mm' }}>
+                  {['Signature émetteur', 'Bon pour accord — Client'].map((label) => (
+                    <div key={label} style={{ flex: 1, border: '1px solid #d2dae6', borderRadius: '4px', padding: '3mm 5mm', minHeight: '26mm', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: '7.5pt', fontWeight: 700, color: '#1a2e4a', textAlign: 'center' }}>{label}</div>
+                      <div style={{ borderTop: '1px solid #c8d4e0', marginTop: '14mm', marginLeft: '8mm', marginRight: '8mm' }} />
+                    </div>
+                  ))}
                 </div>
+
+                {/* ── TERMS ── */}
+                <div style={{ textAlign: 'center', fontSize: '6.5pt', color: '#9ca3af', borderTop: '0.5px solid #e5e7eb', paddingTop: '2mm' }}>
+                  Devis valable 30 jours — Tout accord doit être signé et retourné — TechSupply Maroc © 2024
+                </div>
+
               </div>
             </div>
           </motion.div>
@@ -485,152 +651,243 @@ const QuotesPage = () => {
   useEffect(() => { fetchCustomers(); }, []);
 
   const generateQuotePDF = (quote: Quote) => {
-    const doc = new jsPDF();
-    const W = doc.internal.pageSize.getWidth();
-    const H = doc.internal.pageSize.getHeight();
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const W  = doc.internal.pageSize.getWidth();   // 210
+    const H  = doc.internal.pageSize.getHeight();  // 297
+    const ML = 14;  // left margin
+    const MR = 14;  // right margin
+    const RX = W - MR; // right edge x
+    const UW = W - ML - MR; // usable width
 
-    // ── Decorative background shapes (left side) ──
-    doc.setFillColor(154, 208, 170);
-    doc.ellipse(8, 105, 22, 68, 'F');
-    doc.setFillColor(140, 185, 225);
-    doc.ellipse(18, 155, 18, 52, 'F');
-    doc.setFillColor(200, 225, 150);
-    doc.ellipse(5, 195, 14, 38, 'F');
-    doc.setFillColor(154, 208, 170);
-    doc.ellipse(10, 240, 10, 28, 'F');
+    const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+    const fmtPrice = (v: number) =>
+      v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
 
-    // ── Title ──
+    // ── LEFT: Title + Company ──────────────────────────────────────
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(36);
-    doc.setTextColor(26, 58, 108);
-    doc.text('DEVIS', 14, 27);
+    doc.setFontSize(22);
+    doc.setTextColor(26, 46, 74);
+    doc.text('DEVIS', ML, 24);
 
-    // ── Company name ──
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
-    doc.setTextColor(70, 70, 70);
-    doc.text('TechSupply Maroc', 14, 35);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.text('Casablanca, Maroc', 14, 40);
-
-    // ── Top separator ──
-    doc.setDrawColor(26, 58, 108);
-    doc.setLineWidth(0.5);
-    doc.line(14, 46, W - 14, 46);
-
-    // ── Info columns ──
-    const infoY = 53;
-    // Left — customer
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(26, 58, 108);
-    doc.text('FACTURÉ À', 14, infoY);
-    doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(50, 50, 50);
-    doc.text(quote.customerName, 14, infoY + 6);
+    doc.setTextColor(26, 46, 74);
+    doc.text('TechSupply Maroc', ML, 32);
 
-    // Right — document details
-    const dX = W - 75;
-    const vX = W - 14;
-    let dY = infoY;
-    const row = (label: string, value: string) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(26, 58, 108);
-      doc.text(label, dX, dY);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(50, 50, 50);
-      doc.text(value, vX, dY, { align: 'right' });
-      dY += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(120, 125, 138);
+    doc.text('Casablanca, Maroc', ML, 37);
+    doc.text('contact@techsupply.ma · +212 5XX XXX XXX', ML, 41);
+
+    // ── RIGHT: Logo placeholder ────────────────────────────────────
+    const logoX = RX - 48;
+    doc.setDrawColor(200, 205, 218);
+    doc.setFillColor(248, 249, 252);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(logoX, 12, 22, 12, 2, 2, 'FD');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(170, 175, 192);
+    doc.text('LOGO', logoX + 11, 19, { align: 'center' });
+
+    // ── RIGHT: Document info box ───────────────────────────────────
+    const ibX = RX - 48;
+    const ibY = 27;
+    const ibW = 48;
+    const statusLabelMap: Record<QuoteStatus, string> = {
+      DRAFT: 'BROUILLON', SENT: 'ENVOYÉ', ACCEPTED: 'ACCEPTÉ',
+      REJECTED: 'REJETÉ', EXPIRED: 'EXPIRÉ', CONVERTED: 'CONVERTI',
     };
-    row('DEVIS N°', quote.reference);
-    row('DATE', new Date(quote.createdAt).toLocaleDateString('fr-FR'));
-    if (quote.validUntil) row('VALIDITÉ', new Date(quote.validUntil).toLocaleDateString('fr-FR'));
-    row('STATUT', quote.status);
-
-    // ── Second separator ──
-    doc.setDrawColor(26, 58, 108);
-    doc.setLineWidth(0.5);
-    doc.line(14, 87, W - 14, 87);
-
-    // ── Table ──
-    autoTable(doc, {
-      startY: 92,
-      head: [['QTÉ', 'DÉSIGNATION', 'PRIX UNIT. HT', 'REMISE', 'MONTANT HT']],
-      body: (quote.lines || []).map(l => [
-        l.quantity.toString(),
-        l.itemName,
-        l.unitPrice.toFixed(2),
-        `${l.discountPercent}%`,
-        l.totalPrice.toFixed(2),
-      ]),
-      headStyles: { fillColor: [26, 58, 108], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, halign: 'center' },
-      bodyStyles: { fontSize: 8.5, textColor: [50, 50, 50] },
-      alternateRowStyles: { fillColor: [235, 242, 255] },
-      columnStyles: {
-        0: { cellWidth: 18, halign: 'center' },
-        2: { halign: 'right', cellWidth: 34 },
-        3: { halign: 'center', cellWidth: 22 },
-        4: { halign: 'right', cellWidth: 34 },
-      },
-      styles: { lineColor: [200, 215, 235], lineWidth: 0.2 },
-      margin: { left: 14, right: 14 },
+    const ibRows: [string, string][] = [
+      ['DEVIS N°', quote.reference],
+      ['DATE', fmtDate(quote.createdAt)],
+      ...(quote.validUntil ? [['VALIDITÉ', fmtDate(quote.validUntil)] as [string, string]] : []),
+      ['STATUT', statusLabelMap[quote.status] ?? quote.status],
+    ];
+    const ibH = 6 + ibRows.length * 6.5;
+    doc.setDrawColor(210, 218, 232);
+    doc.setFillColor(248, 250, 253);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(ibX, ibY, ibW, ibH, 2, 2, 'FD');
+    let ibRowY = ibY + 6;
+    ibRows.forEach(([label, value]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(26, 46, 74);
+      doc.text(label, ibX + 3, ibRowY);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(42, 47, 58);
+      doc.text(value, ibX + ibW - 3, ibRowY, { align: 'right' });
+      ibRowY += 6.5;
     });
 
-    const finalY = (doc as any).lastAutoTable?.finalY ?? 150;
+    // ── TOP SEPARATOR ──────────────────────────────────────────────
+    doc.setDrawColor(26, 46, 74);
+    doc.setLineWidth(0.5);
+    doc.line(ML, 46, RX, 46);
 
-    // ── Totals ──
-    const tX = W - 80;
-    const tVX = W - 14;
-    let tY = finalY + 9;
-    const subtotal = quote.subtotal ?? (quote.lines || []).reduce((s, l) => s + l.totalPrice, 0);
-    const total = quote.totalAmount ?? subtotal;
-    const disc = subtotal - total;
+    // ── FACTURÉ À (left) ──────────────────────────────────────────
+    const sec2Y = 54;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(26, 46, 74);
+    doc.text('FACTURÉ À', ML, sec2Y);
 
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(60, 60, 60);
-    doc.text('Total HT', tX, tY);
-    doc.text(`${subtotal.toFixed(2)}`, tVX, tY, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(25, 30, 42);
+    doc.text(quote.customerName, ML, sec2Y + 7);
 
-    if (disc > 0.001) {
-      tY += 6;
-      doc.text('Remise globale', tX, tY);
-      doc.text(`-${disc.toFixed(2)}`, tVX, tY, { align: 'right' });
+    if (quote.notes) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(7.5);
+      doc.setTextColor(130, 135, 148);
+      const notesLines = doc.splitTextToSize(quote.notes, 82);
+      doc.text(notesLines, ML, sec2Y + 14);
     }
 
-    tY += 5;
-    doc.setDrawColor(26, 58, 108);
+    // ── META (right) ───────────────────────────────────────────────
+    const metaX = W / 2 + 5;
+    let metaRowY = sec2Y;
+    const metaRows: [string, string][] = [
+      ['CRÉÉ LE', fmtDate(quote.createdAt)],
+      ...(quote.validUntil ? [['VALIDE JUSQU\'AU', fmtDate(quote.validUntil)] as [string, string]] : []),
+    ];
+    metaRows.forEach(([label, value]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(26, 46, 74);
+      doc.text(label, metaX, metaRowY);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(42, 47, 58);
+      doc.text(value, RX, metaRowY, { align: 'right' });
+      metaRowY += 7;
+    });
+
+    // ── SECTION SEPARATOR ──────────────────────────────────────────
+    doc.setDrawColor(210, 218, 228);
     doc.setLineWidth(0.3);
-    doc.line(tX, tY, tVX, tY);
+    doc.line(ML, 80, RX, 80);
 
-    tY += 8;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(26, 58, 108);
-    doc.text('TOTAL HT', tX, tY);
-    doc.text(`${total.toFixed(2)} €`, tVX, tY, { align: 'right' });
+    // ── ITEMS TABLE ────────────────────────────────────────────────
+    autoTable(doc, {
+      startY: 85,
+      head: [['DÉSIGNATION', 'QTÉ', 'PRIX UNIT. HT', 'REMISE', 'MONTANT HT']],
+      body: (quote.lines || []).map(l => [
+        l.itemSku ? `${l.itemName}\n(SKU: ${l.itemSku})` : l.itemName,
+        l.quantity.toString(),
+        fmtPrice(l.unitPrice),
+        l.discountPercent > 0 ? `-${l.discountPercent}%` : '—',
+        fmtPrice(l.totalPrice),
+      ]),
+      headStyles: {
+        fillColor: [26, 46, 74],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8,
+        halign: 'center',
+        cellPadding: { top: 4, bottom: 4, left: 4, right: 4 },
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [42, 50, 65],
+        cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 },
+      },
+      alternateRowStyles: { fillColor: [248, 249, 250] },
+      columnStyles: {
+        0: { cellWidth: 'auto', fontStyle: 'bold' },
+        1: { halign: 'center', cellWidth: 18 },
+        2: { halign: 'right', cellWidth: 36 },
+        3: { halign: 'center', cellWidth: 22 },
+        4: { halign: 'right', cellWidth: 36 },
+      },
+      styles: { lineColor: [220, 226, 235], lineWidth: 0.2, overflow: 'linebreak' },
+      margin: { left: ML, right: MR },
+    });
 
-    // ── Footer ──
-    doc.setDrawColor(26, 58, 108);
-    doc.setLineWidth(0.4);
-    doc.line(14, H - 33, W - 14, H - 33);
+    const finalY: number = (doc as any).lastAutoTable?.finalY ?? 165;
 
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(26, 58, 108);
-    doc.text('CONDITIONS ET MODALITÉS', 14, H - 26);
+    // ── SUMMARY BOX ────────────────────────────────────────────────
+    const subtotal = quote.subtotal ?? (quote.lines || []).reduce((s, l) => s + l.totalPrice, 0);
+    const total    = quote.totalAmount ?? subtotal;
+    const discAmt  = subtotal - total;
+
+    const sumBoxX = W / 2 + 10;
+    const sumBoxW = RX - sumBoxX;
+    const sumBoxY = finalY + 8;
+    const hasDisc = discAmt > 0.001;
+    const sumBoxH = hasDisc ? 32 : 22;
+
+    doc.setFillColor(248, 250, 253);
+    doc.setDrawColor(210, 218, 232);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(sumBoxX, sumBoxY, sumBoxW, sumBoxH, 2, 2, 'FD');
 
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
-    doc.text("Devis valable 30 jours à compter de la date d'émission.", 14, H - 20);
-    doc.text('Pour toute question, contactez notre service commercial.', 14, H - 14);
+    doc.setFontSize(8);
+    doc.setTextColor(75, 82, 98);
+    doc.text('Sous-total HT', sumBoxX + 4, sumBoxY + 7);
+    doc.setFontSize(8.5);
+    doc.setTextColor(42, 47, 58);
+    doc.text(fmtPrice(subtotal), sumBoxX + sumBoxW - 4, sumBoxY + 7, { align: 'right' });
 
-    const pdfUrl = doc.output('bloburl');
-    window.open(pdfUrl, '_blank');
+    let sumCurY = sumBoxY + 7;
+    if (hasDisc) {
+      sumCurY += 7;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(180, 83, 9);
+      doc.text(`Remise globale (${quote.discountPercent}%)`, sumBoxX + 4, sumCurY);
+      doc.text(`-${fmtPrice(discAmt)}`, sumBoxX + sumBoxW - 4, sumCurY, { align: 'right' });
+    }
+
+    doc.setDrawColor(210, 218, 232);
+    doc.setLineWidth(0.2);
+    doc.line(sumBoxX + 4, sumCurY + 4, sumBoxX + sumBoxW - 4, sumCurY + 4);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(26, 46, 74);
+    doc.text('TOTAL HT', sumBoxX + 4, sumCurY + 11);
+    doc.text(fmtPrice(total), sumBoxX + sumBoxW - 4, sumCurY + 11, { align: 'right' });
+
+    // ── FOOTER SEPARATOR ───────────────────────────────────────────
+    doc.setDrawColor(26, 46, 74);
+    doc.setLineWidth(0.4);
+    doc.line(ML, H - 52, RX, H - 52);
+
+    // ── SIGNATURE ZONE ─────────────────────────────────────────────
+    const sigZoneY = H - 49;
+    const sigBoxW  = (UW - 8) / 2;
+    const sigBoxH  = 26;
+
+    ['Signature émetteur', 'Bon pour accord — Client'].forEach((label, i) => {
+      const sigX = ML + i * (sigBoxW + 8);
+      doc.setDrawColor(200, 210, 228);
+      doc.setLineWidth(0.25);
+      doc.roundedRect(sigX, sigZoneY, sigBoxW, sigBoxH, 2, 2, 'S');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(26, 46, 74);
+      doc.text(label, sigX + sigBoxW / 2, sigZoneY + 6, { align: 'center' });
+      doc.setDrawColor(185, 200, 220);
+      doc.setLineWidth(0.3);
+      doc.line(sigX + 8, sigZoneY + sigBoxH - 6, sigX + sigBoxW - 8, sigZoneY + sigBoxH - 6);
+    });
+
+    // ── TERMS ──────────────────────────────────────────────────────
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(156, 163, 175);
+    doc.text(
+      'Devis valable 30 jours — Tout accord doit être signé et retourné — TechSupply Maroc © 2024',
+      W / 2, H - 8, { align: 'center' },
+    );
+
+    doc.save(`devis-${quote.reference}.pdf`);
   };
 
   const filtered = useMemo(() =>
@@ -844,7 +1101,7 @@ const QuotesPage = () => {
       </div>
 
       {/* Modals */}
-      <DetailModal open={isDetailOpen} onClose={() => setIsDetailOpen(false)} quote={selectedQuote} />
+      <DetailModal open={isDetailOpen} onClose={() => setIsDetailOpen(false)} quote={selectedQuote} onDownload={generateQuotePDF} />
       <QuoteFormModal
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}

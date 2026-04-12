@@ -193,6 +193,9 @@ public class ItemServiceImpl implements ItemService {
 
         item.setCategoryId(request.getCategoryId());
         item.setName(request.getName());
+        if (request.getSku() != null && !request.getSku().isBlank()) {
+            item.setSku(request.getSku());
+        }
         item.setDescription(request.getDescription());
         item.setAttributes(request.getAttributes());
         item.setTags(request.getTags());

@@ -1,5 +1,6 @@
 package com.stock.authservice.service;
 
+import com.stock.authservice.dto.request.AuditEventRequest;
 import com.stock.authservice.dto.response.AuditLogResponse;
 import com.stock.authservice.dto.response.PageResponse;
 import com.stock.authservice.entity.AuditLog;
@@ -60,6 +61,28 @@ public class AuditLogService {
         AuditLog auditLog = AuditLog.success(userId, username, action, ipAddress);
         auditLogRepository.save(auditLog);
         log.debug("Logged action {} for user: {}", action, username);
+    }
+
+    /**
+     * Receives audit events from other microservices via POST /internal/audit/log.
+     * Covers all CRUD operations across the system.
+     */
+    @Transactional
+    public void logExternalEvent(AuditEventRequest req) {
+        AuditLog auditLog = AuditLog.builder()
+                .userId(req.getUserId())
+                .username(req.getUsername())
+                .action(req.getAction())
+                .resourceType(req.getResourceType())
+                .resourceId(req.getResourceId())
+                .ipAddress(req.getIpAddress())
+                .userAgent(req.getUserAgent())
+                .status(req.getStatus() != null ? req.getStatus() : "SUCCESS")
+                .errorMessage(req.getErrorMessage())
+                .details(req.getDescription())
+                .build();
+        auditLogRepository.save(auditLog);
+        log.debug("Logged external event: {} {} by {}", req.getAction(), req.getResourceType(), req.getUsername());
     }
 
     // ==================== GET AUDIT LOGS ====================

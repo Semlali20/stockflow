@@ -67,79 +67,340 @@ const StatusBadge = ({ status }: { status: DeliveryNoteStatus }) => {
   );
 };
 
-// ─── Detail Modal ─────────────────────────────────────────────────────────────
+// ─── Detail Modal — PDF-accurate HTML preview ─────────────────────────────────
 
-const DetailModal = ({ open, onClose, note }: { open: boolean; onClose: () => void; note: DeliveryNote | null }) => {
-  const { t } = useTranslation();
+const DetailModal = ({
+  open,
+  onClose,
+  note,
+  onDownload,
+}: {
+  open: boolean;
+  onClose: () => void;
+  note: DeliveryNote | null;
+  onDownload: (n: DeliveryNote) => void;
+}) => {
   if (!open || !note) return null;
+
+  const totalOrdered = (note.lines || []).reduce((s, l) => s + l.orderedQuantity, 0);
+  const totalDelivered = (note.lines || []).reduce((s, l) => s + l.deliveredQuantity, 0);
+  const totalAmount = (note.lines || []).reduce((s, l) => s + (l.deliveredQuantity * (l.unitPrice ?? 0)), 0);
+  const hasPrices = (note.lines || []).some(l => l.unitPrice != null && l.unitPrice > 0);
+  const fmtPrice = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
+
+  const fmtDate = (d?: string) =>
+    d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
+
+  const statusLabel = note.status === 'VALIDATED' ? 'VALIDÉ' : 'BROUILLON';
+  const statusColor = note.status === 'VALIDATED' ? '#1a5e3f' : '#6b5500';
+  const statusBg   = note.status === 'VALIDATED' ? '#d1fae5' : '#fef9c3';
+
   return (
     <AnimatePresence>
       {open && (
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-            className="w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden"
+            initial={{ scale: 0.97, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.97, opacity: 0 }}
+            transition={{ type: 'spring', damping: 24, stiffness: 200 }}
+            className="w-full max-w-4xl flex flex-col rounded-2xl overflow-hidden shadow-2xl"
+            style={{ maxHeight: '92vh' }}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
-              <div>
-                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">{note.reference}</h2>
-                <p className="text-xs text-neutral-500">{note.customerName}</p>
-              </div>
-              <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
-              <div className="flex items-center gap-3 flex-wrap">
+            {/* ── Modal toolbar ── */}
+            <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-neutral-200 shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-sm text-[#1a2e4a]">{note.reference}</span>
                 <StatusBadge status={note.status} />
-                {note.deliveryDate && (
-                  <span className="text-xs text-neutral-500">
-                    {t('sales.deliveryNotes.deliveryDate')}: {new Date(note.deliveryDate).toLocaleDateString()}
-                  </span>
-                )}
               </div>
-              {note.deliveryAddress && (
-                <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
-                  <p className="text-xs font-semibold text-neutral-400 mb-1">{t('sales.deliveryNotes.deliveryAddress')}</p>
-                  <p className="text-sm text-neutral-700 dark:text-neutral-300">{note.deliveryAddress}</p>
-                </div>
-              )}
-              {note.notes && (
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">{note.notes}</p>
-              )}
-              {/* Lines */}
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-3">Lines</h3>
-                {note.lines?.length ? (
-                  <div className="overflow-x-auto rounded-xl border border-neutral-100 dark:border-neutral-800">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/30">
-                          <th className="text-left px-3 py-2 text-xs font-semibold text-neutral-400">Item</th>
-                          <th className="text-right px-3 py-2 text-xs font-semibold text-neutral-400">Ordered</th>
-                          <th className="text-right px-3 py-2 text-xs font-semibold text-neutral-400">Delivered</th>
-                          <th className="text-left px-3 py-2 text-xs font-semibold text-neutral-400">Lot/Serial</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {note.lines.map((line) => (
-                          <tr key={line.id} className="border-b border-neutral-50 dark:border-neutral-800/50">
-                            <td className="px-3 py-2 font-medium">{line.itemName}</td>
-                            <td className="px-3 py-2 text-right">{line.orderedQuantity}</td>
-                            <td className="px-3 py-2 text-right">{line.deliveredQuantity}</td>
-                            <td className="px-3 py-2 text-neutral-500">{line.lotId ?? line.serialId ?? '—'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onDownload(note)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a2e4a] text-white text-xs font-semibold hover:bg-[#243d60] transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Télécharger PDF
+                </button>
+                <button
+                  onClick={onClose}
+                  className="p-1.5 rounded-lg hover:bg-neutral-100 text-neutral-500 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* ── Paper preview ── */}
+            <div className="overflow-y-auto bg-neutral-300 p-5" style={{ flex: 1 }}>
+              {/* A4 white paper */}
+              <div
+                className="mx-auto bg-white shadow-xl"
+                style={{
+                  width: '210mm',
+                  minHeight: '297mm',
+                  padding: '14mm',
+                  fontFamily: 'Helvetica, Arial, sans-serif',
+                  color: '#2d3748',
+                  position: 'relative',
+                }}
+              >
+
+                {/* ── HEADER ── */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6mm' }}>
+
+                  {/* Left: Title + Company */}
+                  <div>
+                    <div style={{ fontSize: '22pt', fontWeight: 900, color: '#1a2e4a', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
+                      BON DE LIVRAISON
+                    </div>
+                    <div style={{ fontSize: '9pt', fontWeight: 700, color: '#1a2e4a', marginTop: '3mm' }}>
+                      TechSupply Maroc
+                    </div>
+                    <div style={{ fontSize: '7.5pt', color: '#777', marginTop: '1mm' }}>
+                      Casablanca, Maroc
+                    </div>
+                    <div style={{ fontSize: '7.5pt', color: '#777', marginTop: '0.5mm' }}>
+                      contact@techsupply.ma · +212 5XX XXX XXX
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-sm text-neutral-400 text-center py-6">No lines</p>
-                )}
+
+                  {/* Right: Logo + Doc info box */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3mm' }}>
+                    {/* Logo placeholder */}
+                    <div style={{
+                      border: '1px solid #ced4da',
+                      borderRadius: '4px',
+                      padding: '4px 14px',
+                      color: '#adb5bd',
+                      fontSize: '8pt',
+                      background: '#f8f9fc',
+                      letterSpacing: '2px',
+                      fontWeight: 600,
+                    }}>
+                      LOGO
+                    </div>
+
+                    {/* Document info box */}
+                    <div style={{
+                      border: '1px solid #d2dae6',
+                      borderRadius: '4px',
+                      background: '#f8fafd',
+                      padding: '5px 10px',
+                      minWidth: '140px',
+                    }}>
+                      {[
+                        ['BON N°', note.reference],
+                        ['DATE', fmtDate(note.createdAt)],
+                        ['STATUT', statusLabel],
+                      ].map(([label, value]) => (
+                        <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '3px' }}>
+                          <span style={{ fontSize: '6.5pt', fontWeight: 700, color: '#1a2e4a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            {label}
+                          </span>
+                          <span style={{
+                            fontSize: '7.5pt',
+                            color: label === 'STATUT' ? statusColor : '#2d3748',
+                            fontWeight: label === 'STATUT' ? 700 : 400,
+                            background: label === 'STATUT' ? statusBg : 'transparent',
+                            padding: label === 'STATUT' ? '1px 5px' : '0',
+                            borderRadius: label === 'STATUT' ? '3px' : '0',
+                          }}>
+                            {value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── TOP SEPARATOR ── */}
+                <div style={{ borderTop: '1.5px solid #1a2e4a', marginBottom: '5mm' }} />
+
+                {/* ── LIVRÉ À + META ── */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '5mm' }}>
+
+                  {/* Left: client */}
+                  <div>
+                    <div style={{ fontSize: '7pt', fontWeight: 700, color: '#1a2e4a', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2mm' }}>
+                      Livré à
+                    </div>
+                    <div style={{ fontSize: '10.5pt', fontWeight: 700, color: '#1a2e4a', marginBottom: '1.5mm' }}>
+                      {note.customerName}
+                    </div>
+                    {note.deliveryAddress && (
+                      <div style={{ fontSize: '8pt', color: '#555', lineHeight: 1.5, maxWidth: '80mm' }}>
+                        {note.deliveryAddress}
+                      </div>
+                    )}
+                    {note.notes && (
+                      <div style={{ fontSize: '7.5pt', color: '#888', marginTop: '2mm', fontStyle: 'italic', maxWidth: '80mm' }}>
+                        {note.notes}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right: meta rows */}
+                  <div style={{ textAlign: 'right', minWidth: '90mm' }}>
+                    {[
+                      note.deliveryDate ? ['DATE DE LIVRAISON', fmtDate(note.deliveryDate)] : null,
+                      note.quoteId ? ['RÉFÉRENCE DEVIS', note.quoteId] : null,
+                      ['CRÉÉ LE', fmtDate(note.createdAt)],
+                    ].filter(Boolean).map(([label, value]: any) => (
+                      <div key={label as string} style={{ display: 'flex', justifyContent: 'flex-end', gap: '8mm', marginBottom: '2.5mm' }}>
+                        <span style={{ fontSize: '7pt', fontWeight: 700, color: '#1a2e4a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {label}
+                        </span>
+                        <span style={{ fontSize: '8.5pt', color: '#2d3748', minWidth: '40mm', textAlign: 'right' }}>
+                          {value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── SECTION SEPARATOR ── */}
+                <div style={{ borderTop: '0.5px solid #ced4da', marginBottom: '4mm' }} />
+
+                {/* ── ITEMS TABLE ── */}
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8.5pt' }}>
+                  <thead>
+                    <tr>
+                      {[
+                        { label: 'DÉSIGNATION', align: 'left' },
+                        { label: 'QTÉ COMMANDÉE', align: 'center' },
+                        { label: 'QTÉ LIVRÉE', align: 'center' },
+                        ...(hasPrices ? [
+                          { label: 'PRIX UNIT.', align: 'right' },
+                          { label: 'MONTANT', align: 'right' },
+                        ] : []),
+                        { label: 'REMARQUES', align: 'left' },
+                      ].map((h) => (
+                        <th
+                          key={h.label}
+                          style={{
+                            background: '#1a2e4a',
+                            color: '#fff',
+                            fontWeight: 700,
+                            padding: '4mm 5mm',
+                            textAlign: h.align as React.CSSProperties['textAlign'],
+                            fontSize: '8pt',
+                            letterSpacing: '0.3px',
+                            borderBottom: 'none',
+                          }}
+                        >
+                          {h.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(note.lines || []).length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={hasPrices ? 6 : 4}
+                          style={{ padding: '8mm', textAlign: 'center', color: '#aaa', fontStyle: 'italic', fontSize: '8pt', border: '1px solid #dee2e6' }}
+                        >
+                          Aucune ligne
+                        </td>
+                      </tr>
+                    ) : (
+                      (note.lines || []).map((line, idx) => (
+                        <tr key={line.id} style={{ background: idx % 2 === 0 ? '#ffffff' : '#f8f9fa' }}>
+                          <td style={{ padding: '3.5mm 5mm', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748' }}>
+                            <div style={{ fontWeight: 600 }}>{line.itemName}</div>
+                            {line.itemSku && (
+                              <div style={{ fontSize: '7pt', color: '#888', marginTop: '0.5mm' }}>SKU: {line.itemSku}</div>
+                            )}
+                          </td>
+                          <td style={{ padding: '3.5mm 5mm', textAlign: 'center', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748', fontFamily: 'monospace' }}>
+                            {line.orderedQuantity}
+                          </td>
+                          <td style={{ padding: '3.5mm 5mm', textAlign: 'center', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748', fontFamily: 'monospace' }}>
+                            {line.deliveredQuantity}
+                          </td>
+                          {hasPrices && (
+                            <>
+                              <td style={{ padding: '3.5mm 5mm', textAlign: 'right', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                                {line.unitPrice != null ? fmtPrice(line.unitPrice) : '—'}
+                              </td>
+                              <td style={{ padding: '3.5mm 5mm', textAlign: 'right', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#1a2e4a', fontWeight: 600, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                                {line.unitPrice != null ? fmtPrice(line.deliveredQuantity * line.unitPrice) : '—'}
+                              </td>
+                            </>
+                          )}
+                          <td style={{ padding: '3.5mm 5mm', borderBottom: '1px solid #dee2e6', color: '#555', fontSize: '8pt' }}>
+                            {line.notes ?? (line.lotId ? `Lot: ${line.lotId}` : line.serialId ? `S/N: ${line.serialId}` : '—')}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+
+                {/* ── SUMMARY ── */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6mm' }}>
+                  <div style={{
+                    border: '1px solid #d2dae6',
+                    borderRadius: '4px',
+                    background: '#f8fafd',
+                    padding: '5mm 8mm',
+                    minWidth: '90mm',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5mm' }}>
+                      <span style={{ fontSize: '8pt', color: '#555' }}>Total articles commandés</span>
+                      <span style={{ fontSize: '8.5pt', color: '#2d3748', fontFamily: 'monospace' }}>{totalOrdered}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5mm' }}>
+                      <span style={{ fontSize: '8pt', color: '#555' }}>Total articles livrés</span>
+                      <span style={{ fontSize: '8.5pt', color: '#2d3748', fontFamily: 'monospace' }}>{totalDelivered}</span>
+                    </div>
+                    <div style={{ borderTop: '1px solid #d2dae6', margin: '2.5mm 0' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '10pt', fontWeight: 700, color: '#1a2e4a' }}>MONTANT TOTAL</span>
+                      <span style={{ fontSize: '11pt', fontWeight: 700, color: '#1a2e4a', fontFamily: 'monospace' }}>
+                        {hasPrices ? fmtPrice(totalAmount) : `${totalDelivered} unités`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── SPACER ── */}
+                <div style={{ minHeight: '12mm' }} />
+
+                {/* ── FOOTER SEPARATOR ── */}
+                <div style={{ borderTop: '1px solid #1a2e4a', marginTop: '4mm', marginBottom: '4mm' }} />
+
+                {/* ── SIGNATURE ZONE ── */}
+                <div style={{ display: 'flex', gap: '8mm', marginBottom: '5mm' }}>
+                  {['Signature émetteur', 'Signature récepteur'].map((label) => (
+                    <div
+                      key={label}
+                      style={{
+                        flex: 1,
+                        border: '1px solid #d2dae6',
+                        borderRadius: '4px',
+                        padding: '3mm 5mm',
+                        minHeight: '26mm',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div style={{ fontSize: '7.5pt', fontWeight: 700, color: '#1a2e4a', textAlign: 'center' }}>
+                        {label}
+                      </div>
+                      <div style={{ borderTop: '1px solid #c8d4e0', marginTop: '14mm', marginLeft: '8mm', marginRight: '8mm' }} />
+                    </div>
+                  ))}
+                </div>
+
+                {/* ── TERMS ── */}
+                <div style={{ textAlign: 'center', fontSize: '6.5pt', color: '#9ca3af', borderTop: '0.5px solid #e5e7eb', paddingTop: '2mm' }}>
+                  Marchandise vérifiée à la réception — Toute réclamation doit être signalée dans les 48h — TechSupply Maroc © 2024
+                </div>
+
               </div>
             </div>
           </motion.div>
@@ -366,7 +627,7 @@ const DeliveryNoteFormModal = ({
                 </div>
                 <div className="space-y-2">
                   {lines.map((line, idx) => (
-                    <div key={line.id} className="grid grid-cols-13 gap-2 items-center p-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800" style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.5fr auto' }}>
+                    <div key={line.id} className="grid gap-2 items-center p-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800" style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 1.5fr auto' }}>
                       <input value={line.itemName} onChange={(e) => handleLineChange(idx, 'itemName', e.target.value)} placeholder="Item name" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
                       <input value={line.itemSku} onChange={(e) => handleLineChange(idx, 'itemSku', e.target.value)} placeholder="SKU" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
                       <input type="number" min="0" value={line.orderedQuantity} onChange={(e) => handleLineChange(idx, 'orderedQuantity', e.target.value)} placeholder="Ordered" className="w-full px-2 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-400" />
@@ -437,151 +698,305 @@ const DeliveryNotesPage = () => {
   useEffect(() => { fetchNotes(); }, [statusFilter, customerFilter]);
   useEffect(() => { fetchCustomers(); }, []);
 
+  // ─── PDF Generation ──────────────────────────────────────────────────────────
+
   const generateDeliveryNotePDF = (note: DeliveryNote) => {
-    const doc = new jsPDF();
-    const W = doc.internal.pageSize.getWidth();
-    const H = doc.internal.pageSize.getHeight();
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const W  = doc.internal.pageSize.getWidth();   // 210
+    const H  = doc.internal.pageSize.getHeight();  // 297
+    const ML = 14;   // left margin
+    const MR = 14;   // right margin
+    const RX = W - MR;  // right edge x
+    const UW = W - ML - MR;  // usable width = 182
 
-    // ── Decorative background shapes (left side) ──
-    doc.setFillColor(154, 208, 170);
-    doc.ellipse(8, 105, 22, 68, 'F');
-    doc.setFillColor(140, 185, 225);
-    doc.ellipse(18, 155, 18, 52, 'F');
-    doc.setFillColor(200, 225, 150);
-    doc.ellipse(5, 195, 14, 38, 'F');
-    doc.setFillColor(154, 208, 170);
-    doc.ellipse(10, 240, 10, 28, 'F');
-
-    // ── Title ──
+    // ── LEFT: Title + Company ──────────────────────────────────────
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(28);
-    doc.setTextColor(26, 58, 108);
-    doc.text('BON DE LIVRAISON', 14, 27);
+    doc.setFontSize(22);
+    doc.setTextColor(26, 46, 74);
+    doc.text('BON DE LIVRAISON', ML, 22);
 
-    // ── Company name ──
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
-    doc.setTextColor(70, 70, 70);
-    doc.text('TechSupply Maroc', 14, 35);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.text('Casablanca, Maroc', 14, 40);
-
-    // ── Top separator ──
-    doc.setDrawColor(26, 58, 108);
-    doc.setLineWidth(0.5);
-    doc.line(14, 46, W - 14, 46);
-
-    // ── Info columns ──
-    const infoY = 53;
-    // Left — customer
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(26, 58, 108);
-    doc.text('LIVRÉ À', 14, infoY);
-    doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(50, 50, 50);
-    doc.text(note.customerName, 14, infoY + 6);
-    if (note.deliveryAddress) {
-      doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.text(note.deliveryAddress, 14, infoY + 12);
-    }
+    doc.setTextColor(26, 46, 74);
+    doc.text('TechSupply Maroc', ML, 29);
 
-    // Right — document details
-    const dX = W - 75;
-    const vX = W - 14;
-    let dY = infoY;
-    const row = (label: string, value: string) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(115, 115, 125);
+    doc.text('Casablanca, Maroc  ·  contact@techsupply.ma  ·  +212 5XX XXX XXX', ML, 34);
+
+    // ── RIGHT: Logo placeholder ────────────────────────────────────
+    const logoX = RX - 48;
+    const logoY = 12;
+    const logoW = 22;
+    const logoH = 12;
+    doc.setDrawColor(200, 205, 218);
+    doc.setFillColor(248, 249, 252);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(logoX, logoY, logoW, logoH, 2, 2, 'FD');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(170, 175, 192);
+    doc.text('LOGO', logoX + logoW / 2, logoY + logoH / 2 + 1, { align: 'center' });
+
+    // ── RIGHT: Document info box ───────────────────────────────────
+    const ibX = RX - 48;
+    const ibY = logoY + logoH + 3;
+    const ibW = 48;
+    const ibH = 24;
+    doc.setDrawColor(210, 218, 232);
+    doc.setFillColor(248, 250, 253);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(ibX, ibY, ibW, ibH, 2, 2, 'FD');
+
+    const statusLabel = note.status === 'VALIDATED' ? 'VALIDÉ' : 'BROUILLON';
+    let ibRowY = ibY + 6;
+    const ibRows: [string, string][] = [
+      ['BON N°', note.reference],
+      ['DATE', new Date(note.createdAt).toLocaleDateString('fr-FR')],
+      ['STATUT', statusLabel],
+    ];
+    ibRows.forEach(([label, value]) => {
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(26, 58, 108);
-      doc.text(label, dX, dY);
+      doc.setFontSize(6.5);
+      doc.setTextColor(26, 46, 74);
+      doc.text(label, ibX + 3, ibRowY);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(50, 50, 50);
-      doc.text(value, vX, dY, { align: 'right' });
-      dY += 7;
-    };
-    row('BON N°', note.reference);
-    row('DATE', new Date(note.createdAt).toLocaleDateString('fr-FR'));
-    if (note.deliveryDate) row('LIVRAISON', new Date(note.deliveryDate).toLocaleDateString('fr-FR'));
-    row('STATUT', note.status);
-
-    // ── Second separator ──
-    doc.setDrawColor(26, 58, 108);
-    doc.setLineWidth(0.5);
-    doc.line(14, 87, W - 14, 87);
-
-    // ── Table ──
-    autoTable(doc, {
-      startY: 92,
-      head: [['DÉSIGNATION', 'QTÉ COMMANDÉE', 'QTÉ LIVRÉE', 'REMARQUES']],
-      body: (note.lines || []).map(l => [
-        l.itemName,
-        l.orderedQuantity.toString(),
-        l.deliveredQuantity.toString(),
-        l.notes ?? '',
-      ]),
-      headStyles: { fillColor: [26, 58, 108], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, halign: 'center' },
-      bodyStyles: { fontSize: 8.5, textColor: [50, 50, 50] },
-      alternateRowStyles: { fillColor: [235, 242, 255] },
-      columnStyles: {
-        1: { halign: 'center', cellWidth: 36 },
-        2: { halign: 'center', cellWidth: 32 },
-        3: { cellWidth: 40 },
-      },
-      styles: { lineColor: [200, 215, 235], lineWidth: 0.2 },
-      margin: { left: 14, right: 14 },
+      doc.setFontSize(7.5);
+      doc.setTextColor(42, 47, 58);
+      doc.text(value, ibX + ibW - 3, ibRowY, { align: 'right' });
+      ibRowY += 6.5;
     });
 
-    const finalY = (doc as any).lastAutoTable?.finalY ?? 150;
+    // ── TOP SEPARATOR ──────────────────────────────────────────────
+    doc.setDrawColor(26, 46, 74);
+    doc.setLineWidth(0.5);
+    doc.line(ML, 44, RX, 44);
 
-    // ── Summary box ──
-    const totalOrdered = (note.lines || []).reduce((s, l) => s + l.orderedQuantity, 0);
-    const totalDelivered = (note.lines || []).reduce((s, l) => s + l.deliveredQuantity, 0);
+    // ── LIVRÉ À (left) ────────────────────────────────────────────
+    const sec2Y = 52;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(26, 46, 74);
+    doc.text('LIVRÉ À', ML, sec2Y);
 
-    let sY = finalY + 9;
-    const sX = W - 80;
-    const sVX = W - 14;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(25, 30, 42);
+    doc.text(note.customerName, ML, sec2Y + 7);
 
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(60, 60, 60);
-    doc.text('Total articles commandés', sX, sY);
-    doc.text(totalOrdered.toString(), sVX, sY, { align: 'right' });
+    if (note.deliveryAddress) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(80, 85, 98);
+      const addrLines = doc.splitTextToSize(note.deliveryAddress, 82);
+      doc.text(addrLines, ML, sec2Y + 14);
+    }
 
-    sY += 6;
-    doc.setDrawColor(26, 58, 108);
+    if (note.notes) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(7.5);
+      doc.setTextColor(130, 135, 148);
+      const notesLines = doc.splitTextToSize(note.notes, 82);
+      doc.text(notesLines, ML, sec2Y + (note.deliveryAddress ? 22 : 14));
+    }
+
+    // ── META (right) ───────────────────────────────────────────────
+    const metaX = W / 2 + 5;
+    let metaRowY = sec2Y;
+    const metaRows: [string, string][] = [];
+    if (note.deliveryDate) {
+      metaRows.push(['DATE DE LIVRAISON', new Date(note.deliveryDate).toLocaleDateString('fr-FR')]);
+    }
+    if (note.quoteId) {
+      metaRows.push(['RÉFÉRENCE DEVIS', note.quoteId]);
+    }
+    metaRows.push(['CRÉÉ LE', new Date(note.createdAt).toLocaleDateString('fr-FR')]);
+
+    metaRows.forEach(([label, value]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(26, 46, 74);
+      doc.text(label, metaX, metaRowY);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(42, 47, 58);
+      doc.text(value, RX, metaRowY, { align: 'right' });
+      metaRowY += 7;
+    });
+
+    // ── SECTION SEPARATOR ──────────────────────────────────────────
+    doc.setDrawColor(210, 218, 228);
     doc.setLineWidth(0.3);
-    doc.line(sX, sY, sVX, sY);
+    doc.line(ML, 80, RX, 80);
 
-    sY += 7;
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(26, 58, 108);
-    doc.text('TOTAL LIVRÉ', sX, sY);
-    doc.text(totalDelivered.toString(), sVX, sY, { align: 'right' });
+    // ── ITEMS TABLE ────────────────────────────────────────────────
+    const pdfHasPrices = (note.lines || []).some(l => l.unitPrice != null && l.unitPrice > 0);
+    const pdfFmtPrice = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
 
-    // ── Footer ──
-    doc.setDrawColor(26, 58, 108);
-    doc.setLineWidth(0.4);
-    doc.line(14, H - 33, W - 14, H - 33);
+    const tableHead = pdfHasPrices
+      ? [['DÉSIGNATION', 'QTÉ CMD', 'QTÉ LIVRÉE', 'PRIX UNIT.', 'MONTANT', 'REMARQUES']]
+      : [['DÉSIGNATION', 'QTÉ COMMANDÉE', 'QTÉ LIVRÉE', 'REMARQUES']];
 
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(26, 58, 108);
-    doc.text('CONDITIONS ET MODALITÉS DE LIVRAISON', 14, H - 26);
+    const tableBody = (note.lines || []).map(l => {
+      const base = [
+        l.itemSku ? `${l.itemName}\n(SKU: ${l.itemSku})` : l.itemName,
+        l.orderedQuantity.toString(),
+        l.deliveredQuantity.toString(),
+      ];
+      if (pdfHasPrices) {
+        base.push(l.unitPrice != null ? pdfFmtPrice(l.unitPrice) : '—');
+        base.push(l.unitPrice != null ? pdfFmtPrice(l.deliveredQuantity * l.unitPrice) : '—');
+      }
+      base.push(l.notes ?? (l.lotId ? `Lot: ${l.lotId}` : l.serialId ? `S/N: ${l.serialId}` : ''));
+      return base;
+    });
+
+    const columnStyles: Record<number, object> = pdfHasPrices
+      ? {
+          0: { cellWidth: 'auto', fontStyle: 'bold' },
+          1: { halign: 'center', cellWidth: 22 },
+          2: { halign: 'center', cellWidth: 22 },
+          3: { halign: 'right', cellWidth: 30 },
+          4: { halign: 'right', cellWidth: 30 },
+          5: { cellWidth: 32, fontStyle: 'normal' },
+        }
+      : {
+          0: { cellWidth: 'auto', fontStyle: 'bold' },
+          1: { halign: 'center', cellWidth: 36 },
+          2: { halign: 'center', cellWidth: 32 },
+          3: { cellWidth: 44, fontStyle: 'normal' },
+        };
+
+    autoTable(doc, {
+      startY: 85,
+      head: tableHead,
+      body: tableBody,
+      headStyles: {
+        fillColor: [26, 46, 74],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8,
+        halign: 'center',
+        cellPadding: { top: 4, bottom: 4, left: 4, right: 4 },
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [42, 50, 65],
+        cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 },
+      },
+      alternateRowStyles: {
+        fillColor: [248, 249, 250],
+      },
+      columnStyles,
+      styles: {
+        lineColor: [220, 226, 235],
+        lineWidth: 0.2,
+        overflow: 'linebreak',
+      },
+      margin: { left: ML, right: MR },
+    });
+
+    const finalY: number = (doc as any).lastAutoTable?.finalY ?? 165;
+
+    // ── SUMMARY BOX ────────────────────────────────────────────────
+    const totalOrdered   = (note.lines || []).reduce((s, l) => s + l.orderedQuantity, 0);
+    const totalDelivered = (note.lines || []).reduce((s, l) => s + l.deliveredQuantity, 0);
+    const totalAmount    = (note.lines || []).reduce((s, l) => s + (l.deliveredQuantity * (l.unitPrice ?? 0)), 0);
+
+    const sumBoxX = W / 2 + 20;
+    const sumBoxW = RX - sumBoxX;
+    const sumBoxY = finalY + 8;
+    const sumBoxH = pdfHasPrices ? 30 : 22;
+
+    doc.setFillColor(248, 250, 253);
+    doc.setDrawColor(210, 218, 232);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(sumBoxX, sumBoxY, sumBoxW, sumBoxH, 2, 2, 'FD');
 
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
-    doc.text('Merci de vérifier la marchandise à la réception et de signaler toute anomalie.', 14, H - 20);
-    doc.text('Pour toute réclamation, contactez notre service logistique.', 14, H - 14);
+    doc.setFontSize(8);
+    doc.setTextColor(75, 82, 98);
+    doc.text('Total articles commandés', sumBoxX + 4, sumBoxY + 7);
+    doc.setFontSize(8.5);
+    doc.setTextColor(42, 47, 58);
+    doc.text(totalOrdered.toString(), sumBoxX + sumBoxW - 4, sumBoxY + 7, { align: 'right' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(75, 82, 98);
+    doc.text('Total articles livrés', sumBoxX + 4, sumBoxY + 14);
+    doc.setFontSize(8.5);
+    doc.setTextColor(42, 47, 58);
+    doc.text(totalDelivered.toString(), sumBoxX + sumBoxW - 4, sumBoxY + 14, { align: 'right' });
+
+    doc.setDrawColor(210, 218, 232);
+    doc.setLineWidth(0.2);
+    doc.line(sumBoxX + 4, sumBoxY + (pdfHasPrices ? 18 : 11), sumBoxX + sumBoxW - 4, sumBoxY + (pdfHasPrices ? 18 : 11));
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(26, 46, 74);
+    doc.text('MONTANT TOTAL', sumBoxX + 4, sumBoxY + (pdfHasPrices ? 26 : 18));
+    doc.text(
+      pdfHasPrices ? pdfFmtPrice(totalAmount) : `${totalDelivered} unités`,
+      sumBoxX + sumBoxW - 4,
+      sumBoxY + (pdfHasPrices ? 26 : 18),
+      { align: 'right' },
+    );
+
+    // ── FOOTER SEPARATOR ───────────────────────────────────────────
+    doc.setDrawColor(26, 46, 74);
+    doc.setLineWidth(0.4);
+    doc.line(ML, H - 52, RX, H - 52);
+
+    // ── SIGNATURE ZONE ─────────────────────────────────────────────
+    const sigZoneY = H - 49;
+    const sigBoxW  = (UW - 8) / 2;
+    const sig1X    = ML;
+    const sig2X    = ML + sigBoxW + 8;
+    const sigBoxH  = 26;
+
+    // Box 1 — Signature émetteur
+    doc.setDrawColor(200, 210, 228);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(sig1X, sigZoneY, sigBoxW, sigBoxH, 2, 2, 'S');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(26, 46, 74);
+    doc.text('Signature émetteur', sig1X + sigBoxW / 2, sigZoneY + 6, { align: 'center' });
+    doc.setDrawColor(188, 198, 215);
+    doc.setLineWidth(0.3);
+    doc.line(sig1X + 12, sigZoneY + 21, sig1X + sigBoxW - 12, sigZoneY + 21);
+
+    // Box 2 — Signature récepteur
+    doc.setDrawColor(200, 210, 228);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(sig2X, sigZoneY, sigBoxW, sigBoxH, 2, 2, 'S');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(26, 46, 74);
+    doc.text('Signature récepteur', sig2X + sigBoxW / 2, sigZoneY + 6, { align: 'center' });
+    doc.setDrawColor(188, 198, 215);
+    doc.setLineWidth(0.3);
+    doc.line(sig2X + 12, sigZoneY + 21, sig2X + sigBoxW - 12, sigZoneY + 21);
+
+    // ── TERMS LINE ─────────────────────────────────────────────────
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(155, 160, 172);
+    doc.text(
+      'Marchandise vérifiée à la réception — Toute réclamation doit être signalée dans les 48h — TechSupply Maroc © 2024',
+      W / 2,
+      H - 8,
+      { align: 'center' },
+    );
 
     const pdfUrl = doc.output('bloburl');
-    window.open(pdfUrl, '_blank');
+    window.open(pdfUrl as unknown as string, '_blank');
   };
+
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const filtered = useMemo(() =>
     notes.filter(n =>
@@ -762,7 +1177,12 @@ const DeliveryNotesPage = () => {
       </div>
 
       {/* Modals */}
-      <DetailModal open={isDetailOpen} onClose={() => setIsDetailOpen(false)} note={selectedNote} />
+      <DetailModal
+        open={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        note={selectedNote}
+        onDownload={generateDeliveryNotePDF}
+      />
       <DeliveryNoteFormModal
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}

@@ -115,12 +115,16 @@ const NavItemLink = ({ item, onClose }: { item: NavItem; onClose?: () => void })
       onClick={onClose}
       className={({ isActive }) =>
         cn(
-          'flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-xl transition-all duration-150 relative',
+          'flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 relative',
           isActive
-            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25'
-            : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100/80 dark:hover:bg-neutral-800/80',
+            ? 'text-white shadow-md'
+            : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-primary-50/80 dark:hover:bg-primary-900/10',
         )
       }
+      style={({ isActive }) => isActive ? {
+        background: 'linear-gradient(135deg, #4F46E5 0%, #6366F1 60%, #4338CA 100%)',
+        boxShadow: '0 2px 8px rgba(79,70,229,0.35), 0 4px 16px rgba(79,70,229,0.20)',
+      } : {}}
     >
       {({ isActive }) => (
         <>
@@ -169,7 +173,10 @@ const NavGroupSection = ({ group, onClose }: { group: NavGroup; onClose?: () => 
       >
         <div className="flex items-center gap-1.5">
           <GroupIcon className="w-3 h-3 text-neutral-400 dark:text-neutral-600" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-600 group-hover:text-neutral-600 dark:group-hover:text-neutral-400 transition-colors">
+          <span
+            className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-600 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors"
+            style={{ fontFamily: 'Plus Jakarta Sans, system-ui, sans-serif', letterSpacing: '0.08em' }}
+          >
             {t(group.label)}
           </span>
         </div>
