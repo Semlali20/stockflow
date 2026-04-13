@@ -1,0 +1,41 @@
+package com.stock.alertservice.controller;
+
+import com.stock.alertservice.entity.DeadLetterMessage;
+import com.stock.alertservice.repository.DeadLetterMessageRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/dlq")
+@RequiredArgsConstructor
+public class DeadLetterQueueController {
+
+    private final DeadLetterMessageRepository dlqRepository;
+
+    @GetMapping
+    public ResponseEntity<List<DeadLetterMessage>> getAllDLQ() {
+        return ResponseEntity.ok(dlqRepository.findAll());
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("total", dlqRepository.count());
+        stats.put("pending", dlqRepository.countByStatus(DeadLetterMessage.DLQStatus.PENDING));
+        stats.put("resolved", dlqRepository.countByStatus(DeadLetterMessage.DLQStatus.RESOLVED));
+        stats.put("failed", dlqRepository.countByStatus(DeadLetterMessage.DLQStatus.FAILED));
+        return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DeadLetterMessage> getById(@PathVariable String id) {
+        return dlqRepository.findById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+}

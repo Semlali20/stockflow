@@ -1,0 +1,208 @@
+  // frontend/src/config/constants.ts
+  
+  export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  
+  export const API_ENDPOINTS = {
+    // Auth
+    AUTH: {
+      LOGIN: '/api/auth/login',
+      REGISTER: '/api/auth/register',
+      REFRESH: '/api/auth/refresh',
+      LOGOUT: '/api/auth/logout',
+      ME: '/api/auth/me',
+      VERIFY_EMAIL: '/api/auth/verify-email',
+      FORGOT_PASSWORD: '/api/auth/forgot-password',
+      RESET_PASSWORD: '/api/auth/reset-password',
+      CHANGE_PASSWORD: '/api/auth/change-password',
+    },
+
+    // Users
+    USERS: {
+      USERS: '/api/users',
+      USER_BY_ID: (id: string) => `/api/users/${id}`,
+      CURRENT_USER: '/api/users/me',
+      PREFERENCES: '/api/users/preferences',
+    },
+  
+    // Products
+    PRODUCTS: {
+      ITEMS: '/api/items',
+      ITEM_BY_ID: (id: string) => `/api/items/${id}`,
+      CATEGORIES: '/api/categories',
+      CATEGORY_BY_ID: (id: string) => `/api/categories/${id}`,
+      ITEM_VARIANTS: '/api/item-variants',
+      ITEM_VARIANT_BY_ID: (id: string) => `/api/item-variants/${id}`,
+      // CSV Export/Import
+      ITEMS_EXPORT_CSV: '/api/items/export/csv',
+      ITEMS_IMPORT_CSV: '/api/items/import/csv',
+      CATEGORIES_EXPORT_CSV: '/api/categories/export/csv',
+      CATEGORIES_IMPORT_CSV: '/api/categories/import/csv',
+    },
+  
+    // Inventory
+    INVENTORY: {
+      INVENTORY: '/api/inventory',
+      INVENTORY_BY_ID: (id: string) => `/api/inventory/${id}`,
+      LOTS: '/api/lots',
+      LOT_BY_ID: (id: string) => `/api/lots/${id}`,
+      SERIALS: '/api/serials',
+      SERIAL_BY_ID: (id: string) => `/api/serials/${id}`,
+      INVENTORY_EXPORT_CSV: '/api/inventory/export/csv',
+      INVENTORY_IMPORT_CSV: '/api/inventory/import/csv',
+      LOTS_EXPORT_CSV: '/api/lots/export/csv',
+      LOTS_IMPORT_CSV: '/api/lots/import/csv',
+    },
+  
+    // Movements
+    MOVEMENTS: {
+      MOVEMENTS: '/api/movements',
+      MOVEMENT_BY_ID: (id: string) => `/api/movements/${id}`,
+      MOVEMENT_LINES: '/api/movement-lines',
+      MOVEMENT_LINE_BY_ID: (id: string) => `/api/movement-lines/${id}`,
+      MOVEMENT_TASKS: '/api/movement-tasks',
+      MOVEMENT_TASK_BY_ID: (id: string) => `/api/movement-tasks/${id}`,
+      MOVEMENTS_EXPORT_CSV: '/api/movements/export/csv',
+    },
+  
+    // Locations
+    LOCATIONS: {
+      SITES: '/api/sites',
+      SITE_BY_ID: (id: string) => `/api/sites/${id}`,
+      WAREHOUSES: '/api/warehouses',
+      WAREHOUSE_BY_ID: (id: string) => `/api/warehouses/${id}`,
+      LOCATIONS: '/api/locations',
+      LOCATION_BY_ID: (id: string) => `/api/locations/${id}`,
+    },
+  
+    // Purchase
+    PURCHASE: {
+      SUPPLIERS: '/api/suppliers',
+      SUPPLIER_BY_ID: (id: string) => `/api/suppliers/${id}`,
+      PURCHASE_ORDERS: '/api/purchase-orders',
+      PURCHASE_ORDER_BY_ID: (id: string) => `/api/purchase-orders/${id}`,
+    },
+
+    // Sales
+    SALES: {
+      CUSTOMERS: '/api/customers',
+      CUSTOMER_BY_ID: (id: string) => `/api/customers/${id}`,
+      QUOTES: '/api/quotes',
+      QUOTE_BY_ID: (id: string) => `/api/quotes/${id}`,
+      DELIVERY_NOTES: '/api/delivery-notes',
+      DELIVERY_NOTE_BY_ID: (id: string) => `/api/delivery-notes/${id}`,
+    },
+
+    // Roles & Permissions
+    ROLES: {
+      ROLES: '/api/roles',
+      ROLE_BY_ID: (id: string) => `/api/roles/${id}`,
+      ROLE_PERMISSIONS: (id: string) => `/api/roles/${id}/permissions`,
+      ROLE_ACTIVATE: (id: string) => `/api/roles/${id}/activate`,
+      ROLE_DEACTIVATE: (id: string) => `/api/roles/${id}/deactivate`,
+    },
+
+    PERMISSIONS: {
+      PERMISSIONS: '/api/permissions',
+      PERMISSION_BY_ID: (id: string) => `/api/permissions/${id}`,
+      PERMISSIONS_BY_CATEGORY: (cat: string) => `/api/permissions/category/${cat}`,
+    },
+
+    // Alerts
+    ALERTS: {
+      ALERTS: '/api/alerts',
+      ALERT_BY_ID: (id: string) => `/api/alerts/${id}`,
+      NOTIFICATIONS: '/api/notifications',
+      NOTIFICATION_BY_ID: (id: string) => `/api/notifications/${id}`,
+      RULES: '/api/rules',
+      RULE_BY_ID: (id: string) => `/api/rules/${id}`,
+      CHANNELS: '/api/notification-channels',
+      CHANNEL_BY_ID: (id: string) => `/api/notification-channels/${id}`,
+      TEMPLATES: '/api/notification-templates',
+      TEMPLATE_BY_ID: (id: string) => `/api/notification-templates/${id}`,
+    },
+  };
+  
+  export const STORAGE_KEYS = {
+    ACCESS_TOKEN: 'access_token',
+    REFRESH_TOKEN: 'refresh_token',
+    USER: 'user',
+    THEME: 'theme',
+    LANGUAGE: 'language',
+  } as const;
+  
+  export const ROUTES = {
+    HOME: '/',
+    LOGIN: '/login',
+    REGISTER: '/register',
+    VERIFY_EMAIL: '/verify-email',
+    FORGOT_PASSWORD: '/forgot-password',
+    RESET_PASSWORD: '/reset-password',
+    DASHBOARD: '/dashboard',
+    
+    // Products
+    PRODUCTS: '/products',
+    PRODUCTS_ITEMS: '/products/items',
+    PRODUCTS_ITEM_VARIANTS: '/products/item-variants',
+    CATEGORIES: '/categories',
+    PRODUCT_DETAIL: (id: string) => `/products/${id}`,
+    
+    // Inventory
+    INVENTORY: '/inventory',
+    INVENTORY_LOTS: '/inventory/lots',
+    INVENTORY_SERIALS: '/inventory/serials',
+    
+    // Movements
+    MOVEMENTS: '/movements',
+    MOVEMENT_DETAIL: (id: string) => `/movements/${id}`,
+    
+    // Locations
+    LOCATIONS: '/locations',
+    LOCATIONS_SITES: '/locations/sites',
+    LOCATIONS_WAREHOUSES: '/locations/warehouses',
+    
+    // Purchase
+    PURCHASE: '/purchase',
+    SUPPLIERS: '/purchase/suppliers',
+    PURCHASE_ORDERS: '/purchase/orders',
+
+    // Sales
+    SALES: '/sales',
+    CUSTOMERS: '/sales/customers',
+    QUOTES: '/sales/quotes',
+    DELIVERY_NOTES: '/sales/delivery-notes',
+
+    // Alerts
+    ALERTS: '/alerts',
+    NOTIFICATIONS: '/alerts/notifications',
+    
+    // Settings
+    PROFILE: '/profile',
+    SETTINGS: '/settings',
+  } as const;
+  
+  export const APP_CONFIG = {
+    APP_NAME: import.meta.env.VITE_APP_NAME || 'Stock Management System',
+    APP_VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
+    DEFAULT_PAGE_SIZE: 20,
+    MAX_PAGE_SIZE: 100,
+    DEBOUNCE_DELAY: 500,
+    REQUEST_TIMEOUT: 30000,
+  } as const;
+  
+  export const DATE_FORMATS = {
+    DISPLAY: 'PPp',
+    DATE_ONLY: 'PP',
+    TIME_ONLY: 'p',
+    ISO: "yyyy-MM-dd'T'HH:mm:ss",
+    DATE_INPUT: 'yyyy-MM-dd',
+    DATETIME_INPUT: "yyyy-MM-dd'T'HH:mm",
+  } as const;
+  
+  export default {
+    API_BASE_URL,
+    API_ENDPOINTS,
+    STORAGE_KEYS,
+    ROUTES,
+    APP_CONFIG,
+    DATE_FORMATS,
+  };

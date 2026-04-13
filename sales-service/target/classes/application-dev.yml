@@ -1,0 +1,24 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5442/sales_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+services:
+  inventory-service:
+    url: http://localhost:8086
+
+logging:
+  level:
+    com.stock.salesservice: DEBUG
+    org.springframework.security: DEBUG

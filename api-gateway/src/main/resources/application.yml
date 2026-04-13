@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:4200"
+              - "http://localhost:8080"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+# Disable Eureka
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+# JWT Configuration (default = localhost)
+jwt:
+  jwks-url: http://localhost:8083/.well-known/jwks.json
+
+# Service URLs (default = localhost for running locally)
+services:
+  auth-service:
+    url: http://localhost:8083
+  product-service:
+    url: http://localhost:8082
+  inventory-service:
+    url: http://localhost:8086
+  movement-service:
+    url: http://localhost:8084
+  location-service:
+    url: http://localhost:8085
+  alert-service:
+    url: http://localhost:8088
+  purchase-service:
+    url: http://localhost:8089
+  sales-service:
+    url: http://localhost:8090
+
+# Server Configuration
+server:
+  port: 8080
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.stock.apigateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# Actuator info
+info:
+  app:
+    name: ${spring.application.name}
+    description: API Gateway for Stock Management System
+    version: 1.0.0

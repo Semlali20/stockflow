@@ -1,0 +1,20 @@
+
+spring:
+  application:
+    name: movement-service
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 52MB
+
+server:
+  port: 8084
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# Audit logging
+audit:
+  service:
+    url: http://localhost:8083

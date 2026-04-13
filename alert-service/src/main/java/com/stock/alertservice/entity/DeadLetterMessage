@@ -1,0 +1,69 @@
+package com.stock.alertservice.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "dead_letter_messages")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DeadLetterMessage {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @Column(name = "original_topic", nullable = false)
+    private String originalTopic;
+
+    @Column(name = "dlq_topic", nullable = false)
+    private String dlqTopic;
+
+    @Column(name = "partition_number")
+    private Integer partition;
+
+    @Column(name = "offset_number")
+    private Long offset;
+
+    @Column(name = "message_key")
+    private String messageKey;
+
+    @Lob
+    @Column(name = "message_payload", columnDefinition = "TEXT")
+    private String messagePayload;
+
+    @Column(name = "error_message", columnDefinition = "TEXT")
+    private String errorMessage;
+
+    @Column(name = "retry_count")
+    private Integer retryCount;
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private DLQStatus status;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        if (status == null) {
+            status = DLQStatus.PENDING;
+        }
+        if (retryCount == null) {
+            retryCount = 0;
+        }
+    }
+
+    public enum DLQStatus {
+        PENDING, RESOLVED, FAILED
+    }
+}

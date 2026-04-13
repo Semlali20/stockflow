@@ -1,0 +1,36 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5435/location_db
+    username: location_user
+    password: location_pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+  data:
+    redis:
+      host: localhost
+      port: 6378
+
+  # ✅ ADD THIS SECTION (pointing to localhost for local testing)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8083
+          jwk-set-uri: http://localhost:8083/.well-known/jwks.json
+
+logging:
+  level:
+    com.stock.locationservice: DEBUG
+    org.springframework.security: DEBUG

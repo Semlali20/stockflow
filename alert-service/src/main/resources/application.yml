@@ -1,0 +1,35 @@
+
+spring:
+  application:
+    name: alert-service
+  profiles:
+    active: dev
+
+  # Mail configuration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: houarimehdi7@gmail.com
+    password: nnoivyxhebwhdhye
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+app:
+  admin:
+    email: ${APP_ADMIN_EMAIL:admin@stock-management.com}
+  dashboard:
+    url: ${APP_DASHBOARD_URL:http://localhost:5173}
+
+server:
+  port: 8088
+  error:
+    include-message: always
+    include-binding-errors: always
