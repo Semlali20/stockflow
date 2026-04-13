@@ -1018,17 +1018,7 @@ const GeneralSettingsTab: React.FC = () => {
                 <div>
                   <SectionTitle icon={<ShieldCheck className="w-5 h-5" />} title={t('settings.security')} subtitle={t('settings.securitySubtitle')} />
                   <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                    <SettingRow label={t('settings.twoFactor')} description={t('settings.twoFactorDesc')}>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-medium ${localSettings.twoFactorEnabled ? 'text-green-600 dark:text-green-400' : 'text-neutral-400'}`}>
-                          {localSettings.twoFactorEnabled ? t('settings.twoFactorEnabled') : t('settings.twoFactorDisabled')}
-                        </span>
-                        <Toggle checked={localSettings.twoFactorEnabled} onChange={v => {
-                          set('twoFactorEnabled', v);
-                          toast(v ? '2FA enabled — connect your authenticator app' : '2FA disabled', { icon: v ? '🔐' : '⚠️' });
-                        }} />
-                      </div>
-                    </SettingRow>
+
                     <SettingRow label={t('settings.loginNotifications')} description={t('settings.loginNotificationsDesc')}>
                       <Toggle checked={localSettings.loginNotifications} onChange={v => set('loginNotifications', v)} />
                     </SettingRow>
