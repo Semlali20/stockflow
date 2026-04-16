@@ -18,8 +18,6 @@ import java.util.List;
 @Builder
 public class DeliveryNoteRequest {
 
-    private String quoteId;
-
     @NotBlank(message = "Customer ID is required")
     private String customerId;
 

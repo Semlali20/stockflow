@@ -50,7 +50,6 @@ public class DeliveryNoteServiceImpl implements DeliveryNoteService {
 
         DeliveryNote deliveryNote = DeliveryNote.builder()
                 .reference(reference)
-                .quoteId(request.getQuoteId())
                 .customerId(request.getCustomerId())
                 .customerName(request.getCustomerName())
                 .inventoryId(request.getInventoryId())

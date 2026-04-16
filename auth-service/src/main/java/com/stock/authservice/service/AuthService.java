@@ -307,7 +307,6 @@ public class AuthService {
 
         // Validate MFA code
         if (!mfaService.validateMfaCode(user, request.getMfaCode())) {
-            auditLogService.logFailedLogin(username, ipAddress, "Invalid MFA code");
             throw new InvalidCredentialsException("Invalid MFA code");
         }
 

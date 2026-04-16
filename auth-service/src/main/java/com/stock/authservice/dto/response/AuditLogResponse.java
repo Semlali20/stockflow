@@ -16,6 +16,8 @@ public class AuditLogResponse {
     private String id;
     private String userId;
     private String username;
+    private String firstName;
+    private String lastName;
     private String action;
     private String resourceType;
     private String resourceId;

@@ -45,6 +45,7 @@ public class UserService {
     private final UserEventPublisher userEventPublisher;
     private final SecurityContextHelper securityContextHelper;
     private final EmailService emailService;
+    private final AuditLogService auditLogService;
 
     // Secure password generator
     private static final String PASSWORD_CHARS =
@@ -318,6 +319,8 @@ public class UserService {
         user.setLastPasswordChange(LocalDateTime.now());
         userRepository.save(user);
 
+        auditLogService.logPasswordChange(userId, user.getUsername(), null);
+
         log.info("Password changed successfully for user: {}", user.getUsername());
 
         return ApiResponse.success("Password changed successfully", null);
@@ -355,6 +358,13 @@ public class UserService {
         user.setDeletedAt(null);
         userRepository.save(user);
 
+        auditLogService.logAction(
+                securityContextHelper.getCurrentUserId(),
+                securityContextHelper.getCurrentUsername(),
+                "ACCOUNT_ACTIVATED", null,
+                "USER", user.getId(),
+                "Admin activated account: " + user.getUsername());
+
         log.info("User activated successfully: {}", user.getUsername());
 
         return ApiResponse.success("User activated successfully", null);
@@ -369,6 +379,13 @@ public class UserService {
 
         user.setIsActive(false);
         userRepository.save(user);
+
+        auditLogService.logAction(
+                securityContextHelper.getCurrentUserId(),
+                securityContextHelper.getCurrentUsername(),
+                "ACCOUNT_DEACTIVATED", null,
+                "USER", user.getId(),
+                "Admin deactivated account: " + user.getUsername());
 
         log.info("User deactivated successfully: {}", user.getUsername());
 
@@ -387,6 +404,13 @@ public class UserService {
         user.lock(0); // Lock indefinitely
         userRepository.save(user);
 
+        auditLogService.logAction(
+                securityContextHelper.getCurrentUserId(),
+                securityContextHelper.getCurrentUsername(),
+                "ACCOUNT_LOCKED", null,
+                "USER", user.getId(),
+                "Admin locked account: " + user.getUsername());
+
         log.info("User locked successfully: {}", user.getUsername());
 
         return ApiResponse.success("User locked successfully", null);
@@ -401,6 +425,13 @@ public class UserService {
 
         user.unlock();
         userRepository.save(user);
+
+        auditLogService.logAction(
+                securityContextHelper.getCurrentUserId(),
+                securityContextHelper.getCurrentUsername(),
+                "ACCOUNT_UNLOCKED", null,
+                "USER", user.getId(),
+                "Admin unlocked account: " + user.getUsername());
 
         log.info("User unlocked successfully: {}", user.getUsername());
 
@@ -428,6 +459,13 @@ public class UserService {
                 user.getFirstName(),
                 newRawPassword
         );
+
+        auditLogService.logAction(
+                securityContextHelper.getCurrentUserId(),
+                securityContextHelper.getCurrentUsername(),
+                "PASSWORD_RESET", null,
+                "USER", user.getId(),
+                "Admin reset password for: " + user.getUsername());
 
         log.info("Password reset by admin for user: {}", user.getUsername());
         return ApiResponse.success("New password sent to " + user.getEmail(), null);

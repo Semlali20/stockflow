@@ -776,6 +776,8 @@ export interface DeliveryNoteLine {
   orderedQuantity: number;
   deliveredQuantity: number;
   unitPrice?: number;
+  discountPercent?: number;
+  totalPrice?: number;
   lotId?: string;
   serialId?: string;
   notes?: string;

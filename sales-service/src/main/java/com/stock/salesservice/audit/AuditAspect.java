@@ -1,5 +1,6 @@
 package com.stock.salesservice.audit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -57,14 +59,27 @@ public class AuditAspect {
         }
 
         String userId = null, username = "anonymous";
+
+        // 1) Try Spring Security context (works when JWT resource server is configured)
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken jat) {
             Jwt jwt = jat.getToken();
             userId   = jwt.getClaimAsString("userId");
             username = jwt.getClaimAsString("username");
             if (username == null) username = jwt.getSubject();
-        } else if (auth != null && auth.isAuthenticated()) {
+        } else if (auth != null && auth.isAuthenticated()
+                && !"anonymousUser".equals(auth.getName())) {
             username = auth.getName();
+        }
+
+        // 2) Fallback: decode the JWT from the Authorization header directly
+        //    (no signature check — the gateway already validated the token)
+        if ("anonymous".equals(username) || username == null) {
+            String[] claims = extractJwtClaims(request);
+            if (claims != null) {
+                userId   = claims[0];   // userId claim
+                username = claims[1];   // username / sub claim
+            }
         }
 
         String targetClass  = AopUtils.getTargetClass(pjp.getTarget()).getSimpleName();
@@ -155,7 +170,7 @@ public class AuditAspect {
                         auditServiceUrl + "/internal/audit/log",
                         new HttpEntity<>(event, headers), Void.class);
             } catch (Exception e) {
-                log.debug("Audit send failed (non-critical): {}", e.getMessage());
+                log.warn("Audit send failed — {}: {}", e.getClass().getSimpleName(), e.getMessage());
             }
         });
     }
@@ -171,5 +186,30 @@ public class AuditAspect {
     private String extractIp(HttpServletRequest req) {
         String xff = req.getHeader("X-Forwarded-For");
         return (xff != null && !xff.isBlank()) ? xff.split(",")[0].trim() : req.getRemoteAddr();
+    }
+
+    /**
+     * Decode the JWT payload from the Authorization header (no signature check).
+     * Returns [userId, username] or null if the header is absent/malformed.
+     */
+    @SuppressWarnings("unchecked")
+    private String[] extractJwtClaims(HttpServletRequest req) {
+        try {
+            String bearer = req.getHeader("Authorization");
+            if (bearer == null || !bearer.startsWith("Bearer ")) return null;
+            String token   = bearer.substring(7);
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) return null;
+            String json = new String(Base64.getUrlDecoder().decode(parts[1]));
+            Map<String, Object> claims = new ObjectMapper().readValue(json, Map.class);
+            String uid  = claims.getOrDefault("userId",   "").toString();
+            String uname = claims.containsKey("username")
+                    ? claims.get("username").toString()
+                    : claims.getOrDefault("sub", "anonymous").toString();
+            return new String[]{ uid.isEmpty() ? null : uid, uname };
+        } catch (Exception e) {
+            log.debug("Could not decode JWT claims from header: {}", e.getMessage());
+            return null;
+        }
     }
 }

@@ -97,6 +97,8 @@ interface AuditLog {
   id: string;
   userId?: string;
   username?: string;
+  firstName?: string;
+  lastName?: string;
   action: string;
   resourceType?: string;
   resourceId?: string;
@@ -612,10 +614,9 @@ const ChangePasswordModal: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     if (form.newPassword.length < 8) { toast.error('Password must be at least 8 characters'); return; }
     setLoading(true);
     try {
-      await apiClient.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
+      await apiClient.put('/api/users/change-password', {
         currentPassword: form.currentPassword,
         newPassword: form.newPassword,
-        confirmPassword: form.confirmPassword,
       });
       toast.success('Password changed successfully');
       onClose();
@@ -1624,44 +1625,48 @@ const AuditLogsTab: React.FC = () => {
   const fetchLogs = useCallback(async (p = page, f = filter) => {
     setLoading(true);
     try {
+      const endpoint =
+        f === 'failed'   ? '/api/audit/failed-logins' :
+        f === 'security' ? '/api/audit/security-events' :
+        '/api/audit';
+      const params = f === 'crud'
+        ? { page: 0, size: 200, sortBy: 'timestamp', sortDirection: 'DESC' }
+        : { page: p, size: pageSize, sortBy: 'timestamp', sortDirection: 'DESC' };
+
+      const res = await apiClient.get(endpoint, { params });
+      const d = res.data as any;
+      const all: AuditLog[] = Array.isArray(d) ? d : (d.content ?? []);
+
       if (f === 'crud') {
-        // Fetch recent logs sorted by timestamp DESC, then filter CRUD actions client-side.
-        // Using /api/audit is the only backend endpoint that supports proper timestamp sorting.
-        const res = await safe(() => apiClient.get('/api/audit', {
-          params: { page: 0, size: 200, sortBy: 'timestamp', sortDirection: 'DESC' },
-        }));
-        if (res?.data) {
-          const d = res.data as any;
-          const all: AuditLog[] = Array.isArray(d) ? d : (d.content ?? []);
-          const CRUD_ACTIONS_LIST = ['CREATE', 'UPDATE', 'DELETE', 'STATUS_CHANGE', 'IMPORT', 'EXPORT'];
-          const crud = all.filter(l => CRUD_ACTIONS_LIST.some(a => l.action.includes(a)));
-          setLogs(crud);
-          setTotalElements(crud.length);
-          setTotalPages(1);
-        } else {
-          toast.error('Failed to load CRUD audit logs');
-        }
+        const CRUD_ACTIONS_LIST = ['CREATE', 'UPDATE', 'DELETE', 'STATUS_CHANGE', 'IMPORT', 'EXPORT'];
+        const crud = all.filter(l => CRUD_ACTIONS_LIST.some(a => l.action.includes(a)));
+        setLogs(crud);
+        setTotalElements(crud.length);
+        setTotalPages(1);
       } else {
-        const endpoint =
-          f === 'failed'   ? '/api/audit/failed-logins' :
-          f === 'security' ? '/api/audit/security-events' :
-          '/api/audit';
-        const params = { page: p, size: pageSize, sortBy: 'timestamp', sortDirection: 'DESC' };
-        const res = await safe(() => apiClient.get(endpoint, { params }));
-        if (res?.data) {
-          const d = res.data as any;
-          if (Array.isArray(d)) { setLogs(d); setTotalElements(d.length); setTotalPages(1); }
-          else { setLogs(d.content ?? []); setTotalElements(d.totalElements ?? 0); setTotalPages(d.totalPages ?? 1); }
-        } else {
-          toast.error('Failed to load audit logs');
-        }
+        setLogs(all);
+        setTotalElements(d.totalElements ?? all.length);
+        setTotalPages(d.totalPages ?? 1);
       }
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
+      console.error('[AuditLogs] fetch failed — status:', status, '| message:', msg, '| full error:', err);
+      if (status === 401 || status === 403) {
+        toast.error(`Access denied (${status}) — check your role/token`);
+      } else {
+        toast.error(`Failed to load audit logs (${status ?? 'network error'})`);
+      }
+      setLogs([]);
     } finally {
       setLoading(false);
     }
   }, [page, filter]);
 
   useEffect(() => { fetchLogs(page, filter); }, [page, filter]);
+
+  // Reset page when search / resource filter changes
+  useEffect(() => { setPage(0); }, [search, resourceFilter]);
 
   const filtered = logs.filter(l => {
     if (resourceFilter && l.resourceType !== resourceFilter) return false;
@@ -1678,6 +1683,13 @@ const AuditLogsTab: React.FC = () => {
     return true;
   });
 
+  // For CRUD tab: client-side pagination over filtered results
+  // For other tabs: server already paginated — show filtered as-is
+  const isCrud = filter === 'crud';
+  const effectiveTotalElements = isCrud ? filtered.length : totalElements;
+  const effectiveTotalPages    = isCrud ? Math.max(1, Math.ceil(filtered.length / pageSize)) : totalPages;
+  const displayedLogs          = isCrud ? filtered.slice(page * pageSize, (page + 1) * pageSize) : filtered;
+
   const actionColor = (action: string) => {
     const a = action.toUpperCase();
     if (a === 'CREATE')        return 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20';
@@ -1687,7 +1699,9 @@ const AuditLogsTab: React.FC = () => {
     if (a === 'IMPORT')        return 'text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20';
     if (a.includes('LOGIN'))   return 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20';
     if (a.includes('LOGOUT'))  return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-700';
-    if (a.includes('LOCK'))    return 'text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20';
+    if (a.includes('LOCK'))         return 'text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20';
+    if (a === 'ACCOUNT_DEACTIVATED') return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
+    if (a === 'ACCOUNT_ACTIVATED')   return 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20';
     if (a.includes('PASSWORD') || a.includes('RESET')) return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20';
     return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-700';
   };
@@ -1791,17 +1805,30 @@ const AuditLogsTab: React.FC = () => {
               <tr key={i}>{Array.from({ length: 6 }).map((__, j) => (
                 <td key={j} className="px-3 py-3"><div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /></td>
               ))}</tr>
-            )) : filtered.length === 0 ? (
+            )) : displayedLogs.length === 0 ? (
               <tr><td colSpan={6} className="px-4 py-10 text-center text-neutral-400 text-sm">{t('audit.noLogsFound')}</td></tr>
-            ) : filtered.map(log => {
+            ) : displayedLogs.map(log => {
               const rm = log.resourceType ? RESOURCE_META[log.resourceType] : null;
               return (
                 <tr key={log.id} className={`hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors ${log.status === 'FAILURE' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
                   <td className="px-3 py-2.5 text-xs text-neutral-500 dark:text-neutral-400 whitespace-nowrap font-mono">
                     {new Date(log.timestamp).toLocaleString()}
                   </td>
-                  <td className="px-3 py-2.5 font-semibold text-neutral-800 dark:text-neutral-200 text-xs">
-                    {log.username ?? log.userId ?? '—'}
+                  <td className="px-3 py-2.5 text-xs">
+                    {(log.firstName || log.lastName) ? (
+                      <div>
+                        <p className="font-semibold text-neutral-800 dark:text-neutral-200 leading-tight">
+                          {[log.firstName, log.lastName].filter(Boolean).join(' ')}
+                        </p>
+                        <p className="text-neutral-400 dark:text-neutral-500 leading-tight">
+                          @{log.username}
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                        {log.username ?? log.userId ?? '—'}
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2.5">
                     <span className={`inline-block px-2 py-0.5 rounded-lg text-xs font-bold ${actionColor(log.action)}`}>
@@ -1821,8 +1848,25 @@ const AuditLogsTab: React.FC = () => {
                       <span className="text-xs text-neutral-400">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-2.5 text-xs text-neutral-600 dark:text-neutral-400 max-w-[200px] truncate" title={log.details ?? undefined}>
-                    {log.details ?? '—'}
+                  <td className="px-3 py-2.5 text-xs max-w-[220px]">
+                    {log.details ? (
+                      <div>
+                        <p className="text-neutral-600 dark:text-neutral-400 truncate" title={log.details}>
+                          {log.details}
+                        </p>
+                        {log.action === 'LOGIN_FAILED' && log.ipAddress && (
+                          <p className="text-neutral-400 dark:text-neutral-500 font-mono mt-0.5">
+                            {log.ipAddress}
+                          </p>
+                        )}
+                      </div>
+                    ) : log.action === 'LOGIN_FAILED' && log.ipAddress ? (
+                      <p className="text-neutral-400 dark:text-neutral-500 font-mono">
+                        {log.ipAddress}
+                      </p>
+                    ) : (
+                      <span className="text-neutral-400">—</span>
+                    )}
                   </td>
                   <td className="px-3 py-2.5"><AuditStatusBadge status={log.status} /></td>
                 </tr>
@@ -1832,7 +1876,7 @@ const AuditLogsTab: React.FC = () => {
         </table>
       </div>
 
-      {totalPages > 1 && <Pagination page={page} totalPages={totalPages} totalElements={totalElements} size={pageSize} onPage={p => setPage(p)} />}
+      <Pagination page={page} totalPages={effectiveTotalPages} totalElements={effectiveTotalElements} size={pageSize} onPage={p => setPage(p)} />
     </div>
   );
 };

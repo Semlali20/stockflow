@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Save, ArrowLeft, Link, Package } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, Package } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import { salesService } from '@/services/sales.service';
@@ -12,7 +12,7 @@ import { productService } from '@/services/product.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import type { Customer, Warehouse, Location, Inventory, Quote, Item, Category } from '@/types';
+import type { Customer, Warehouse, Location, Inventory, Item, Category } from '@/types';
 
 interface DeliveryLine {
   itemId: string;
@@ -47,9 +47,6 @@ export const DeliveryNoteFormPage = () => {
   const [deliveryDate, setDeliveryDate] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [notes, setNotes] = useState('');
-  const [quoteId, setQuoteId] = useState('');
-  const [quoteSearch, setQuoteSearch] = useState('');
-
   // ── Master data ──────────────────────────────────────────────────
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -57,9 +54,6 @@ export const DeliveryNoteFormPage = () => {
   const [inventoryItems, setInventoryItems] = useState<Inventory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [allItems, setAllItems] = useState<Item[]>([]);
-  const [linkedQuote, setLinkedQuote] = useState<Quote | null>(null);
-  const [linkedWarehouseName, setLinkedWarehouseName] = useState('');
-  const [linkedLocationName, setLinkedLocationName] = useState('');
   const [lines, setLines] = useState<DeliveryLine[]>([]);
 
   // ── Add-item panel state (manual mode) ──────────────────────────
@@ -73,10 +67,8 @@ export const DeliveryNoteFormPage = () => {
   const [loadingWarehouses, setLoadingWarehouses] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
-  const [loadingQuote, setLoadingQuote] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [isManualMode, setIsManualMode] = useState(true);
-  const [useQuote, setUseQuote] = useState(false);
+  const [isManualMode] = useState(true);
 
   // ── Derived ──────────────────────────────────────────────────────
   // Only show items that have inventory in the selected location/warehouse
@@ -140,19 +132,6 @@ export const DeliveryNoteFormPage = () => {
       .catch(() => setAllItems([]));
   }, []);
 
-  // Resolve linked-quote warehouse name reactively
-  useEffect(() => {
-    if (linkedQuote && inventoryItems.length > 0 && !linkedWarehouseName) {
-      const wid = inventoryItems[0].warehouseId;
-      if (wid) {
-        const wh = warehouses.find(w => w.id === wid);
-        if (wh) setLinkedWarehouseName(wh.name);
-        else locationService.getWarehouseById(wid)
-          .then(w => setLinkedWarehouseName(w?.name || ''))
-          .catch(() => {});
-      }
-    }
-  }, [inventoryItems]);
 
   // ── Helpers ──────────────────────────────────────────────────────
   const loadInventoryItems = useCallback(async (wid: string) => {
@@ -212,90 +191,6 @@ export const DeliveryNoteFormPage = () => {
       // "All Locations" selected — reload full warehouse inventory
       loadInventoryItems(warehouseId);
     }
-  };
-
-  // ── Quote linking ────────────────────────────────────────────────
-  const linkQuote = async () => {
-    if (!quoteSearch.trim()) return;
-    setLoadingQuote(true);
-    try {
-      // Search quotes by reference or ID
-      const res = await salesService.getQuotes({ size: 200 });
-      const data = (res as any).data;
-      const all: Quote[] = Array.isArray(data) ? data : (data?.content || []);
-      const found = all.find(q =>
-        q.reference.toLowerCase().includes(quoteSearch.toLowerCase()) ||
-        q.id === quoteSearch
-      );
-      if (!found) { toast.error(t('deliveryForm.quoteNotFound')); return; }
-      if (found.status !== 'ACCEPTED') { toast.error(t('deliveryForm.quoteNotAccepted')); return; }
-
-      // Fetch the full quote (with lines) by ID — the list endpoint doesn't include lines
-      const fullRes = await salesService.getQuoteById(found.id);
-      const full: Quote = (fullRes as any).data || fullRes;
-
-      setLinkedQuote(full);
-      setQuoteId(full.id);
-      setCustomerId(full.customerId);
-      setCustomerName(full.customerName);
-
-      if (full.inventoryId) {
-        setWarehouseId(full.inventoryId);
-        loadInventoryItems(full.inventoryId);
-        loadLocations(full.inventoryId);
-        const local = warehouses.find(w => w.id === full.inventoryId);
-        if (local) setLinkedWarehouseName(local.name);
-        else locationService.getWarehouseById(full.inventoryId)
-          .then(w => setLinkedWarehouseName(w?.name || ''))
-          .catch(() => {});
-      }
-
-      if (full.locationId) {
-        setLocationId(full.locationId);
-        locationService.getLocationById(full.locationId)
-          .then((loc: any) => setLinkedLocationName(loc?.name || loc?.code || full.locationId))
-          .catch(() => setLinkedLocationName(full.locationId));
-      }
-
-      const quoteLines = full.lines || [];
-      setLines(quoteLines.map(l => ({
-        itemId: l.itemId,
-        itemName: l.itemName,
-        itemSku: l.itemSku || '',
-        orderedQuantity: l.quantity,
-        deliveredQuantity: l.quantity,
-        unitPrice: l.unitPrice || 0,
-        discount: l.discountPercent || 0,
-        lineTotal: computeTotal(l.quantity, l.unitPrice || 0, l.discountPercent || 0),
-        notes: '',
-        isManualRow: false,
-      })));
-      setIsManualMode(false);
-      toast.success(t('deliveryForm.quoteLinkSuccess'));
-    } catch {
-      toast.error(t('deliveryForm.quoteLinkError'));
-    } finally {
-      setLoadingQuote(false);
-    }
-  };
-
-  const unlinkQuote = () => {
-    setLinkedQuote(null);
-    setQuoteId('');
-    setQuoteSearch('');
-    setWarehouseId('');
-    setLocationId('');
-    setLocations([]);
-    setInventoryItems([]);
-    setLinkedWarehouseName('');
-    setLinkedLocationName('');
-    setLines([]);
-    setIsManualMode(true);
-  };
-
-  const handleToggleQuote = (enabled: boolean) => {
-    setUseQuote(enabled);
-    if (!enabled) unlinkQuote();
   };
 
   // ── Add item row ─────────────────────────────────────────────────
@@ -367,7 +262,7 @@ export const DeliveryNoteFormPage = () => {
       await salesService.createDeliveryNote({
         customerId,
         customerName,
-        quoteId: quoteId || undefined,
+
         inventoryId: warehouseId || undefined,
         locationId: locationId || undefined,
         deliveryDate: deliveryDate || undefined,
@@ -421,69 +316,6 @@ export const DeliveryNoteFormPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ── Left (main content) ── */}
         <div className="lg:col-span-2 space-y-6">
-        {/* ── Quote toggle ───────────────────────────────────────── */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link size={18} className="text-gray-500" />
-              <div>
-                <h2 className="text-base font-semibold text-gray-800">{t('deliveryForm.linkQuote')}</h2>
-                <p className="text-xs text-gray-400">{t('deliveryForm.linkHint')}</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleToggleQuote(!useQuote)}
-              className={`relative inline-flex items-center rounded-full transition-colors duration-200 focus:outline-none ${useQuote ? 'bg-blue-600' : 'bg-gray-200'}`}
-              style={{ width: '52px', height: '28px' }}
-              aria-label={t('deliveryForm.linkQuote')}
-            >
-              <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-200 ${useQuote ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
-          </div>
-
-          {useQuote && (
-            <div className="mt-4">
-              {linkedQuote ? (
-                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
-                  <div>
-                    <span className="font-medium text-green-800">{linkedQuote.reference}</span>
-                    <span className="text-sm text-green-600 ml-2">— {linkedQuote.customerName}</span>
-                    <span className="ml-3 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                      {t('deliveryForm.autoLoadedItems', { count: lines.length })}
-                    </span>
-                  </div>
-                  <button onClick={unlinkQuote} className="text-red-500 hover:text-red-700 text-sm font-medium">
-                    {t('deliveryForm.unlinkQuote')}
-                  </button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <Input
-                    placeholder={t('deliveryForm.searchQuotePlaceholder')}
-                    value={quoteSearch}
-                    onChange={e => setQuoteSearch(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && linkQuote()}
-                    className="flex-1"
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={linkQuote}
-                    disabled={loadingQuote}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {loadingQuote ? (
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    ) : null}
-                    {t('deliveryForm.linkButton')}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* ── Basic Info ─────────────────────────────────────────── */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">{t('quoteForm.basicInfo')}</h2>
@@ -494,26 +326,19 @@ export const DeliveryNoteFormPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('sales.deliveryNotes.customer')} *
               </label>
-              {linkedQuote ? (
-                <div className="flex items-center gap-2 border border-gray-200 bg-gray-50 rounded-md px-3 py-2 text-sm text-gray-700">
-                  <span>{customerName}</span>
-                  <span className="text-xs text-gray-400 ml-auto">{t('deliveryForm.lockedByQuote')}</span>
-                </div>
-              ) : (
-                <Select
-                  value={customerId}
-                  onChange={e => {
-                    const c = customers.find(c => c.id === e.target.value);
-                    setCustomerId(e.target.value);
-                    setCustomerName(c?.name || '');
-                  }}
-                  className="w-full"
-                  disabled={loadingCustomers}
-                >
-                  <option value="">{t('sales.quotes.selectCustomer')}</option>
-                  {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </Select>
-              )}
+              <Select
+                value={customerId}
+                onChange={e => {
+                  const c = customers.find(c => c.id === e.target.value);
+                  setCustomerId(e.target.value);
+                  setCustomerName(c?.name || '');
+                }}
+                className="w-full"
+                disabled={loadingCustomers}
+              >
+                <option value="">{t('sales.quotes.selectCustomer')}</option>
+                {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </Select>
             </div>
 
             {/* 2 — Warehouse */}
@@ -521,22 +346,15 @@ export const DeliveryNoteFormPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('quoteForm.warehouse')}
               </label>
-              {linkedQuote ? (
-                <div className="flex items-center gap-2 border border-gray-200 bg-gray-50 rounded-md px-3 py-2 text-sm text-gray-700">
-                  <span>{linkedWarehouseName || '—'}</span>
-                  <span className="text-xs text-amber-500 ml-auto">{t('deliveryForm.lockedByQuote')}</span>
-                </div>
-              ) : (
-                <Select
-                  value={warehouseId}
-                  onChange={e => handleWarehouseChange(e.target.value)}
-                  className="w-full"
-                  disabled={loadingWarehouses}
-                >
-                  <option value="">{t('quoteForm.selectWarehouse')}</option>
-                  {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                </Select>
-              )}
+              <Select
+                value={warehouseId}
+                onChange={e => handleWarehouseChange(e.target.value)}
+                className="w-full"
+                disabled={loadingWarehouses}
+              >
+                <option value="">{t('quoteForm.selectWarehouse')}</option>
+                {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+              </Select>
             </div>
 
             {/* 3 — Location */}
@@ -544,22 +362,15 @@ export const DeliveryNoteFormPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Location
               </label>
-              {linkedQuote ? (
-                <div className="flex items-center gap-2 border border-gray-200 bg-gray-50 rounded-md px-3 py-2 text-sm text-gray-700">
-                  <span>{linkedLocationName || '—'}</span>
-                  <span className="text-xs text-amber-500 ml-auto">{t('deliveryForm.lockedByQuote')}</span>
-                </div>
-              ) : (
-                <Select
-                  value={locationId}
-                  onChange={e => handleLocationChange(e.target.value)}
-                  className="w-full"
-                  disabled={!warehouseId || loadingLocations}
-                >
-                  <option value="">{warehouseId ? (loadingLocations ? 'Loading…' : 'All Locations') : 'Select warehouse first'}</option>
-                  {locations.map(l => <option key={l.id} value={l.id}>{l.name} {l.code ? `(${l.code})` : ''}</option>)}
-                </Select>
-              )}
+              <Select
+                value={locationId}
+                onChange={e => handleLocationChange(e.target.value)}
+                className="w-full"
+                disabled={!warehouseId || loadingLocations}
+              >
+                <option value="">{warehouseId ? (loadingLocations ? 'Loading…' : 'All Locations') : 'Select warehouse first'}</option>
+                {locations.map(l => <option key={l.id} value={l.id}>{l.name} {l.code ? `(${l.code})` : ''}</option>)}
+              </Select>
             </div>
 
             {/* 4 — Delivery Date */}
