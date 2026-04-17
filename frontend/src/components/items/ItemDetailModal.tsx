@@ -1,5 +1,6 @@
 // src/components/items/ItemDetailModal.tsx
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { X, Edit, Package, Tag, Calendar, Clock, CheckCircle, XCircle, AlertTriangle, Thermometer, Image as ImageIcon } from 'lucide-react';
 import { Item } from '@/types';
 import { useTranslation } from 'react-i18next';
@@ -42,8 +43,8 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
     console.error('Error parsing temperature controls:', error);
   }
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[95vh] overflow-y-auto shadow-2xl">
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl">
@@ -277,6 +278,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

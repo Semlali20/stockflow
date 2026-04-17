@@ -1,6 +1,7 @@
 // frontend/src/pages/sales/DeliveryNotesPage.tsx
 
 import { useState, useEffect, useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -83,8 +84,12 @@ const DetailModal = ({
   if (!open || !note) return null;
 
   const totalOrdered = (note.lines || []).reduce((s, l) => s + l.orderedQuantity, 0);
-  const totalDelivered = (note.lines || []).reduce((s, l) => s + l.deliveredQuantity, 0);
-  const totalAmount = (note.lines || []).reduce((s, l) => s + (l.deliveredQuantity * (l.unitPrice ?? 0)), 0);
+  const totalDelivered = totalOrdered;
+  const totalAmount = (note.lines || []).reduce((s, l) => {
+    if (l.totalPrice != null && l.totalPrice > 0) return s + l.totalPrice;
+    const qty = l.deliveredQuantity > 0 ? l.deliveredQuantity : l.orderedQuantity;
+    return s + (qty * (l.unitPrice ?? 0));
+  }, 0);
   const hasPrices = (note.lines || []).some(l => l.unitPrice != null && l.unitPrice > 0);
   const fmtPrice = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
 
@@ -95,12 +100,12 @@ const DetailModal = ({
   const statusColor = note.status === 'VALIDATED' ? '#1a5e3f' : '#6b5500';
   const statusBg   = note.status === 'VALIDATED' ? '#d1fae5' : '#fef9c3';
 
-  return (
+  return ReactDOM.createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
           <motion.div
@@ -269,12 +274,10 @@ const DetailModal = ({
                     <tr>
                       {[
                         { label: 'DÉSIGNATION', align: 'left' },
-                        { label: 'QTÉ COMMANDÉE', align: 'center' },
                         { label: 'QTÉ LIVRÉE', align: 'center' },
-                        ...(hasPrices ? [
-                          { label: 'PRIX UNIT.', align: 'right' },
-                          { label: 'MONTANT', align: 'right' },
-                        ] : []),
+                        { label: 'PRIX UNIT. HT', align: 'right' },
+                        { label: 'REMISE', align: 'center' },
+                        { label: 'MONTANT HT', align: 'right' },
                         { label: 'REMARQUES', align: 'left' },
                       ].map((h) => (
                         <th
@@ -299,7 +302,7 @@ const DetailModal = ({
                     {(note.lines || []).length === 0 ? (
                       <tr>
                         <td
-                          colSpan={hasPrices ? 6 : 4}
+                          colSpan={6}
                           style={{ padding: '8mm', textAlign: 'center', color: '#aaa', fontStyle: 'italic', fontSize: '8pt', border: '1px solid #dee2e6' }}
                         >
                           Aucune ligne
@@ -317,19 +320,15 @@ const DetailModal = ({
                           <td style={{ padding: '3.5mm 5mm', textAlign: 'center', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748', fontFamily: 'monospace' }}>
                             {line.orderedQuantity}
                           </td>
-                          <td style={{ padding: '3.5mm 5mm', textAlign: 'center', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748', fontFamily: 'monospace' }}>
-                            {line.deliveredQuantity}
+                          <td style={{ padding: '3.5mm 5mm', textAlign: 'right', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                            {line.unitPrice != null ? fmtPrice(line.unitPrice) : '—'}
                           </td>
-                          {hasPrices && (
-                            <>
-                              <td style={{ padding: '3.5mm 5mm', textAlign: 'right', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-                                {line.unitPrice != null ? fmtPrice(line.unitPrice) : '—'}
-                              </td>
-                              <td style={{ padding: '3.5mm 5mm', textAlign: 'right', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#1a2e4a', fontWeight: 600, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-                                {line.unitPrice != null ? fmtPrice(line.deliveredQuantity * line.unitPrice) : '—'}
-                              </td>
-                            </>
-                          )}
+                          <td style={{ padding: '3.5mm 5mm', textAlign: 'center', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#2d3748', fontFamily: 'monospace' }}>
+                            {line.discountPercent != null && line.discountPercent > 0 ? `${line.discountPercent}%` : '—'}
+                          </td>
+                          <td style={{ padding: '3.5mm 5mm', textAlign: 'right', borderBottom: '1px solid #dee2e6', borderRight: '1px solid #dee2e6', color: '#1a2e4a', fontWeight: 600, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                            {line.totalPrice != null ? fmtPrice(line.totalPrice) : line.unitPrice != null ? fmtPrice(line.orderedQuantity * line.unitPrice) : '—'}
+                          </td>
                           <td style={{ padding: '3.5mm 5mm', borderBottom: '1px solid #dee2e6', color: '#555', fontSize: '8pt' }}>
                             {line.notes ?? (line.lotId ? `Lot: ${line.lotId}` : line.serialId ? `S/N: ${line.serialId}` : '—')}
                           </td>
@@ -406,7 +405,8 @@ const DetailModal = ({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 };
 
@@ -453,7 +453,6 @@ const DeliveryNoteFormModal = ({
 }) => {
   const { t } = useTranslation();
   const [customerId, setCustomerId] = useState('');
-  const [quoteId, setQuoteId] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [notes, setNotes] = useState('');
@@ -463,7 +462,6 @@ const DeliveryNoteFormModal = ({
   useEffect(() => {
     if (note) {
       setCustomerId(note.customerId);
-      setQuoteId(note.quoteId ?? '');
       setDeliveryDate(note.deliveryDate?.slice(0, 10) ?? '');
       setDeliveryAddress(note.deliveryAddress ?? '');
       setNotes(note.notes ?? '');
@@ -484,7 +482,6 @@ const DeliveryNoteFormModal = ({
       }
     } else {
       setCustomerId('');
-      setQuoteId('');
       setDeliveryDate('');
       setDeliveryAddress('');
       setNotes('');
@@ -502,7 +499,6 @@ const DeliveryNoteFormModal = ({
     try {
       const payload = {
         customerId,
-        quoteId: quoteId.trim() || undefined,
         deliveryDate: deliveryDate || undefined,
         deliveryAddress: deliveryAddress.trim() || undefined,
         notes: notes.trim() || undefined,
@@ -540,12 +536,12 @@ const DeliveryNoteFormModal = ({
     ...customers.map(c => ({ value: c.id, label: c.name })),
   ];
 
-  return (
+  return ReactDOM.createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
           <motion.div
@@ -654,7 +650,8 @@ const DeliveryNoteFormModal = ({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 };
 
@@ -697,6 +694,55 @@ const DeliveryNotesPage = () => {
 
   useEffect(() => { fetchNotes(); }, [statusFilter, customerFilter]);
   useEffect(() => { fetchCustomers(); }, []);
+
+  const openDetail = async (note: DeliveryNote) => {
+    try {
+      const res = await salesService.getDeliveryNoteById(note.id);
+      let fullNote = res.data ?? note;
+
+      // If prices are missing and the note was converted from a quote,
+      // fetch the original quote and backfill unit prices from its lines.
+      if (
+        fullNote.quoteId &&
+        (fullNote.lines ?? []).some((l: any) => l.unitPrice == null || l.unitPrice === 0)
+      ) {
+        try {
+          const quoteRes = await salesService.getQuoteById(fullNote.quoteId);
+          const quoteLines: any[] = quoteRes.data?.lines ?? [];
+          if (quoteLines.length > 0) {
+            fullNote = {
+              ...fullNote,
+              lines: (fullNote.lines ?? []).map((line: any) => {
+                if (line.unitPrice != null && line.unitPrice > 0) return line;
+                // Match by itemId first, then by position
+                const match =
+                  quoteLines.find((ql: any) => ql.itemId && ql.itemId === line.itemId) ??
+                  quoteLines[(fullNote.lines ?? []).indexOf(line)];
+                if (!match) return line;
+                const qty = line.deliveredQuantity > 0 ? line.deliveredQuantity : line.orderedQuantity;
+                const unitPrice = match.unitPrice ?? null;
+                const discountPercent = match.discountPercent ?? 0;
+                const totalPrice =
+                  match.totalPrice != null
+                    ? match.totalPrice
+                    : unitPrice != null
+                    ? +(unitPrice * qty * (1 - discountPercent / 100)).toFixed(2)
+                    : null;
+                return { ...line, unitPrice, discountPercent, totalPrice };
+              }),
+            };
+          }
+        } catch {
+          /* ignore — show whatever data we have */
+        }
+      }
+
+      setSelectedNote(fullNote);
+    } catch {
+      setSelectedNote(note);
+    }
+    setIsDetailOpen(true);
+  };
 
   // ─── PDF Generation ──────────────────────────────────────────────────────────
 
@@ -835,18 +881,23 @@ const DeliveryNotesPage = () => {
     const pdfFmtPrice = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
 
     const tableHead = pdfHasPrices
-      ? [['DÉSIGNATION', 'QTÉ CMD', 'QTÉ LIVRÉE', 'PRIX UNIT.', 'MONTANT', 'REMARQUES']]
-      : [['DÉSIGNATION', 'QTÉ COMMANDÉE', 'QTÉ LIVRÉE', 'REMARQUES']];
+      ? [['DÉSIGNATION', 'QTÉ LIVRÉE', 'PRIX UNIT.', 'REMISE', 'MONTANT HT', 'REMARQUES']]
+      : [['DÉSIGNATION', 'QTÉ LIVRÉE', 'REMARQUES']];
 
     const tableBody = (note.lines || []).map(l => {
       const base = [
         l.itemSku ? `${l.itemName}\n(SKU: ${l.itemSku})` : l.itemName,
         l.orderedQuantity.toString(),
-        l.deliveredQuantity.toString(),
       ];
       if (pdfHasPrices) {
         base.push(l.unitPrice != null ? pdfFmtPrice(l.unitPrice) : '—');
-        base.push(l.unitPrice != null ? pdfFmtPrice(l.deliveredQuantity * l.unitPrice) : '—');
+        base.push(l.discountPercent != null && l.discountPercent > 0 ? `${l.discountPercent}%` : '—');
+        const montant = l.totalPrice != null
+          ? pdfFmtPrice(l.totalPrice)
+          : l.unitPrice != null
+          ? pdfFmtPrice(l.orderedQuantity * l.unitPrice)
+          : '—';
+        base.push(montant);
       }
       base.push(l.notes ?? (l.lotId ? `Lot: ${l.lotId}` : l.serialId ? `S/N: ${l.serialId}` : ''));
       return base;
@@ -856,16 +907,15 @@ const DeliveryNotesPage = () => {
       ? {
           0: { cellWidth: 'auto', fontStyle: 'bold' },
           1: { halign: 'center', cellWidth: 22 },
-          2: { halign: 'center', cellWidth: 22 },
-          3: { halign: 'right', cellWidth: 30 },
+          2: { halign: 'right', cellWidth: 30 },
+          3: { halign: 'center', cellWidth: 20 },
           4: { halign: 'right', cellWidth: 30 },
           5: { cellWidth: 32, fontStyle: 'normal' },
         }
       : {
           0: { cellWidth: 'auto', fontStyle: 'bold' },
           1: { halign: 'center', cellWidth: 36 },
-          2: { halign: 'center', cellWidth: 32 },
-          3: { cellWidth: 44, fontStyle: 'normal' },
+          2: { cellWidth: 44, fontStyle: 'normal' },
         };
 
     autoTable(doc, {
@@ -901,8 +951,11 @@ const DeliveryNotesPage = () => {
 
     // ── SUMMARY BOX ────────────────────────────────────────────────
     const totalOrdered   = (note.lines || []).reduce((s, l) => s + l.orderedQuantity, 0);
-    const totalDelivered = (note.lines || []).reduce((s, l) => s + l.deliveredQuantity, 0);
-    const totalAmount    = (note.lines || []).reduce((s, l) => s + (l.deliveredQuantity * (l.unitPrice ?? 0)), 0);
+    const totalDelivered = totalOrdered;
+    const totalAmount    = (note.lines || []).reduce((s, l) => {
+      if (l.totalPrice != null && l.totalPrice > 0) return s + l.totalPrice;
+      return s + (l.orderedQuantity * (l.unitPrice ?? 0));
+    }, 0);
 
     const sumBoxX = W / 2 + 20;
     const sumBoxW = RX - sumBoxX;
@@ -1141,7 +1194,7 @@ const DeliveryNotesPage = () => {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         {/* View */}
-                        <button onClick={() => { setSelectedNote(note); setIsDetailOpen(true); }} className="p-1.5 rounded-lg text-neutral-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title={t('common.view')}>
+                        <button onClick={() => openDetail(note)} className="p-1.5 rounded-lg text-neutral-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title={t('common.view')}>
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         {/* Download PDF */}

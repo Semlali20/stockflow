@@ -1,5 +1,6 @@
 // frontend/src/pages/settings/SettingsPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import RolesManagementTab from './RolesManagementTab';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -96,6 +97,8 @@ interface AuditLog {
   id: string;
   userId?: string;
   username?: string;
+  firstName?: string;
+  lastName?: string;
   action: string;
   resourceType?: string;
   resourceId?: string;
@@ -419,8 +422,8 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
 
   const inputCls = 'w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors';
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -590,7 +593,8 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
           </div>
         </form>
       </motion.div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
@@ -610,10 +614,9 @@ const ChangePasswordModal: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     if (form.newPassword.length < 8) { toast.error('Password must be at least 8 characters'); return; }
     setLoading(true);
     try {
-      await apiClient.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
+      await apiClient.put('/api/users/change-password', {
         currentPassword: form.currentPassword,
         newPassword: form.newPassword,
-        confirmPassword: form.confirmPassword,
       });
       toast.success('Password changed successfully');
       onClose();
@@ -1016,17 +1019,7 @@ const GeneralSettingsTab: React.FC = () => {
                 <div>
                   <SectionTitle icon={<ShieldCheck className="w-5 h-5" />} title={t('settings.security')} subtitle={t('settings.securitySubtitle')} />
                   <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                    <SettingRow label={t('settings.twoFactor')} description={t('settings.twoFactorDesc')}>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-medium ${localSettings.twoFactorEnabled ? 'text-green-600 dark:text-green-400' : 'text-neutral-400'}`}>
-                          {localSettings.twoFactorEnabled ? t('settings.twoFactorEnabled') : t('settings.twoFactorDisabled')}
-                        </span>
-                        <Toggle checked={localSettings.twoFactorEnabled} onChange={v => {
-                          set('twoFactorEnabled', v);
-                          toast(v ? '2FA enabled — connect your authenticator app' : '2FA disabled', { icon: v ? '🔐' : '⚠️' });
-                        }} />
-                      </div>
-                    </SettingRow>
+
                     <SettingRow label={t('settings.loginNotifications')} description={t('settings.loginNotificationsDesc')}>
                       <Toggle checked={localSettings.loginNotifications} onChange={v => set('loginNotifications', v)} />
                     </SettingRow>
@@ -1631,28 +1624,51 @@ const AuditLogsTab: React.FC = () => {
 
   const fetchLogs = useCallback(async (p = page, f = filter) => {
     setLoading(true);
-    const endpoint =
-      f === 'failed'   ? '/api/audit/failed-logins' :
-      f === 'security' ? '/api/audit/security-events' :
-      '/api/audit';
-    const params = f === 'all' || f === 'crud'
-      ? { page: p, size: pageSize, sortBy: 'timestamp', sortDirection: 'DESC' }
-      : { page: p, size: pageSize };
-    const res = await safe(() => apiClient.get(endpoint, { params }));
-    if (res?.data) {
+    try {
+      const endpoint =
+        f === 'failed'   ? '/api/audit/failed-logins' :
+        f === 'security' ? '/api/audit/security-events' :
+        '/api/audit';
+      const params = f === 'crud'
+        ? { page: 0, size: 200, sortBy: 'timestamp', sortDirection: 'DESC' }
+        : { page: p, size: pageSize, sortBy: 'timestamp', sortDirection: 'DESC' };
+
+      const res = await apiClient.get(endpoint, { params });
       const d = res.data as any;
-      if (Array.isArray(d)) { setLogs(d); setTotalElements(d.length); setTotalPages(1); }
-      else { setLogs(d.content ?? []); setTotalElements(d.totalElements ?? 0); setTotalPages(d.totalPages ?? 1); }
+      const all: AuditLog[] = Array.isArray(d) ? d : (d.content ?? []);
+
+      if (f === 'crud') {
+        const CRUD_ACTIONS_LIST = ['CREATE', 'UPDATE', 'DELETE', 'STATUS_CHANGE', 'IMPORT', 'EXPORT'];
+        const crud = all.filter(l => CRUD_ACTIONS_LIST.some(a => l.action.includes(a)));
+        setLogs(crud);
+        setTotalElements(crud.length);
+        setTotalPages(1);
+      } else {
+        setLogs(all);
+        setTotalElements(d.totalElements ?? all.length);
+        setTotalPages(d.totalPages ?? 1);
+      }
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
+      console.error('[AuditLogs] fetch failed — status:', status, '| message:', msg, '| full error:', err);
+      if (status === 401 || status === 403) {
+        toast.error(`Access denied (${status}) — check your role/token`);
+      } else {
+        toast.error(`Failed to load audit logs (${status ?? 'network error'})`);
+      }
+      setLogs([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [page, filter]);
 
   useEffect(() => { fetchLogs(page, filter); }, [page, filter]);
 
-  // CRUD filter is client-side on top of all logs
-  const CRUD_ACTIONS = ['CREATE', 'UPDATE', 'DELETE', 'STATUS_CHANGE', 'IMPORT', 'EXPORT'];
+  // Reset page when search / resource filter changes
+  useEffect(() => { setPage(0); }, [search, resourceFilter]);
+
   const filtered = logs.filter(l => {
-    if (filter === 'crud' && !CRUD_ACTIONS.some(a => l.action.includes(a))) return false;
     if (resourceFilter && l.resourceType !== resourceFilter) return false;
     if (search) {
       const q = search.toLowerCase();
@@ -1667,6 +1683,13 @@ const AuditLogsTab: React.FC = () => {
     return true;
   });
 
+  // For CRUD tab: client-side pagination over filtered results
+  // For other tabs: server already paginated — show filtered as-is
+  const isCrud = filter === 'crud';
+  const effectiveTotalElements = isCrud ? filtered.length : totalElements;
+  const effectiveTotalPages    = isCrud ? Math.max(1, Math.ceil(filtered.length / pageSize)) : totalPages;
+  const displayedLogs          = isCrud ? filtered.slice(page * pageSize, (page + 1) * pageSize) : filtered;
+
   const actionColor = (action: string) => {
     const a = action.toUpperCase();
     if (a === 'CREATE')        return 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20';
@@ -1676,7 +1699,9 @@ const AuditLogsTab: React.FC = () => {
     if (a === 'IMPORT')        return 'text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20';
     if (a.includes('LOGIN'))   return 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20';
     if (a.includes('LOGOUT'))  return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-700';
-    if (a.includes('LOCK'))    return 'text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20';
+    if (a.includes('LOCK'))         return 'text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20';
+    if (a === 'ACCOUNT_DEACTIVATED') return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
+    if (a === 'ACCOUNT_ACTIVATED')   return 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20';
     if (a.includes('PASSWORD') || a.includes('RESET')) return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20';
     return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-700';
   };
@@ -1691,7 +1716,7 @@ const AuditLogsTab: React.FC = () => {
     { id: 'security', label: t('audit.securityEvents') },
   ];
 
-  const crudCount  = logs.filter(l => CRUD_ACTIONS.some(a => l.action.includes(a))).length;
+  const crudCount   = logs.filter(l => ['CREATE','UPDATE','DELETE','STATUS_CHANGE','IMPORT','EXPORT'].some(a => l.action.includes(a))).length;
   const createCount = logs.filter(l => l.action === 'CREATE').length;
   const updateCount = logs.filter(l => l.action === 'UPDATE').length;
   const deleteCount = logs.filter(l => l.action === 'DELETE').length;
@@ -1770,27 +1795,40 @@ const AuditLogsTab: React.FC = () => {
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800/60">
             <tr>
-              {['Timestamp', 'User', 'Action', 'Resource', 'Description', 'Status', 'IP'].map(h => (
+              {['Timestamp', 'User', 'Action', 'Resource', 'Description', 'Status'].map(h => (
                 <th key={h} className="px-3 py-3 text-left text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
             {loading ? Array.from({ length: 8 }).map((_, i) => (
-              <tr key={i}>{Array.from({ length: 7 }).map((__, j) => (
+              <tr key={i}>{Array.from({ length: 6 }).map((__, j) => (
                 <td key={j} className="px-3 py-3"><div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /></td>
               ))}</tr>
-            )) : filtered.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-neutral-400 text-sm">{t('audit.noLogsFound')}</td></tr>
-            ) : filtered.map(log => {
+            )) : displayedLogs.length === 0 ? (
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-neutral-400 text-sm">{t('audit.noLogsFound')}</td></tr>
+            ) : displayedLogs.map(log => {
               const rm = log.resourceType ? RESOURCE_META[log.resourceType] : null;
               return (
                 <tr key={log.id} className={`hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors ${log.status === 'FAILURE' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
                   <td className="px-3 py-2.5 text-xs text-neutral-500 dark:text-neutral-400 whitespace-nowrap font-mono">
                     {new Date(log.timestamp).toLocaleString()}
                   </td>
-                  <td className="px-3 py-2.5 font-semibold text-neutral-800 dark:text-neutral-200 text-xs">
-                    {log.username ?? log.userId ?? '—'}
+                  <td className="px-3 py-2.5 text-xs">
+                    {(log.firstName || log.lastName) ? (
+                      <div>
+                        <p className="font-semibold text-neutral-800 dark:text-neutral-200 leading-tight">
+                          {[log.firstName, log.lastName].filter(Boolean).join(' ')}
+                        </p>
+                        <p className="text-neutral-400 dark:text-neutral-500 leading-tight">
+                          @{log.username}
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                        {log.username ?? log.userId ?? '—'}
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2.5">
                     <span className={`inline-block px-2 py-0.5 rounded-lg text-xs font-bold ${actionColor(log.action)}`}>
@@ -1810,13 +1848,27 @@ const AuditLogsTab: React.FC = () => {
                       <span className="text-xs text-neutral-400">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-2.5 text-xs text-neutral-600 dark:text-neutral-400 max-w-[200px] truncate" title={log.details ?? undefined}>
-                    {log.details ?? '—'}
+                  <td className="px-3 py-2.5 text-xs max-w-[220px]">
+                    {log.details ? (
+                      <div>
+                        <p className="text-neutral-600 dark:text-neutral-400 truncate" title={log.details}>
+                          {log.details}
+                        </p>
+                        {log.action === 'LOGIN_FAILED' && log.ipAddress && (
+                          <p className="text-neutral-400 dark:text-neutral-500 font-mono mt-0.5">
+                            {log.ipAddress}
+                          </p>
+                        )}
+                      </div>
+                    ) : log.action === 'LOGIN_FAILED' && log.ipAddress ? (
+                      <p className="text-neutral-400 dark:text-neutral-500 font-mono">
+                        {log.ipAddress}
+                      </p>
+                    ) : (
+                      <span className="text-neutral-400">—</span>
+                    )}
                   </td>
                   <td className="px-3 py-2.5"><AuditStatusBadge status={log.status} /></td>
-                  <td className="px-3 py-2.5 text-xs text-neutral-500 dark:text-neutral-400 font-mono whitespace-nowrap">
-                    {log.ipAddress ?? '—'}
-                  </td>
                 </tr>
               );
             })}
@@ -1824,7 +1876,7 @@ const AuditLogsTab: React.FC = () => {
         </table>
       </div>
 
-      {totalPages > 1 && <Pagination page={page} totalPages={totalPages} totalElements={totalElements} size={pageSize} onPage={p => setPage(p)} />}
+      <Pagination page={page} totalPages={effectiveTotalPages} totalElements={effectiveTotalElements} size={pageSize} onPage={p => setPage(p)} />
     </div>
   );
 };

@@ -15,8 +15,6 @@ import {
   Trash2,
   Lock,
   Bell,
-  Globe,
-  Smartphone,
   AtSign,
   BadgeCheck,
   Activity,
@@ -32,9 +30,8 @@ import { useTranslation } from 'react-i18next';
 import { ProfileDetailModal } from '@/components/profile/ProfileDetailModal';
 import { ProfileFormModal } from '@/components/profile/ProfileFormModal';
 import { NotificationPreferencesModal } from '@/components/profile/NotificationPreferencesModal';
-import { LanguageRegionModal } from '@/components/profile/LanguageRegionModal';
 import { ChangePasswordModal } from '@/components/profile/ChangePasswordModal';
-import { preferencesService, NotificationPreferences, LanguageRegionPreferences } from '@/services/preferences.service';
+import { preferencesService, NotificationPreferences } from '@/services/preferences.service';
 import { cn } from '@/utils/cn';
 
 // Strip ROLE_ prefix from role strings
@@ -142,10 +139,8 @@ export const ProfilePage: React.FC = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences | null>(null);
-  const [languagePrefs, setLanguagePrefs] = useState<LanguageRegionPreferences | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -183,11 +178,6 @@ export const ProfilePage: React.FC = () => {
   const handleSaveNotificationPreferences = async (prefs: NotificationPreferences) => {
     await preferencesService.saveNotificationPreferences(prefs);
     setNotificationPrefs(prefs);
-  };
-
-  const handleSaveLanguagePreferences = async (prefs: LanguageRegionPreferences) => {
-    await preferencesService.saveLanguageRegionPreferences(prefs);
-    setLanguagePrefs(prefs);
   };
 
   const handleEdit = () => { setIsEditing(true); setEditedUser(user || {}); };
@@ -633,13 +623,6 @@ export const ProfilePage: React.FC = () => {
                 <Key className="w-4 h-4 shrink-0" />
                 {t('profile.changePassword')}
               </button>
-              <button
-                onClick={() => toast.success(t('profile.twoFAComingSoon'))}
-                className="flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
-              >
-                <Smartphone className="w-4 h-4 shrink-0" />
-                {t('profile.enable2FA')}
-              </button>
             </div>
           </div>
 
@@ -655,13 +638,6 @@ export const ProfilePage: React.FC = () => {
               >
                 <Bell className="w-4 h-4 shrink-0" />
                 {t('profile.notifications')}
-              </button>
-              <button
-                onClick={() => setShowLanguageModal(true)}
-                className="flex items-center gap-2 text-sm font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 transition-colors"
-              >
-                <Globe className="w-4 h-4 shrink-0" />
-                {t('profile.languageRegion')}
               </button>
             </div>
           </div>
@@ -686,12 +662,6 @@ export const ProfilePage: React.FC = () => {
         onClose={() => setShowNotificationsModal(false)}
         onSave={handleSaveNotificationPreferences}
         initialPreferences={notificationPrefs || undefined}
-      />
-      <LanguageRegionModal
-        isOpen={showLanguageModal}
-        onClose={() => setShowLanguageModal(false)}
-        onSave={handleSaveLanguagePreferences}
-        initialPreferences={languagePrefs || undefined}
       />
       <ChangePasswordModal
         isOpen={showChangePasswordModal}

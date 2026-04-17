@@ -1,6 +1,7 @@
 // frontend/src/pages/settings/RolesManagementTab.tsx
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import {
   Shield, ShieldCheck, Plus, Edit2, Trash2, Check,
   X as XIcon, Loader2, RefreshCw, Users, ChevronDown,
@@ -198,8 +199,8 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
     );
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
 
         {/* Header */}
@@ -414,7 +415,8 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

@@ -263,10 +263,10 @@ export const LocationsPage: React.FC = () => {
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         {hasPermission(PERMISSIONS.LOCATIONS_EDIT) && (
-                          <button onClick={() => handleEditClick(loc)} className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
+                          <button onClick={() => handleEditClick(loc)} className="p-2 text-yellow-600 hover:text-yellow-900 transition-colors"><Edit size={18} /></button>
                         )}
                         {hasPermission(PERMISSIONS.LOCATIONS_DELETE) && (
-                          <button onClick={() => handleDeleteClick(loc)} className="p-2 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                          <button onClick={() => handleDeleteClick(loc)} className="p-2 text-red-600 hover:text-red-900 transition-colors"><Trash2 size={18} /></button>
                         )}
                       </div>
                     </td>

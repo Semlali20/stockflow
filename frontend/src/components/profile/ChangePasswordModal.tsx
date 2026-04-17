@@ -148,7 +148,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 type={showCurrentPassword ? 'text' : 'password'}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder={t('profile.modals.currentPasswordPlaceholder') || t('profile.modals.currentPassword')}
+                placeholder="Enter your current password"
                 required
                 className="pr-10"
               />
@@ -172,7 +172,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 type={showNewPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder={t('profile.modals.newPasswordPlaceholder') || t('profile.modals.newPassword')}
+                placeholder="Enter your new password"
                 required
                 className="pr-10"
               />
@@ -217,7 +217,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t('profile.modals.confirmPasswordPlaceholder') || t('profile.modals.confirmPassword')}
+                placeholder="Confirm your new password"
                 required
                 className="pr-10"
               />

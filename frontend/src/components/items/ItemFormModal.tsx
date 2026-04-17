@@ -1,5 +1,6 @@
 // src/components/items/ItemFormModal.tsx
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { X, ImageIcon } from 'lucide-react';
 import { productService } from '@/services/product.service';
 import { Item } from '@/types';
@@ -319,8 +320,8 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">
@@ -655,6 +656,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
