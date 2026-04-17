@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { useTranslation } from 'react-i18next';
 
 interface WarehouseFormModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
   mode,
   warehouse
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     siteId: '',
     name: '',
@@ -146,17 +148,17 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
 
       if (mode === 'create') {
         await locationService.createWarehouse(payload);
-        toast.success('Warehouse created successfully');
+        toast.success(t('locations.warehouses.createSuccess'));
       } else {
         await locationService.updateWarehouse(warehouse.id, payload);
-        toast.success('Warehouse updated successfully');
+        toast.success(t('locations.warehouses.updateSuccess'));
       }
-      
+
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error('Error saving warehouse:', error);
-      toast.error(error?.response?.data?.message || `Failed to ${mode} warehouse`);
+      toast.error(error?.response?.data?.message || t('locations.warehouses.saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -169,7 +171,7 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">
-            {mode === 'create' ? 'Create Warehouse' : 'Edit Warehouse'}
+            {mode === 'create' ? t('locations.warehouses.create') : t('locations.warehouses.edit')}
           </h2>
           <button
             onClick={onClose}
@@ -183,7 +185,7 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
           {/* Site - Required */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              Site <span className="text-red-500">*</span>
+              {t('common.site')} <span className="text-red-500">*</span>
             </label>
             <Select
               value={formData.siteId}
@@ -192,7 +194,7 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
               disabled={loadingSites}
             >
               <option value="">
-                {loadingSites ? 'Loading sites...' : 'Select a site'}
+                {loadingSites ? t('locations.warehouses.loadingSites') : t('locations.warehouses.selectSite')}
               </option>
               {sites.map((site) => (
                 <option key={site.id} value={site.id}>
@@ -206,52 +208,52 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
             {/* Name - Required */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Name <span className="text-red-500">*</span>
+                {t('common.name')} <span className="text-red-500">*</span>
               </label>
               <Input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                placeholder="Enter warehouse name"
+                placeholder={t('locations.warehouses.namePlaceholder')}
               />
             </div>
 
             {/* Code - Required */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Code <span className="text-red-500">*</span>
+                {t('common.code')} <span className="text-red-500">*</span>
               </label>
               <Input
                 type="text"
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 required
-                placeholder="e.g., WH-001"
+                placeholder={t('locations.warehouses.codePlaceholder')}
               />
-              <p className="text-xs text-gray-500 mt-1">Must be unique</p>
+              <p className="text-xs text-gray-500 mt-1">{t('locations.warehouses.codeUnique')}</p>
             </div>
           </div>
 
           {/* Address - Optional */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              Address <span className="text-gray-400 font-normal">(Optional)</span>
+              {t('locations.warehouses.addressOptional')}
             </label>
             <Input
               type="text"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="e.g., 123 Main St, City, Country"
+              placeholder={t('locations.warehouses.addressPlaceholder')}
             />
           </div>
 
           {/* Active / Inactive Toggle */}
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div>
-              <p className="text-sm font-medium text-gray-700">Status</p>
+              <p className="text-sm font-medium text-gray-700">{t('common.status')}</p>
               <p className="text-xs text-gray-500 mt-0.5">
-                {formData.isActive ? 'Warehouse is active and operational' : 'Warehouse is inactive and unavailable'}
+                {formData.isActive ? t('locations.warehouses.statusDescription') : t('common.inactive')}
               </p>
             </div>
             <button
@@ -273,7 +275,7 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium">
-                Settings (Optional)
+                {t('locations.warehouses.settingsOptional')}
               </label>
               <Button
                 type="button"
@@ -283,13 +285,13 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
                 className="flex items-center gap-1"
               >
                 <Plus size={16} />
-                Add Setting
+                {t('locations.warehouses.addSetting')}
               </Button>
             </div>
-            
+
             {settings.length === 0 ? (
               <div className="border rounded p-4 text-center text-gray-500 text-sm">
-                No settings added. Click "Add Setting" to add configuration options like capacity, manager, contact info, etc.
+                {t('locations.warehouses.noSettings')}
               </div>
             ) : (
               <div className="border rounded p-3 space-y-2">
@@ -322,7 +324,7 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
               </div>
             )}
             <p className="text-xs text-gray-500 mt-1">
-              Common settings: capacity, manager, phone, email, operating_hours, etc.
+              {t('locations.warehouses.commonSettings')}
             </p>
           </div>
 
@@ -334,13 +336,13 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
               variant="outline"
               disabled={loading}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
               disabled={loading || loadingSites}
             >
-              {loading ? 'Saving...' : mode === 'create' ? 'Create' : 'Update'}
+              {loading ? t('common.saving') : mode === 'create' ? t('common.create') : t('common.update')}
             </Button>
           </div>
         </form>

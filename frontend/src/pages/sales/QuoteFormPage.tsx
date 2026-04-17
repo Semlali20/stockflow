@@ -12,6 +12,7 @@ import { productService } from '@/services/product.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { ItemSearchCombobox } from '@/components/ui/ItemSearchCombobox';
 import type { Customer, Warehouse, Inventory, Location, Item, Category } from '@/types';
 
 interface QuoteLine {
@@ -313,14 +314,14 @@ export const QuoteFormPage = () => {
                 </Select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.location')}</label>
                 <Select
                   value={selectedLocationId}
                   onChange={e => handleLocationChange(e.target.value)}
                   className="w-full"
                   disabled={!inventoryId || loadingLocations}
                 >
-                  <option value="">All Locations</option>
+                  <option value="">{t('common.allLocations')}</option>
                   {warehouseLocations.map(l => (
                     <option key={l.id} value={l.id}>{(l as any).code || l.name}</option>
                   ))}
@@ -371,9 +372,6 @@ export const QuoteFormPage = () => {
                         // Only show items that have inventory in the selected location/warehouse
                         const inventoryItemIds = new Set(inventoryItems.map(inv => inv.itemId));
                         const availableItems = allItems.filter((it: any) => inventoryItemIds.has(it.id));
-                        const filteredItems = addCategoryId
-                          ? availableItems.filter((it: any) => it.categoryId === addCategoryId)
-                          : availableItems;
                         const availQty = addItemId && addItemId in inventoryQtyMap
                           ? inventoryQtyMap[addItemId]
                           : null;
@@ -392,14 +390,16 @@ export const QuoteFormPage = () => {
                               </Select>
                             </td>
                             <td className="px-3 py-2">
-                              <Select
+                              <ItemSearchCombobox
+                                items={availableItems.map((it: any) => ({
+                                  ...it,
+                                  categoryName: categories.find((c: any) => c.id === it.categoryId)?.name,
+                                }))}
                                 value={addItemId}
-                                onChange={e => setAddItemId(e.target.value)}
-                                className="w-full text-sm"
-                              >
-                                <option value="">Select Item</option>
-                                {filteredItems.map((it: any) => <option key={it.id} value={it.id}>{it.name}</option>)}
-                              </Select>
+                                categoryFilter={addCategoryId || undefined}
+                                onChange={it => setAddItemId(it?.id || '')}
+                                placeholder="Search by name or SKU…"
+                              />
                             </td>
                             <td className="px-3 py-2 w-28">
                               {availQty !== null ? (

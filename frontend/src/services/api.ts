@@ -60,11 +60,6 @@ class ApiClient {
               return this.client(originalRequest);
             }
           } catch (refreshError) {
-            // Refresh failed, logout user
-            storage.remove(STORAGE_KEYS.ACCESS_TOKEN);
-            storage.remove(STORAGE_KEYS.REFRESH_TOKEN);
-            storage.remove(STORAGE_KEYS.USER);
-            window.location.href = '/login';
             return Promise.reject(refreshError);
           }
         }

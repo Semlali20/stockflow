@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { useTranslation } from 'react-i18next';
 
 interface SiteFormModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
   mode,
   site
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     type: 'WAREHOUSE' as 'WAREHOUSE' | 'DISTRIBUTION_CENTER' | 'STORE' | 'MANUFACTURING' | 'PICKING' | 'STAGING' | 'SHIPPING' | 'QUARANTINE',
@@ -63,17 +65,17 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
 
       if (mode === 'create') {
         await locationService.createSite(payload);
-        toast.success('Site created successfully');
+        toast.success(t('locations.sites.createSuccess'));
       } else {
         await locationService.updateSite(site.id, payload);
-        toast.success('Site updated successfully');
+        toast.success(t('locations.sites.updateSuccess'));
       }
-      
+
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error('Error saving site:', error);
-      toast.error(error?.response?.data?.message || `Failed to ${mode} site`);
+      toast.error(error?.response?.data?.message || t('locations.sites.saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -86,7 +88,7 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">
-            {mode === 'create' ? 'Create Site' : 'Edit Site'}
+            {mode === 'create' ? t('locations.sites.create') : t('locations.sites.edit')}
           </h2>
           <button
             onClick={onClose}
@@ -101,35 +103,35 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
             {/* Name - Required */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Name <span className="text-red-500">*</span>
+                {t('common.name')} <span className="text-red-500">*</span>
               </label>
               <Input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                placeholder="Enter site name"
+                placeholder={t('locations.sites.namePlaceholder')}
               />
             </div>
 
             {/* Type - Required */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Type <span className="text-red-500">*</span>
+                {t('common.type')} <span className="text-red-500">*</span>
               </label>
               <Select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
                 required
               >
-                <option value="WAREHOUSE">Warehouse</option>
-                <option value="DISTRIBUTION_CENTER">Distribution Center</option>
-                <option value="STORE">Store</option>
-                <option value="MANUFACTURING">Manufacturing</option>
-                <option value="PICKING">Picking</option>
-                <option value="STAGING">Staging</option>
-                <option value="SHIPPING">Shipping</option>
-                <option value="QUARANTINE">Quarantine</option>
+                <option value="WAREHOUSE">{t('locations.sites.types.warehouse')}</option>
+                <option value="DISTRIBUTION_CENTER">{t('locations.sites.types.distributionCenter')}</option>
+                <option value="STORE">{t('locations.sites.types.store')}</option>
+                <option value="MANUFACTURING">{t('locations.sites.types.manufacturing')}</option>
+                <option value="PICKING">{t('locations.sites.types.picking')}</option>
+                <option value="STAGING">{t('locations.sites.types.staging')}</option>
+                <option value="SHIPPING">{t('locations.sites.types.shipping')}</option>
+                <option value="QUARANTINE">{t('locations.sites.types.quarantine')}</option>
               </Select>
             </div>
           </div>
@@ -137,13 +139,13 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
           {/* Timezone - Optional */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              Timezone
+              {t('locations.sites.timezone')}
             </label>
             <Select
               value={formData.timezone}
               onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
             >
-              <option value="">Select timezone</option>
+              <option value="">{t('locations.sites.selectTimezone')}</option>
               <option value="America/New_York">America/New_York (EST/EDT)</option>
               <option value="America/Chicago">America/Chicago (CST/CDT)</option>
               <option value="America/Denver">America/Denver (MST/MDT)</option>
@@ -178,13 +180,13 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
           {/* Address - Optional */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              Address
+              {t('common.address')}
             </label>
             <textarea
               className="w-full border rounded px-3 py-2 min-h-[80px]"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="Enter full address"
+              placeholder={t('locations.sites.addressPlaceholder')}
             />
           </div>
 
@@ -196,13 +198,13 @@ export const SiteFormModal: React.FC<SiteFormModalProps> = ({
               variant="outline"
               disabled={loading}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Saving...' : mode === 'create' ? 'Create' : 'Update'}
+              {loading ? t('common.saving') : mode === 'create' ? t('common.create') : t('common.update')}
             </Button>
           </div>
         </form>

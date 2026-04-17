@@ -312,18 +312,19 @@ const RoleBadge: React.FC<{ role: string }> = ({ role }) => {
   );
 };
 
-const EmailVerifiedBadge: React.FC<{ verified?: boolean }> = ({ verified }) => (
-  verified
+const EmailVerifiedBadge: React.FC<{ verified?: boolean }> = ({ verified }) => {
+  const { t } = useTranslation();
+  return verified
     ? (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-        <CheckCircle2 className="w-3 h-3" /> Verified
+        <CheckCircle2 className="w-3 h-3" /> {t('settings.users.verified')}
       </span>
     ) : (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-        <XCircle className="w-3 h-3" /> Unverified
+        <XCircle className="w-3 h-3" /> {t('settings.users.unverified')}
       </span>
-    )
-);
+    );
+};
 
 const AuditStatusBadge: React.FC<{ status: string }> = ({ status }) => (
   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${status === 'SUCCESS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
@@ -336,11 +337,12 @@ const Pagination: React.FC<{
   page: number; totalPages: number; totalElements: number;
   size: number; onPage: (p: number) => void;
 }> = ({ page, totalPages, totalElements, size, onPage }) => {
+  const { t } = useTranslation();
   const from = page * size + 1;
   const to = Math.min((page + 1) * size, totalElements);
   return (
     <div className="flex items-center justify-between pt-4 border-t border-neutral-200 dark:border-neutral-700">
-      <p className="text-sm text-neutral-500 dark:text-neutral-400">Showing {from}–{to} of {totalElements}</p>
+      <p className="text-sm text-neutral-500 dark:text-neutral-400">{t('settings.audit.showing', { from, to, total: totalElements })}</p>
       <div className="flex gap-2">
         <button disabled={page === 0} onClick={() => onPage(page - 1)} className="p-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 disabled:opacity-40 hover:bg-neutral-100 dark:hover:bg-neutral-700">
           <ChevronLeft className="w-4 h-4" />
@@ -1766,7 +1768,7 @@ const AuditLogsTab: React.FC = () => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: t('audit.totalLogs'),   value: totalElements,                                       color: 'text-primary-600',  bg: 'bg-primary-50 dark:bg-primary-900/20' },
-          { label: 'CRUD Operations',       value: crudCount,                                           color: 'text-emerald-600',  bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+          { label: t('settings.audit.crudOperations'), value: crudCount,                                 color: 'text-emerald-600',  bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
           { label: t('audit.failed'),       value: logs.filter(l => l.status === 'FAILURE').length,    color: 'text-red-600',      bg: 'bg-red-50 dark:bg-red-900/20' },
           { label: t('audit.uniqueUsers'),  value: new Set(logs.map(l => l.username).filter(Boolean)).size, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
         ].map(s => (
@@ -1795,7 +1797,7 @@ const AuditLogsTab: React.FC = () => {
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800/60">
             <tr>
-              {['Timestamp', 'User', 'Action', 'Resource', 'Description', 'Status'].map(h => (
+              {[t('settings.audit.timestamp'), t('settings.audit.user'), t('settings.audit.action'), t('settings.audit.resource'), t('settings.audit.description'), t('settings.audit.status')].map(h => (
                 <th key={h} className="px-3 py-3 text-left text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide whitespace-nowrap">{h}</th>
               ))}
             </tr>

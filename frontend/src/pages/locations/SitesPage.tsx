@@ -86,27 +86,28 @@ export const SitesPage: React.FC = () => {
       (site.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (site.code?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesType = !filterType || site.type === filterType;
-    const matchesStatus = !filterStatus || site.status === filterStatus;
+    const siteActive = site.isActive !== false;
+    const matchesStatus = !filterStatus ||
+      (filterStatus === 'ACTIVE' ? siteActive : !siteActive);
     return matchesSearch && matchesType && matchesStatus;
   });
 
   const stats = {
     total: sites.length,
-    active: sites.filter(s => s?.status === 'ACTIVE').length,
+    active: sites.filter(s => s?.isActive !== false).length,
     warehouses: sites.filter(s => s?.type === 'WAREHOUSE').length,
     offices: sites.filter(s => s?.type === 'OFFICE').length,
   };
 
-  const getStatusBadge = (status: string) => {
-    const s = status || 'UNKNOWN';
-    const isActive = s === 'ACTIVE';
+  const getStatusBadge = (isActive: boolean | undefined) => {
+    const active = isActive !== false;
     return (
       <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
-        isActive 
-          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
+        active
+          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
           : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
       }`}>
-        {t(`locations.sites.status.${s.toLowerCase()}`, { defaultValue: s })}
+        {active ? t('locations.sites.status.active') : t('locations.sites.status.inactive')}
       </span>
     );
   };
@@ -232,7 +233,7 @@ export const SitesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400 truncate max-w-[200px]">{site.address}</td>
-                    <td className="px-6 py-4">{getStatusBadge(site.status)}</td>
+                    <td className="px-6 py-4">{getStatusBadge(site.isActive)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         {hasPermission(PERMISSIONS.LOCATIONS_EDIT) && (

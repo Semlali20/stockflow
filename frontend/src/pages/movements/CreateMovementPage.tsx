@@ -13,6 +13,7 @@ import { movementService } from '@/services/movement.service';
 import { productService } from '@/services/product.service';
 import { locationService } from '@/services/location.service';
 import { inventoryService } from '@/services/inventory.service';
+import { useTranslation } from 'react-i18next';
 import {
   MovementType, MovementStatus, MovementPriority, LineStatus, TaskType,
 } from '@/types';
@@ -37,25 +38,8 @@ const MOVEMENT_TYPE_ICONS: Record<MovementType, LucideIcon> = {
   [MovementType.RELOCATION]: MapPin,
 };
 
-const MOVEMENT_TYPES: { value: MovementType; label: string; description: string }[] = [
-  { value: MovementType.RECEIPT,     label: 'Receipt',     description: 'Receive incoming goods' },
-  { value: MovementType.ISSUE,       label: 'Issue',       description: 'Issue goods out of warehouse' },
-  { value: MovementType.TRANSFER,    label: 'Transfer',    description: 'Move between locations' },
-  { value: MovementType.ADJUSTMENT,  label: 'Adjustment',  description: 'Correct inventory discrepancies' },
-  { value: MovementType.PICKING,     label: 'Picking',     description: 'Pick items for orders' },
-  { value: MovementType.PUTAWAY,     label: 'Putaway',     description: 'Store goods in locations' },
-  { value: MovementType.RETURN,      label: 'Return',      description: 'Process returns' },
-  { value: MovementType.CYCLE_COUNT, label: 'Cycle Count', description: 'Physical inventory count' },
-  { value: MovementType.QUARANTINE,  label: 'Quarantine',  description: 'Isolate items for inspection' },
-  { value: MovementType.RELOCATION,  label: 'Relocation',  description: 'Reorganize warehouse layout' },
-];
-
-const STEPS = [
-  { id: 1, label: 'Movement Info' },
-  { id: 2, label: 'Items' },
-  { id: 3, label: 'Tasks' },
-  { id: 4, label: 'Review' },
-];
+// MOVEMENT_TYPES and STEPS are built inside the component using t()
+// (see below)
 
 // ─── Form types ───────────────────────────────────────────────────────────────
 interface MovementFormData {
@@ -99,6 +83,28 @@ const labelCls = 'block text-sm font-medium text-neutral-700 dark:text-neutral-3
 // ─── Component ────────────────────────────────────────────────────────────────
 const CreateMovementPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const MOVEMENT_TYPES: { value: MovementType; label: string; description: string }[] = [
+    { value: MovementType.RECEIPT,     label: t('movements.types.receipt'),     description: t('movements.types.receiptDesc') },
+    { value: MovementType.ISSUE,       label: t('movements.types.issue'),       description: t('movements.types.issueDesc') },
+    { value: MovementType.TRANSFER,    label: t('movements.types.transfer'),    description: t('movements.types.transferDesc') },
+    { value: MovementType.ADJUSTMENT,  label: t('movements.types.adjustment'),  description: t('movements.types.adjustmentDesc') },
+    { value: MovementType.PICKING,     label: t('movements.types.picking'),     description: t('movements.types.pickingDesc') },
+    { value: MovementType.PUTAWAY,     label: t('movements.types.putaway'),     description: t('movements.types.putawayDesc') },
+    { value: MovementType.RETURN,      label: t('movements.types.return'),      description: t('movements.types.returnDesc') },
+    { value: MovementType.CYCLE_COUNT, label: t('movements.types.cycleCount'),  description: t('movements.types.cycleCountDesc') },
+    { value: MovementType.QUARANTINE,  label: t('movements.types.quarantine'),  description: t('movements.types.quarantineDesc') },
+    { value: MovementType.RELOCATION,  label: t('movements.types.relocation'),  description: t('movements.types.relocationDesc') },
+  ];
+
+  const STEPS = [
+    { id: 1, label: t('movements.steps.movementInfo') },
+    { id: 2, label: t('movements.steps.items') },
+    { id: 3, label: t('movements.steps.tasks') },
+    { id: 4, label: t('movements.steps.review') },
+  ];
+
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading]         = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
@@ -353,10 +359,10 @@ const CreateMovementPage = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-              Create Movement
+              {t('movements.createTitle')}
             </h1>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
-              Fill in the details to create a new warehouse movement
+              {t('movements.createSubtitle')}
             </p>
           </div>
         </div>
@@ -410,17 +416,17 @@ const CreateMovementPage = () => {
             <div className="p-6 space-y-6">
               <div>
                 <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-                  Movement Information
+                  {t('movements.movementInfo')}
                 </h2>
                 <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
-                  Select the movement type and configure locations
+                  {t('movements.movementInfoDesc')}
                 </p>
               </div>
 
               {/* Movement Type Grid */}
               <div>
                 <label className={labelCls}>
-                  Movement Type <span className="text-red-500">*</span>
+                  {t('movements.movementType')} <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                   {MOVEMENT_TYPES.map(type => {

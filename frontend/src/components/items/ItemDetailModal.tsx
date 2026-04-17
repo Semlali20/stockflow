@@ -21,17 +21,15 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
   const { t } = useTranslation();
   if (!isOpen || !item) return null;
 
-  // Parse attributes if they're a string
   let parsedAttributes = null;
   try {
-    parsedAttributes = typeof item.attributes === 'string' 
-      ? JSON.parse(item.attributes) 
+    parsedAttributes = typeof item.attributes === 'string'
+      ? JSON.parse(item.attributes)
       : item.attributes;
   } catch (error) {
     console.error('Error parsing attributes:', error);
   }
 
-  // Parse temperature controls if they're a string
   let parsedTempControls: string[] = [];
   try {
     if (item.temperatureControl) {
@@ -44,13 +42,13 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
   }
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[95vh] overflow-y-auto shadow-2xl">
-        {/* Header with gradient */}
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-5xl max-h-[95vh] overflow-y-auto shadow-2xl border border-gray-200 dark:border-neutral-700">
+        {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl">
           <div className="flex justify-between items-start">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
                 <Package className="w-8 h-8" />
               </div>
               <div>
@@ -61,18 +59,18 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                     {item.sku}
                   </span>
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    item.isActive
-                      ? 'bg-green-500 text-white'
-                      : 'bg-red-500 text-white'
+                    item.isActive ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
                   }`}>
-                    {item.isActive ? `● ${t('products.items.detail.statusActive')}` : `● ${t('products.items.detail.statusInactive')}`}
+                    {item.isActive
+                      ? `● ${t('products.items.detail.statusActive')}`
+                      : `● ${t('products.items.detail.statusInactive')}`}
                   </span>
                 </div>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+              className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
             >
               <X size={24} />
             </button>
@@ -81,11 +79,11 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 
         <div className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Image & Quick Info */}
+            {/* Left Column */}
             <div className="space-y-6">
-              {/* Image Display */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border-2 border-gray-200">
-                <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              {/* Image */}
+              <div className="bg-gray-50 dark:bg-neutral-800 rounded-xl p-4 border-2 border-gray-200 dark:border-neutral-700">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                   <ImageIcon size={16} />
                   {t('products.items.detail.productImage')}
                 </label>
@@ -99,8 +97,8 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg" />
                   </div>
                 ) : (
-                  <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <div className="text-center text-gray-400">
+                  <div className="w-full h-64 bg-gray-200 dark:bg-neutral-700 rounded-lg flex items-center justify-center">
+                    <div className="text-center text-gray-400 dark:text-gray-500">
                       <ImageIcon size={48} className="mx-auto mb-2 opacity-50" />
                       <p className="text-sm">{t('products.items.detail.noImage')}</p>
                     </div>
@@ -109,77 +107,77 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
               </div>
 
               {/* Quick Stats */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200">
-                <h3 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+              <div className="bg-blue-50 dark:bg-blue-950/40 rounded-xl p-4 border-2 border-blue-200 dark:border-blue-800">
+                <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center gap-2">
                   <Package size={16} />
                   {t('products.items.detail.quickInfo')}
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{t('products.items.detail.serialized')}</span>
-                    {item.isSerialized ? (
-                      <CheckCircle size={18} className="text-green-600" />
-                    ) : (
-                      <XCircle size={18} className="text-gray-400" />
-                    )}
+                    <span className="text-sm text-gray-600 dark:text-gray-400">{t('products.items.detail.serialized')}</span>
+                    {item.isSerialized
+                      ? <CheckCircle size={18} className="text-green-500" />
+                      : <XCircle size={18} className="text-gray-400 dark:text-gray-600" />}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{t('products.items.detail.lotManaged')}</span>
-                    {item.isLotManaged ? (
-                      <CheckCircle size={18} className="text-green-600" />
-                    ) : (
-                      <XCircle size={18} className="text-gray-400" />
-                    )}
+                    <span className="text-sm text-gray-600 dark:text-gray-400">{t('products.items.detail.lotManaged')}</span>
+                    {item.isLotManaged
+                      ? <CheckCircle size={18} className="text-green-500" />
+                      : <XCircle size={18} className="text-gray-400 dark:text-gray-600" />}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{t('products.items.detail.hazardous')}</span>
-                    {item.hazardousMaterial ? (
-                      <AlertTriangle size={18} className="text-orange-600" />
-                    ) : (
-                      <XCircle size={18} className="text-gray-400" />
-                    )}
+                    <span className="text-sm text-gray-600 dark:text-gray-400">{t('products.items.detail.hazardous')}</span>
+                    {item.hazardousMaterial
+                      ? <AlertTriangle size={18} className="text-orange-500" />
+                      : <XCircle size={18} className="text-gray-400 dark:text-gray-600" />}
                   </div>
                   {item.shelfLifeDays !== undefined && item.shelfLifeDays > 0 && (
-                    <div className="pt-2 border-t border-blue-200">
-                      <span className="text-sm text-gray-600">{t('products.items.detail.shelfLife')}</span>
-                      <p className="text-lg font-bold text-blue-900">{t('products.items.detail.shelfLifeValue', { count: item.shelfLifeDays })}</p>
+                    <div className="pt-2 border-t border-blue-200 dark:border-blue-800">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{t('products.items.detail.shelfLife')}</span>
+                      <p className="text-lg font-bold text-blue-900 dark:text-blue-300">
+                        {t('products.items.detail.shelfLifeValue', { count: item.shelfLifeDays })}
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Middle & Right Columns - Details */}
+            {/* Right Columns */}
             <div className="lg:col-span-2 space-y-6">
               {/* Description */}
               {item.description && (
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">{t('products.items.form.description')}</h3>
-                  <p className="text-gray-900 leading-relaxed">{item.description}</p>
+                <div className="bg-gray-50 dark:bg-neutral-800 rounded-xl p-4 border border-gray-200 dark:border-neutral-700">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    {t('products.items.form.description')}
+                  </h3>
+                  <p className="text-gray-900 dark:text-gray-100 leading-relaxed">{item.description}</p>
                 </div>
               )}
 
-              {/* Main Information Grid */}
+              {/* SKU + Category */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-blue-300 transition-colors">
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                <div className="bg-white dark:bg-neutral-800 rounded-xl p-4 border-2 border-gray-200 dark:border-neutral-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
                     {t('products.items.detail.sku')}
                   </label>
-                  <p className="text-lg font-bold text-gray-900">{item.sku}</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">{item.sku}</p>
                 </div>
 
-                <div className="bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-blue-300 transition-colors">
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                <div className="bg-white dark:bg-neutral-800 rounded-xl p-4 border-2 border-gray-200 dark:border-neutral-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
                     {t('products.items.detail.category')}
                   </label>
-                  <p className="text-lg font-bold text-gray-900">{item.categoryName || item.categoryId || 'N/A'}</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">
+                    {item.categoryName || item.categoryId || 'N/A'}
+                  </p>
                 </div>
               </div>
 
               {/* Tags */}
               {item.tags && (
-                <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
-                  <h3 className="text-sm font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                <div className="bg-purple-50 dark:bg-purple-950/40 rounded-xl p-4 border-2 border-purple-200 dark:border-purple-800">
+                  <h3 className="text-sm font-semibold text-purple-900 dark:text-purple-300 mb-3 flex items-center gap-2">
                     <Tag size={16} />
                     {t('products.items.detail.tags')}
                   </h3>
@@ -187,7 +185,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                     {item.tags.split(',').map((tag, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-purple-200 text-purple-900 rounded-full text-sm font-medium"
+                        className="px-3 py-1 bg-purple-200 dark:bg-purple-800 text-purple-900 dark:text-purple-200 rounded-full text-sm font-medium"
                       >
                         {tag.trim()}
                       </span>
@@ -198,8 +196,8 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 
               {/* Temperature Controls */}
               {parsedTempControls && parsedTempControls.length > 0 && (
-                <div className="bg-cyan-50 rounded-xl p-4 border-2 border-cyan-200">
-                  <h3 className="text-sm font-semibold text-cyan-900 mb-3 flex items-center gap-2">
+                <div className="bg-cyan-50 dark:bg-cyan-950/40 rounded-xl p-4 border-2 border-cyan-200 dark:border-cyan-800">
+                  <h3 className="text-sm font-semibold text-cyan-900 dark:text-cyan-300 mb-3 flex items-center gap-2">
                     <Thermometer size={16} />
                     {t('products.items.detail.temperatureControls')}
                   </h3>
@@ -207,7 +205,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                     {parsedTempControls.map((control, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1.5 bg-cyan-200 text-cyan-900 rounded-lg text-sm font-medium flex items-center gap-1"
+                        className="px-3 py-1.5 bg-cyan-200 dark:bg-cyan-800 text-cyan-900 dark:text-cyan-200 rounded-lg text-sm font-medium flex items-center gap-1"
                       >
                         <Thermometer size={14} />
                         {control}
@@ -217,17 +215,19 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                 </div>
               )}
 
-              {/* Attributes */}
+              {/* Custom Attributes */}
               {parsedAttributes && Object.keys(parsedAttributes).length > 0 && (
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-200">
-                  <h3 className="text-sm font-semibold text-amber-900 mb-3">{t('products.items.detail.customAttributes')}</h3>
+                <div className="bg-amber-50 dark:bg-amber-950/40 rounded-xl p-4 border-2 border-amber-200 dark:border-amber-800">
+                  <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-300 mb-3">
+                    {t('products.items.detail.customAttributes')}
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {Object.entries(parsedAttributes).map(([key, value]) => (
-                      <div key={key} className="bg-white rounded-lg p-3 shadow-sm">
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                      <div key={key} className="bg-white dark:bg-neutral-800 rounded-lg p-3 shadow-sm border border-amber-100 dark:border-amber-900">
+                        <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
                           {key}
                         </label>
-                        <p className="text-sm font-bold text-gray-900">{String(value)}</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">{String(value)}</p>
                       </div>
                     ))}
                   </div>
@@ -235,23 +235,23 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
               )}
 
               {/* Timestamps */}
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+              <div className="bg-gray-50 dark:bg-neutral-800 rounded-xl p-4 border border-gray-200 dark:border-neutral-700">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                       <Calendar size={14} />
                       {t('products.items.detail.createdAt')}
                     </label>
-                    <p className="text-sm text-gray-900">
+                    <p className="text-sm text-gray-900 dark:text-gray-200">
                       {item.createdAt ? new Date(item.createdAt).toLocaleString() : 'N/A'}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                       <Clock size={14} />
                       {t('products.items.detail.lastUpdated')}
                     </label>
-                    <p className="text-sm text-gray-900">
+                    <p className="text-sm text-gray-900 dark:text-gray-200">
                       {item.updatedAt ? new Date(item.updatedAt).toLocaleString() : 'N/A'}
                     </p>
                   </div>
@@ -261,11 +261,11 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+        {/* Footer */}
+        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800/50 rounded-b-2xl">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            className="px-6 py-2.5 bg-white dark:bg-neutral-700 border-2 border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-600 transition-colors font-medium"
           >
             {t('common.close')}
           </button>

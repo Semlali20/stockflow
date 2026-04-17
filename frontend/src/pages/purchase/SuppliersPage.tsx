@@ -194,7 +194,7 @@ const SupplierFormModal = ({
                   onChange={set('name')}
                   required
                   className="w-full px-3 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
-                  placeholder="Supplier name"
+                  placeholder={t('purchase.suppliers.namePlaceholder')}
                 />
               </div>
 

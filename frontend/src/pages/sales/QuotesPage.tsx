@@ -945,7 +945,7 @@ const QuotesPage = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">{t('sales.quotes.title')}</h1>
-            <p className="text-xs text-neutral-500">{filtered.length} quote(s)</p>
+            <p className="text-xs text-neutral-500">{filtered.length} {t('sales.quotes.count')}</p>
           </div>
         </div>
         {hasPermission(PERMISSIONS.PRODUCTS_CREATE) && (

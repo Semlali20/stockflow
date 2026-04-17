@@ -71,7 +71,7 @@ export const DEFAULT_SETTINGS: GeneralSettings = {
   timeFormat: '24h',
   currency: 'USD',
   numberFormat: 'comma',
-  sessionTimeout: 60,
+  sessionTimeout: 0,
   twoFactorEnabled: false,
   loginNotifications: true,
   defaultPageSize: 20,

@@ -11,6 +11,7 @@ import { apiClient } from '@/services/api';
 import { toast } from 'react-hot-toast';
 import { confirmDelete } from '@/utils/confirmDialog';
 import { cn } from '@/utils/cn';
+import { useTranslation } from 'react-i18next';
 
 // ─── Backend DTOs ─────────────────────────────────────────────────────────────
 
@@ -71,9 +72,18 @@ interface RoleFormModalProps {
   onSaved: () => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const translateCategory = (cat: string, t: any): string => {
+  const key = cat.toLowerCase();
+  const tKey = `settings.roles.categories.${key}`;
+  const translated = t(tKey);
+  return translated === tKey ? formatCategory(cat) : translated;
+};
+
 const RoleFormModal: React.FC<RoleFormModalProps> = ({
   role, allPermissions, onClose, onSaved,
 }) => {
+  const { t } = useTranslation();
   const isEdit = !!role;
   const [name, setName]               = useState(role?.name ?? '');
   const [description, setDescription] = useState(role?.description ?? '');
@@ -333,7 +343,7 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
                             className="flex items-center gap-2 text-left"
                           >
                             <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
-                              {formatCategory(cat)}
+                              {translateCategory(cat, t)}
                             </span>
                             <span
                               className={cn(
@@ -399,7 +409,7 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
             onClick={onClose}
             className="px-5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="button"
@@ -408,9 +418,9 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors"
           >
             {loading ? (
-              <><Loader2 className="w-4 h-4 animate-spin" />Saving…</>
+              <><Loader2 className="w-4 h-4 animate-spin" />{t('common.saving')}</>
             ) : (
-              <><Check className="w-4 h-4" />{isEdit ? 'Save Changes' : 'Create Role'}</>
+              <><Check className="w-4 h-4" />{isEdit ? t('common.saveChanges') : t('settings.roles.createRole')}</>
             )}
           </button>
         </div>
@@ -423,6 +433,7 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
 // ─── Main Tab Component ───────────────────────────────────────────────────────
 
 const RolesManagementTab: React.FC = () => {
+  const { t } = useTranslation();
   const [roles,          setRoles]          = useState<BackendRole[]>([]);
   const [allPermissions, setAllPermissions] = useState<BackendPermission[]>([]);
   const [loading,        setLoading]        = useState(true);
@@ -506,10 +517,10 @@ const RolesManagementTab: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
-              Roles &amp; Permissions
+              {t('settings.roles.title')}
             </h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              View system roles or create custom roles with specific access
+              {t('settings.roles.description')}
             </p>
           </div>
         </div>
@@ -526,7 +537,7 @@ const RolesManagementTab: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Create Role
+            {t('settings.roles.createRole')}
           </button>
         </div>
       </div>
@@ -622,7 +633,7 @@ const RolesManagementTab: React.FC = () => {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
               >
                 <Edit2 className="w-3.5 h-3.5" />
-                {selectedRole.isSystem ? 'Edit Permissions' : 'Edit'}
+                {selectedRole.isSystem ? t('settings.roles.editPermissions') : t('common.edit')}
               </button>
               {!selectedRole.isSystem && (
                 <button
@@ -651,7 +662,7 @@ const RolesManagementTab: React.FC = () => {
                   {/* Category header */}
                   <div className="flex items-center justify-between px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 border-b border-neutral-200 dark:border-neutral-700">
                     <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wide">
-                      {formatCategory(cat)}
+                      {translateCategory(cat, t)}
                     </span>
                     <span className="text-xs font-semibold text-indigo-500 dark:text-indigo-400">
                       {perms.length}

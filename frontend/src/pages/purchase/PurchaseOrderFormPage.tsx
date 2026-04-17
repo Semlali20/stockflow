@@ -12,6 +12,7 @@ import { productService } from '@/services/product.service';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { ItemSearchCombobox } from '@/components/ui/ItemSearchCombobox';
 import type { Supplier, Warehouse, Inventory, Location, Item, Category } from '@/types';
 
 interface POLine {
@@ -205,16 +206,25 @@ export const PurchaseOrderFormPage = () => {
 
       // Update inventory for each line if a location is selected
       if (selectedLocationId) {
-        const inventoryUpdates = lines.map(l =>
-          inventoryService.adjustInventory({
-            itemId: l.itemId,
-            locationId: selectedLocationId,
-            quantityChange: l.orderedQuantity,
-            reason: `Purchase order from supplier: ${supplierName || supplierId}`,
-          }).catch(err => {
+        const inventoryUpdates = lines.map(async l => {
+          try {
+            await inventoryService.adjustInventory({
+              itemId: l.itemId,
+              locationId: selectedLocationId,
+              quantityChange: l.orderedQuantity,
+              reason: `Purchase order from supplier: ${supplierName || supplierId}`,
+            });
+            // Update unitCost if a price was specified
+            if (l.unitPrice > 0) {
+              const record = await inventoryService.getInventoryByItemAndLocation(l.itemId, selectedLocationId);
+              if (record?.id) {
+                await inventoryService.updateInventory(record.id, { unitCost: l.unitPrice });
+              }
+            }
+          } catch (err) {
             console.warn(`Failed to update inventory for item ${l.itemName}:`, err);
-          })
-        );
+          }
+        });
         await Promise.all(inventoryUpdates);
         toast.success(`Purchase created & inventory updated (+${lines.reduce((s, l) => s + l.orderedQuantity, 0)} units across ${lines.length} item(s))`);
       } else {
@@ -287,14 +297,14 @@ export const PurchaseOrderFormPage = () => {
                 </Select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.location')}</label>
                 <Select
                   value={selectedLocationId}
                   onChange={e => handleLocationChange(e.target.value)}
                   className="w-full"
                   disabled={loadingLocations}
                 >
-                  <option value="">Select a location</option>
+                  <option value="">{t('common.selectLocation')}</option>
                   {locations.map(loc => (
                     <option key={loc.id} value={loc.id}>{loc.code}</option>
                   ))}
@@ -392,9 +402,6 @@ export const PurchaseOrderFormPage = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {lines.map((line, idx) => {
-                      const filteredItems = line.categoryId
-                        ? allItems.filter((it: any) => it.categoryId === line.categoryId)
-                        : allItems;
                       return (
                       <tr key={idx}>
                         {/* Category */}
@@ -412,10 +419,14 @@ export const PurchaseOrderFormPage = () => {
                         </td>
                         {/* Item */}
                         <td className="px-3 py-2">
-                          <select
+                          <ItemSearchCombobox
+                            items={allItems.map((it: any) => ({
+                              ...it,
+                              categoryName: categories.find((c: any) => c.id === it.categoryId)?.name,
+                            }))}
                             value={line.itemId}
-                            onChange={e => {
-                              const item = allItems.find((it: any) => it.id === e.target.value) as any;
+                            categoryFilter={line.categoryId || undefined}
+                            onChange={item => {
                               setLines(prev => prev.map((l, i) => i !== idx ? l : {
                                 ...l,
                                 itemId: item?.id || '',
@@ -425,13 +436,8 @@ export const PurchaseOrderFormPage = () => {
                                 totalPrice: l.orderedQuantity * (item?.unitCost || l.unitPrice),
                               }));
                             }}
-                            className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="">Select item</option>
-                            {filteredItems.map((it: any) => (
-                              <option key={it.id} value={it.id}>{it.name}</option>
-                            ))}
-                          </select>
+                            placeholder="Search by name or SKU…"
+                          />
                           {line.currentStock !== undefined && (
                             <div className="text-xs text-orange-600 mt-1">
                               {t('purchaseForm.currentStock')}: {line.currentStock}

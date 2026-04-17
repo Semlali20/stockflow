@@ -8,7 +8,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, className = '', ...props }, ref) => {
+  ({ label, error, className = '', value, ...props }, ref) => {
+    const safeValue = value === null ? '' : value;
     return (
       <div className="w-full">
         {label && (
@@ -18,6 +19,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
+          value={safeValue}
           className={[
             'w-full h-11 px-4 rounded-xl text-sm font-medium',
             'bg-white dark:bg-neutral-800/60',

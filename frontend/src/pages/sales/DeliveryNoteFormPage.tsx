@@ -368,7 +368,7 @@ export const DeliveryNoteFormPage = () => {
                 className="w-full"
                 disabled={!warehouseId || loadingLocations}
               >
-                <option value="">{warehouseId ? (loadingLocations ? 'Loading…' : 'All Locations') : 'Select warehouse first'}</option>
+                <option value="">{warehouseId ? (loadingLocations ? 'Loading…' : t('common.allLocations')) : t('sales.deliveryNotes.selectWarehouseFirst')}</option>
                 {locations.map(l => <option key={l.id} value={l.id}>{l.name} {l.code ? `(${l.code})` : ''}</option>)}
               </Select>
             </div>
@@ -582,7 +582,7 @@ export const DeliveryNoteFormPage = () => {
         {/* ── Right (summary panel) ── */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow p-6 sticky top-6">
-            <h2 className="text-lg font-semibold mb-4">Delivery Note Summary</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('sales.deliveryNotes.summary')}</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">{t('sales.quotes.subtotal')}</span>

@@ -1096,7 +1096,7 @@ const DeliveryNotesPage = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">{t('sales.deliveryNotes.title')}</h1>
-            <p className="text-xs text-neutral-500">{filtered.length} delivery note(s)</p>
+            <p className="text-xs text-neutral-500">{filtered.length} {t('sales.deliveryNotes.count')}</p>
           </div>
         </div>
         {hasPermission(PERMISSIONS.MOVEMENTS_CREATE) && (

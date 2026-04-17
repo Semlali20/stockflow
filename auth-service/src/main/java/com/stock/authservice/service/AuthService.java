@@ -235,7 +235,8 @@ public class AuthService {
         // Validate refresh token
         RefreshToken refreshToken = tokenService.validateRefreshToken(request.getRefreshToken());
 
-        User user = refreshToken.getUser();
+        User user = userRepository.findById(refreshToken.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", refreshToken.getUserId()));
 
         // Generate new access token
         CustomUserDetails userDetails = CustomUserDetails.build(user);
