@@ -140,20 +140,6 @@ public class AuditLogController {
         return ResponseEntity.ok(response);
     }
 
-    // ==================== GET FAILED LOGIN ATTEMPTS ====================
-
-    @GetMapping("/failed-logins")
-    @Operation(summary = "Get failed login attempts", description = "Get all failed login attempts")
-    public ResponseEntity<PageResponse<AuditLogResponse>> getFailedLoginAttempts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        log.info("GET /api/audit/failed-logins - Get failed login attempts");
-
-        PageResponse<AuditLogResponse> response = auditLogService.getFailedLoginAttempts(page, size);
-
-        return ResponseEntity.ok(response);
-    }
-
     // ==================== GET SECURITY EVENTS ====================
 
     @GetMapping("/security-events")

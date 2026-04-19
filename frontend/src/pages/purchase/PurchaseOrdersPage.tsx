@@ -11,6 +11,7 @@ import {
 import { purchaseService } from '@/services/purchase.service';
 import { PurchaseOrder, PurchaseOrderStatus, Supplier } from '@/types';
 import { toast } from 'react-hot-toast';
+import { Pagination } from '@/components/ui/Pagination';
 import { usePermissions } from '@/hooks/usePermissions';
 import { PERMISSIONS } from '@/config/permissions';
 
@@ -493,6 +494,8 @@ const PurchaseOrdersPage = () => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -522,6 +525,7 @@ const PurchaseOrdersPage = () => {
 
   useEffect(() => { fetchOrders(); }, [statusFilter, supplierFilter]);
   useEffect(() => { fetchSuppliers(); }, []);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, statusFilter, supplierFilter]);
 
   const filteredOrders = useMemo(() =>
     orders.filter(o =>
@@ -656,7 +660,7 @@ const PurchaseOrdersPage = () => {
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map((order) => (
+                filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => (
                   <motion.tr
                     key={order.id}
                     initial={{ opacity: 0, y: 4 }}
@@ -750,6 +754,14 @@ const PurchaseOrdersPage = () => {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(filteredOrders.length / pageSize)}
+          totalItems={filteredOrders.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        />
       </div>
 
       {/* Modals */}

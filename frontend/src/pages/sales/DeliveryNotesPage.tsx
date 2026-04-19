@@ -14,6 +14,7 @@ import autoTable from 'jspdf-autotable';
 import { salesService } from '@/services/sales.service';
 import { DeliveryNote, DeliveryNoteStatus, Customer } from '@/types';
 import { toast } from 'react-hot-toast';
+import { Pagination } from '@/components/ui/Pagination';
 import { usePermissions } from '@/hooks/usePermissions';
 import { PERMISSIONS } from '@/config/permissions';
 
@@ -91,7 +92,7 @@ const DetailModal = ({
     return s + (qty * (l.unitPrice ?? 0));
   }, 0);
   const hasPrices = (note.lines || []).some(l => l.unitPrice != null && l.unitPrice > 0);
-  const fmtPrice = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
+  const fmtPrice = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/\u00A0/g, ' ') + ' MAD';
 
   const fmtDate = (d?: string) =>
     d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
@@ -670,6 +671,8 @@ const DeliveryNotesPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState<DeliveryNote | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchNotes = async () => {
     setLoading(true);
@@ -694,6 +697,7 @@ const DeliveryNotesPage = () => {
 
   useEffect(() => { fetchNotes(); }, [statusFilter, customerFilter]);
   useEffect(() => { fetchCustomers(); }, []);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, statusFilter, customerFilter]);
 
   const openDetail = async (note: DeliveryNote) => {
     try {
@@ -748,141 +752,174 @@ const DeliveryNotesPage = () => {
 
   const generateDeliveryNotePDF = (note: DeliveryNote) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const W  = doc.internal.pageSize.getWidth();   // 210
-    const H  = doc.internal.pageSize.getHeight();  // 297
-    const ML = 14;   // left margin
-    const MR = 14;   // right margin
-    const RX = W - MR;  // right edge x
-    const UW = W - ML - MR;  // usable width = 182
+    const W  = doc.internal.pageSize.getWidth();
+    const H  = doc.internal.pageSize.getHeight();
+    const ML = 14;
+    const MR = 14;
+    const RX = W - MR;
+    const UW = W - ML - MR;
 
-    // ── LEFT: Title + Company ──────────────────────────────────────
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
-    doc.setTextColor(26, 46, 74);
-    doc.text('BON DE LIVRAISON', ML, 22);
+    // ── Helpers ────────────────────────────────────────────────────
+    const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+    const fmtNum  = (v: number) => {
+      const parts = v.toFixed(2).split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      return parts.join(',');
+    };
+    const pdfFmtPrice = (v: number) => fmtNum(v) + ' MAD';
 
+    const statusLabelMap: Record<string, string> = {
+      VALIDATED: 'VALIDE',
+      DRAFT:     'BROUILLON',
+    };
+    const statusColorMap: Record<string, [number, number, number]> = {
+      VALIDATED: [22,  163, 74],
+      DRAFT:     [100, 116, 139],
+    };
+
+    // ── HEADER BAND ────────────────────────────────────────────────
+    doc.setFillColor(15, 28, 58);
+    doc.rect(0, 0, W, 42, 'F');
+    // Teal accent stripe (matching delivery note theme)
+    doc.setFillColor(20, 184, 166);
+    doc.rect(0, 40, W, 2.5, 'F');
+
+    // Company name left
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(26, 46, 74);
-    doc.text('TechSupply Maroc', ML, 29);
+    doc.setFontSize(15);
+    doc.setTextColor(255, 255, 255);
+    doc.text('TechSupply Maroc', ML, 17);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
-    doc.setTextColor(115, 115, 125);
-    doc.text('Casablanca, Maroc  ·  contact@techsupply.ma  ·  +212 5XX XXX XXX', ML, 34);
+    doc.setTextColor(148, 172, 210);
+    doc.text('Casablanca, Maroc', ML, 24);
+    doc.text('contact@techsupply.ma  |  +212 5XX XXX XXX', ML, 30);
 
-    // ── RIGHT: Logo placeholder ────────────────────────────────────
-    const logoX = RX - 48;
-    const logoY = 12;
-    const logoW = 22;
-    const logoH = 12;
-    doc.setDrawColor(200, 205, 218);
-    doc.setFillColor(248, 249, 252);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(logoX, logoY, logoW, logoH, 2, 2, 'FD');
+    // BON DE LIVRAISON title right
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    doc.text('BON DE LIVRAISON', RX, 18, { align: 'right' });
+
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.5);
-    doc.setTextColor(170, 175, 192);
-    doc.text('LOGO', logoX + logoW / 2, logoY + logoH / 2 + 1, { align: 'center' });
+    doc.setFontSize(8.5);
+    doc.setTextColor(148, 172, 210);
+    doc.text(note.reference, RX, 29, { align: 'right' });
 
-    // ── RIGHT: Document info box ───────────────────────────────────
-    const ibX = RX - 48;
-    const ibY = logoY + logoH + 3;
-    const ibW = 48;
-    const ibH = 24;
-    doc.setDrawColor(210, 218, 232);
-    doc.setFillColor(248, 250, 253);
-    doc.setLineWidth(0.25);
-    doc.roundedRect(ibX, ibY, ibW, ibH, 2, 2, 'FD');
+    // ── INFO STRIP (light bg below header) ─────────────────────────
+    doc.setFillColor(244, 246, 251);
+    doc.rect(0, 42.5, W, 22, 'F');
 
-    const statusLabel = note.status === 'VALIDATED' ? 'VALIDÉ' : 'BROUILLON';
-    let ibRowY = ibY + 6;
-    const ibRows: [string, string][] = [
+    const infoItems: [string, string][] = [
+      ['DATE', fmtDate(note.createdAt)],
+      ['LIVRAISON', note.deliveryDate ? fmtDate(note.deliveryDate) : '—'],
+      ['STATUT', statusLabelMap[note.status] ?? note.status],
       ['BON N°', note.reference],
-      ['DATE', new Date(note.createdAt).toLocaleDateString('fr-FR')],
-      ['STATUT', statusLabel],
     ];
-    ibRows.forEach(([label, value]) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.5);
-      doc.setTextColor(26, 46, 74);
-      doc.text(label, ibX + 3, ibRowY);
+    const infoColW = UW / infoItems.length;
+    infoItems.forEach(([label, value], i) => {
+      const x = ML + i * infoColW;
+      if (i > 0) {
+        doc.setDrawColor(210, 220, 235);
+        doc.setLineWidth(0.3);
+        doc.line(x - 4, 46, x - 4, 62);
+      }
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(42, 47, 58);
-      doc.text(value, ibX + ibW - 3, ibRowY, { align: 'right' });
-      ibRowY += 6.5;
+      doc.setFontSize(6);
+      doc.setTextColor(100, 116, 139);
+      doc.text(label, x, 49);
+      if (label === 'STATUT') {
+        const sc = statusColorMap[note.status] ?? [100, 116, 139];
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(sc[0], sc[1], sc[2]);
+        doc.text(value, x, 58);
+      } else {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(20, 30, 55);
+        doc.text(value, x, 58);
+      }
     });
 
-    // ── TOP SEPARATOR ──────────────────────────────────────────────
-    doc.setDrawColor(26, 46, 74);
+    // Bottom border of info strip
+    doc.setDrawColor(210, 220, 235);
+    doc.setLineWidth(0.4);
+    doc.line(0, 64.5, W, 64.5);
+
+    // ── LIVRÉ À + META SECTION ─────────────────────────────────────
+    const billY = 74;
+
+    // Left: LIVRÉ À label
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(20, 184, 166);
+    doc.text('LIVRE A', ML, billY);
+
+    doc.setDrawColor(20, 184, 166);
     doc.setLineWidth(0.5);
-    doc.line(ML, 44, RX, 44);
-
-    // ── LIVRÉ À (left) ────────────────────────────────────────────
-    const sec2Y = 52;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(26, 46, 74);
-    doc.text('LIVRÉ À', ML, sec2Y);
+    doc.line(ML, billY + 1.5, ML + 16, billY + 1.5);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(25, 30, 42);
-    doc.text(note.customerName, ML, sec2Y + 7);
+    doc.setFontSize(12);
+    doc.setTextColor(15, 28, 58);
+    doc.text(note.customerName, ML, billY + 9);
 
     if (note.deliveryAddress) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(80, 85, 98);
-      const addrLines = doc.splitTextToSize(note.deliveryAddress, 82);
-      doc.text(addrLines, ML, sec2Y + 14);
+      doc.setTextColor(100, 116, 139);
+      const addrLines = doc.splitTextToSize(note.deliveryAddress, 90);
+      doc.text(addrLines, ML, billY + 16);
     }
 
     if (note.notes) {
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(7.5);
       doc.setTextColor(130, 135, 148);
-      const notesLines = doc.splitTextToSize(note.notes, 82);
-      doc.text(notesLines, ML, sec2Y + (note.deliveryAddress ? 22 : 14));
+      const notesLines = doc.splitTextToSize(note.notes, 90);
+      doc.text(notesLines, ML, billY + (note.deliveryAddress ? 23 : 16));
     }
 
-    // ── META (right) ───────────────────────────────────────────────
-    const metaX = W / 2 + 5;
-    let metaRowY = sec2Y;
-    const metaRows: [string, string][] = [];
-    if (note.deliveryDate) {
-      metaRows.push(['DATE DE LIVRAISON', new Date(note.deliveryDate).toLocaleDateString('fr-FR')]);
-    }
-    if (note.quoteId) {
-      metaRows.push(['RÉFÉRENCE DEVIS', note.quoteId]);
-    }
-    metaRows.push(['CRÉÉ LE', new Date(note.createdAt).toLocaleDateString('fr-FR')]);
+    // Right: meta info box
+    const metaBoxX = W / 2 + 15;
+    const metaBoxW = RX - metaBoxX;
+    const metaRows: [string, string][] = [
+      ['Cree le', fmtDate(note.createdAt)],
+      ...(note.deliveryDate ? [['Date de livraison', fmtDate(note.deliveryDate)] as [string, string]] : []),
+      ...(note.quoteId      ? [['Ref. devis', note.quoteId] as [string, string]] : []),
+    ];
+    const metaBoxH = 10 + metaRows.length * 9;
 
+    doc.setFillColor(248, 250, 253);
+    doc.setDrawColor(220, 228, 242);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(metaBoxX, billY - 5, metaBoxW, metaBoxH, 2, 2, 'FD');
+
+    // Teal accent bar
+    doc.setFillColor(20, 184, 166);
+    doc.roundedRect(metaBoxX, billY - 5, 2, metaBoxH, 1, 1, 'F');
+
+    let metaRowY = billY + 2;
     metaRows.forEach(([label, value]) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.setTextColor(26, 46, 74);
-      doc.text(label, metaX, metaRowY);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(42, 47, 58);
-      doc.text(value, RX, metaRowY, { align: 'right' });
-      metaRowY += 7;
+      doc.setFontSize(7);
+      doc.setTextColor(100, 116, 139);
+      doc.text(label, metaBoxX + 6, metaRowY);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(15, 28, 58);
+      doc.text(value, metaBoxX + metaBoxW - 4, metaRowY, { align: 'right' });
+      metaRowY += 9;
     });
-
-    // ── SECTION SEPARATOR ──────────────────────────────────────────
-    doc.setDrawColor(210, 218, 228);
-    doc.setLineWidth(0.3);
-    doc.line(ML, 80, RX, 80);
 
     // ── ITEMS TABLE ────────────────────────────────────────────────
     const pdfHasPrices = (note.lines || []).some(l => l.unitPrice != null && l.unitPrice > 0);
-    const pdfFmtPrice = (v: number) => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
 
     const tableHead = pdfHasPrices
-      ? [['DÉSIGNATION', 'QTÉ LIVRÉE', 'PRIX UNIT.', 'REMISE', 'MONTANT HT', 'REMARQUES']]
-      : [['DÉSIGNATION', 'QTÉ LIVRÉE', 'REMARQUES']];
+      ? [['DESIGNATION', 'QTE LIVREE', 'PRIX UNIT.', 'REMISE', 'MONTANT HT', 'REMARQUES']]
+      : [['DESIGNATION', 'QTE LIVREE', 'REMARQUES']];
 
     const tableBody = (note.lines || []).map(l => {
       const base = [
@@ -906,11 +943,11 @@ const DeliveryNotesPage = () => {
     const columnStyles: Record<number, object> = pdfHasPrices
       ? {
           0: { cellWidth: 'auto', fontStyle: 'bold' },
-          1: { halign: 'center', cellWidth: 22 },
-          2: { halign: 'right', cellWidth: 30 },
-          3: { halign: 'center', cellWidth: 20 },
-          4: { halign: 'right', cellWidth: 30 },
-          5: { cellWidth: 32, fontStyle: 'normal' },
+          1: { halign: 'center', cellWidth: 18 },
+          2: { halign: 'right', cellWidth: 38 },
+          3: { halign: 'center', cellWidth: 16 },
+          4: { halign: 'right', cellWidth: 38 },
+          5: { cellWidth: 28, fontStyle: 'normal' },
         }
       : {
           0: { cellWidth: 'auto', fontStyle: 'bold' },
@@ -919,130 +956,113 @@ const DeliveryNotesPage = () => {
         };
 
     autoTable(doc, {
-      startY: 85,
+      startY: 100,
       head: tableHead,
       body: tableBody,
       headStyles: {
-        fillColor: [26, 46, 74],
+        fillColor: [15, 28, 58],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
-        fontSize: 8,
+        fontSize: 7.5,
         halign: 'center',
-        cellPadding: { top: 4, bottom: 4, left: 4, right: 4 },
+        cellPadding: { top: 5, bottom: 5, left: 5, right: 5 },
       },
       bodyStyles: {
-        fontSize: 8,
-        textColor: [42, 50, 65],
-        cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 },
+        fontSize: 8.5,
+        textColor: [30, 40, 65],
+        cellPadding: { top: 4.5, bottom: 4.5, left: 5, right: 5 },
       },
-      alternateRowStyles: {
-        fillColor: [248, 249, 250],
-      },
+      alternateRowStyles: { fillColor: [247, 249, 253] },
       columnStyles,
-      styles: {
-        lineColor: [220, 226, 235],
-        lineWidth: 0.2,
-        overflow: 'linebreak',
-      },
+      styles: { lineColor: [225, 232, 245], lineWidth: 0.2, overflow: 'linebreak' },
       margin: { left: ML, right: MR },
+      didParseCell: (data) => {
+        if (data.section === 'head') {
+          data.cell.styles.lineColor = [20, 184, 166];
+          data.cell.styles.lineWidth = { bottom: 0.8, top: 0, left: 0, right: 0 };
+        }
+      },
     });
 
     const finalY: number = (doc as any).lastAutoTable?.finalY ?? 165;
 
-    // ── SUMMARY BOX ────────────────────────────────────────────────
-    const totalOrdered   = (note.lines || []).reduce((s, l) => s + l.orderedQuantity, 0);
-    const totalDelivered = totalOrdered;
-    const totalAmount    = (note.lines || []).reduce((s, l) => {
+    // ── SUMMARY ────────────────────────────────────────────────────
+    const totalOrdered = (note.lines || []).reduce((s, l) => s + l.orderedQuantity, 0);
+    const totalAmount  = (note.lines || []).reduce((s, l) => {
       if (l.totalPrice != null && l.totalPrice > 0) return s + l.totalPrice;
       return s + (l.orderedQuantity * (l.unitPrice ?? 0));
     }, 0);
 
-    const sumBoxX = W / 2 + 20;
-    const sumBoxW = RX - sumBoxX;
-    const sumBoxY = finalY + 8;
-    const sumBoxH = pdfHasPrices ? 30 : 22;
+    const sumX = W / 2 + 12;
+    const sumW = RX - sumX;
+    let   sumY = finalY + 10;
 
-    doc.setFillColor(248, 250, 253);
-    doc.setDrawColor(210, 218, 232);
-    doc.setLineWidth(0.25);
-    doc.roundedRect(sumBoxX, sumBoxY, sumBoxW, sumBoxH, 2, 2, 'FD');
-
+    // Ordered qty row
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(75, 82, 98);
-    doc.text('Total articles commandés', sumBoxX + 4, sumBoxY + 7);
     doc.setFontSize(8.5);
-    doc.setTextColor(42, 47, 58);
-    doc.text(totalOrdered.toString(), sumBoxX + sumBoxW - 4, sumBoxY + 7, { align: 'right' });
+    doc.setTextColor(100, 116, 139);
+    doc.text('Total articles commandes', sumX, sumY);
+    doc.setTextColor(30, 40, 65);
+    doc.text(totalOrdered.toString(), RX, sumY, { align: 'right' });
+    sumY += 8;
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(75, 82, 98);
-    doc.text('Total articles livrés', sumBoxX + 4, sumBoxY + 14);
-    doc.setFontSize(8.5);
-    doc.setTextColor(42, 47, 58);
-    doc.text(totalDelivered.toString(), sumBoxX + sumBoxW - 4, sumBoxY + 14, { align: 'right' });
+    // Teal separator line
+    doc.setDrawColor(20, 184, 166);
+    doc.setLineWidth(0.6);
+    doc.line(sumX, sumY, RX, sumY);
+    sumY += 4;
 
-    doc.setDrawColor(210, 218, 232);
-    doc.setLineWidth(0.2);
-    doc.line(sumBoxX + 4, sumBoxY + (pdfHasPrices ? 18 : 11), sumBoxX + sumBoxW - 4, sumBoxY + (pdfHasPrices ? 18 : 11));
-
+    // Total row — dark filled box
+    doc.setFillColor(15, 28, 58);
+    doc.roundedRect(sumX - 3, sumY - 1, sumW + 3, 13, 2, 2, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.setTextColor(26, 46, 74);
-    doc.text('MONTANT TOTAL', sumBoxX + 4, sumBoxY + (pdfHasPrices ? 26 : 18));
+    doc.setTextColor(255, 255, 255);
+    doc.text('MONTANT TOTAL', sumX + 2, sumY + 8);
     doc.text(
-      pdfHasPrices ? pdfFmtPrice(totalAmount) : `${totalDelivered} unités`,
-      sumBoxX + sumBoxW - 4,
-      sumBoxY + (pdfHasPrices ? 26 : 18),
-      { align: 'right' },
+      pdfHasPrices ? pdfFmtPrice(totalAmount) : `${totalOrdered} unites`,
+      RX - 3, sumY + 8, { align: 'right' },
     );
 
-    // ── FOOTER SEPARATOR ───────────────────────────────────────────
-    doc.setDrawColor(26, 46, 74);
-    doc.setLineWidth(0.4);
-    doc.line(ML, H - 52, RX, H - 52);
-
     // ── SIGNATURE ZONE ─────────────────────────────────────────────
-    const sigZoneY = H - 49;
-    const sigBoxW  = (UW - 8) / 2;
-    const sig1X    = ML;
-    const sig2X    = ML + sigBoxW + 8;
-    const sigBoxH  = 26;
+    const sigZoneY = H - 52;
 
-    // Box 1 — Signature émetteur
-    doc.setDrawColor(200, 210, 228);
-    doc.setLineWidth(0.25);
-    doc.roundedRect(sig1X, sigZoneY, sigBoxW, sigBoxH, 2, 2, 'S');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(26, 46, 74);
-    doc.text('Signature émetteur', sig1X + sigBoxW / 2, sigZoneY + 6, { align: 'center' });
-    doc.setDrawColor(188, 198, 215);
-    doc.setLineWidth(0.3);
-    doc.line(sig1X + 12, sigZoneY + 21, sig1X + sigBoxW - 12, sigZoneY + 21);
+    doc.setDrawColor(210, 220, 235);
+    doc.setLineWidth(0.4);
+    doc.line(ML, sigZoneY - 6, RX, sigZoneY - 6);
 
-    // Box 2 — Signature récepteur
-    doc.setDrawColor(200, 210, 228);
-    doc.setLineWidth(0.25);
-    doc.roundedRect(sig2X, sigZoneY, sigBoxW, sigBoxH, 2, 2, 'S');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(26, 46, 74);
-    doc.text('Signature récepteur', sig2X + sigBoxW / 2, sigZoneY + 6, { align: 'center' });
-    doc.setDrawColor(188, 198, 215);
-    doc.setLineWidth(0.3);
-    doc.line(sig2X + 12, sigZoneY + 21, sig2X + sigBoxW - 12, sigZoneY + 21);
+    const sigBoxW = (UW - 10) / 2;
+    const sigBoxH = 28;
+    ['Signature emetteur', 'Bon pour accord - Client'].forEach((label, i) => {
+      const sigX = ML + i * (sigBoxW + 10);
+      doc.setFillColor(248, 250, 253);
+      doc.setDrawColor(210, 220, 238);
+      doc.setLineWidth(0.25);
+      doc.roundedRect(sigX, sigZoneY, sigBoxW, sigBoxH, 2, 2, 'FD');
+      // Teal top accent stripe
+      doc.setFillColor(20, 184, 166);
+      doc.roundedRect(sigX, sigZoneY, sigBoxW, 2, 1, 1, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(15, 28, 58);
+      doc.text(label, sigX + sigBoxW / 2, sigZoneY + 10, { align: 'center' });
+      doc.setDrawColor(180, 198, 225);
+      doc.setLineWidth(0.4);
+      doc.line(sigX + 8, sigZoneY + sigBoxH - 6, sigX + sigBoxW - 8, sigZoneY + sigBoxH - 6);
+    });
 
-    // ── TERMS LINE ─────────────────────────────────────────────────
+    // ── FOOTER BAND ────────────────────────────────────────────────
+    doc.setFillColor(15, 28, 58);
+    doc.rect(0, H - 16, W, 16, 'F');
+    doc.setFillColor(20, 184, 166);
+    doc.rect(0, H - 16, W, 1.5, 'F');
+
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.5);
-    doc.setTextColor(155, 160, 172);
+    doc.setTextColor(148, 172, 210);
     doc.text(
-      'Marchandise vérifiée à la réception — Toute réclamation doit être signalée dans les 48h — TechSupply Maroc © 2024',
-      W / 2,
-      H - 8,
-      { align: 'center' },
+      'Marchandise verifiee a la reception  |  Toute reclamation signalée dans les 48h  |  TechSupply Maroc 2024',
+      W / 2, H - 6, { align: 'center' },
     );
 
     const pdfUrl = doc.output('bloburl');
@@ -1170,7 +1190,7 @@ const DeliveryNotesPage = () => {
                   </td>
                 </tr>
               ) : (
-                filtered.map((note) => (
+                filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((note) => (
                   <motion.tr
                     key={note.id}
                     initial={{ opacity: 0, y: 4 }}
@@ -1227,6 +1247,14 @@ const DeliveryNotesPage = () => {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(filtered.length / pageSize)}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        />
       </div>
 
       {/* Modals */}

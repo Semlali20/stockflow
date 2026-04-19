@@ -14,6 +14,7 @@ import {
 import { movementService } from '@/services/movement.service';
 import { inventoryService } from '@/services/inventory.service';
 import { alertService } from '@/services/alert.service';
+import { locationService } from '@/services/location.service';
 import { Movement, MovementType, MovementStatus } from '@/types';
 import { toast } from 'react-hot-toast';
 import { confirmDelete } from '@/utils/confirmDialog';
@@ -155,8 +156,26 @@ const MovementsPage = () => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {
-      const response = await movementService.getMovements({ size: 100 });
-      setMovements(response.content || []);
+      const [response, locationsData] = await Promise.all([
+        movementService.getMovements({ size: 100 }),
+        locationService.getLocations({ size: 1000 }).catch(() => null),
+      ]);
+
+      // Build id → code map from locations
+      const locMap: Record<string, string> = {};
+      const locList = locationsData?.content ?? locationsData ?? [];
+      (Array.isArray(locList) ? locList : []).forEach((loc: any) => {
+        if (loc?.id) locMap[loc.id] = loc.code || loc.name || loc.id.slice(0, 8);
+      });
+
+      // Enrich each movement with readable location codes
+      const enriched = (response.content || []).map((m: Movement) => ({
+        ...m,
+        sourceLocationName: m.sourceLocationId ? (locMap[m.sourceLocationId] ?? m.sourceLocationId.slice(0, 8)) : undefined,
+        destinationLocationName: m.destinationLocationId ? (locMap[m.destinationLocationId] ?? m.destinationLocationId.slice(0, 8)) : undefined,
+      }));
+
+      setMovements(enriched);
     } catch (error) {
       console.error('Failed to fetch movements:', error);
       toast.error(t('movements.messages.fetchError'));

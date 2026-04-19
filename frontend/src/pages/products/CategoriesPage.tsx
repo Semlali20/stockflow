@@ -19,6 +19,7 @@ import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/hooks/usePermissions';
 import { PERMISSIONS } from '@/config/permissions';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const CategoriesPage = () => {
   const { t } = useTranslation();
@@ -28,6 +29,8 @@ export const CategoriesPage = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -84,6 +87,7 @@ export const CategoriesPage = () => {
     } else {
       setFilteredCategories(categories);
     }
+    setCurrentPage(1);
   }, [searchTerm, categories]);
 
   // ──────────────────────────────────────────────────────────────
@@ -335,6 +339,7 @@ export const CategoriesPage = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
               <thead className="bg-gray-50 dark:bg-neutral-700">
@@ -364,7 +369,7 @@ export const CategoriesPage = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredCategories.map((category) => (
+                  filteredCategories.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((category) => (
                     <tr key={category.id} className="hover:bg-gray-50 dark:hover:bg-neutral-700/50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">{category.name}</div>
@@ -415,6 +420,15 @@ export const CategoriesPage = () => {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredCategories.length / pageSize)}
+            totalItems={filteredCategories.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+          />
+          </>
         )}
       </div>
 

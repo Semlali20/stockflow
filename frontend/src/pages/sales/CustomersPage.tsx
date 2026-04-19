@@ -11,6 +11,7 @@ import {
 import { salesService } from '@/services/sales.service';
 import { Customer, CustomerStatus } from '@/types';
 import { toast } from 'react-hot-toast';
+import { Pagination } from '@/components/ui/Pagination';
 
 // ─── StyledSelect ─────────────────────────────────────────────────────────────
 
@@ -185,7 +186,7 @@ const CustomerFormModal = ({
                   onChange={set('name')}
                   required
                   className="w-full px-3 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
-                  placeholder={t('sales.customers.namePlaceholder')}
+                  placeholder="Enter customer name"
                 />
               </div>
 
@@ -354,6 +355,8 @@ const CustomersPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -369,6 +372,7 @@ const CustomersPage = () => {
   };
 
   useEffect(() => { fetchCustomers(); }, [searchTerm, statusFilter]);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, statusFilter]);
 
   const handleDeleteConfirm = async () => {
     if (!selectedCustomer) return;
@@ -475,7 +479,7 @@ const CustomersPage = () => {
                   </td>
                 </tr>
               ) : (
-                customers.map((customer) => (
+                customers.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((customer) => (
                   <motion.tr
                     key={customer.id}
                     initial={{ opacity: 0, y: 4 }}
@@ -530,6 +534,14 @@ const CustomersPage = () => {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(customers.length / pageSize)}
+          totalItems={customers.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        />
       </div>
 
       {/* Modals */}
