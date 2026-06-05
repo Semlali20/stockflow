@@ -16,13 +16,10 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         
-        // Allow frontend origin
-        corsConfiguration.setAllowedOrigins(List.of(
-            "http://localhost:3000",
-            "http://localhost:5173",  // Vite default port
-            "http://127.0.0.1:3000",
-            "http://127.0.0.1:5173"
-        ));
+        // Allow any origin so the app works on any server IP/hostname (behind the
+        // nginx reverse proxy or accessed directly). Patterns are required because
+        // "*" cannot be combined with allowCredentials=true.
+        corsConfiguration.setAllowedOriginPatterns(List.of("*"));
         
         // Allow all HTTP methods
         corsConfiguration.setAllowedMethods(Arrays.asList(

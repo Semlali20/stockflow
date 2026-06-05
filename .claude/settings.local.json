@@ -191,7 +191,8 @@
       "Bash(JAVA_HOME=\"/c/Program Files/Java/jdk-17\" \"../auth-service/mvnw\" package -DskipTests -q)",
       "Bash(size=5 2>&1)",
       "Bash(export JAVA_HOME=\"/c/Program Files/Java/jdk-17\")",
-      "Bash(./mvnw -f ../sales-service/pom.xml clean package -DskipTests -q)"
+      "Bash(./mvnw -f ../sales-service/pom.xml clean package -DskipTests -q)",
+      "Bash(cd /c/Users/PC/stockflow/api-gateway && find . -path ./target -prune -o \\\\\\( -name \"*.yml\" -o -name \"*.yaml\" -o -name \"*.properties\" \\\\\\) -print | head; echo \"===CORS/ROUTE files===\"; grep -rl \"cors\\\\|Cors\\\\|allowedOrigins\\\\|RouteLocator\\\\|Path=\" src/ 2>/dev/null | head)"
     ],
     "deny": [],
     "ask": []

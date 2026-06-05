@@ -4,12 +4,10 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins:
-              - "http://localhost:3000"
-              - "http://localhost:4200"
-              - "http://localhost:8080"
-              - "http://host.docker.internal:3000"
-              - "http://host.docker.internal:4200"
+            # Allow any origin so the app works on any server IP/hostname.
+            # Patterns are required because "*" can't be combined with allowCredentials=true.
+            allowedOriginPatterns:
+              - "*"
             allowedMethods:
               - GET
               - POST

@@ -1,6 +1,10 @@
   // frontend/src/config/constants.ts
-  
-  export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+  // Empty default => same-origin requests (e.g. "/api/..."). In dev, Vite proxies
+  // /api to the gateway; in Docker, nginx proxies /api to the gateway. This lets
+  // the app run on ANY server IP/hostname with no rebuild and without CORS setup.
+  // Override with VITE_API_BASE_URL only to target the gateway directly.
+  export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
   
   export const API_ENDPOINTS = {
     // Auth
