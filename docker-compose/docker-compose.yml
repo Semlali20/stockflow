@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   # ================== KAFKA INFRASTRUCTURE ==================
-  
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
@@ -18,6 +18,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -38,27 +39,16 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: kafka
+      # Limit Kafka heap to avoid competing with Spring Boot services
+      KAFKA_HEAP_OPTS: "-Xmx256m -Xms256m"
     networks:
       - stock-network
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-      interval: 10s
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list > /dev/null 2>&1 || exit 1"]
+      interval: 15s
       timeout: 10s
-      retries: 5
-
-  kafdrop:
-    image: obsidiandynamics/kafdrop:latest
-    container_name: kafdrop
-    depends_on:
-      kafka:
-        condition: service_healthy
-    ports:
-      - "9000:9000"
-    environment:
-      KAFKA_BROKERCONNECT: kafka:29092
-      JVM_OPTS: "-Xms32M -Xmx64M"
-    networks:
-      - stock-network
+      retries: 10
+      start_period: 60s
 
   # ================== DATABASES ==================
 
@@ -80,6 +70,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   postgres-inventory:
     image: postgres:15-alpine
@@ -99,6 +90,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   postgres-movement:
     image: postgres:15-alpine
@@ -118,6 +110,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   postgres-location:
     image: postgres:15-alpine
@@ -137,6 +130,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   postgres-user:
     image: postgres:15-alpine
@@ -156,6 +150,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   postgres-alert:
     image: postgres:15-alpine
@@ -175,6 +170,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   postgres-purchase:
     image: postgres:15-alpine
@@ -194,6 +190,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   postgres-sales:
     image: postgres:15-alpine
@@ -213,6 +210,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   # ================== REDIS ==================
 
@@ -228,125 +226,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 5s
 
   # ================== SERVICES ==================
-  api-gateway:
-    build:
-      context: ../api-gateway
-      dockerfile: Dockerfile
-    container_name: api-gateway
-    depends_on:
-      redis:
-        condition: service_healthy
-      auth-service:
-        condition: service_started
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-      JWT_JWKS_URL: http://auth-service:8083/.well-known/jwks.json
-    networks:
-      - stock-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
-  product-service:
-    build:
-      context: ../product-service
-      dockerfile: Dockerfile
-    container_name: product-service
-    depends_on:
-      postgres-product:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    ports:
-      - "8082:8082"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/product_db
-      SPRING_DATASOURCE_USERNAME: product_user
-      SPRING_DATASOURCE_PASSWORD: product_pass
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-    networks:
-      - stock-network
-    restart: unless-stopped
-
-  location-service:
-    build:
-      context: ../location-service
-      dockerfile: Dockerfile
-    container_name: location-service
-    depends_on:
-      postgres-location:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    ports:
-      - "8085:8085"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-location:5432/location_db
-      SPRING_DATASOURCE_USERNAME: location_user
-      SPRING_DATASOURCE_PASSWORD: location_pass
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-    networks:
-      - stock-network
-    restart: unless-stopped
-
-  inventory-service:
-    build:
-      context: ../inventory-service
-      dockerfile: Dockerfile
-    container_name: inventory-service
-    depends_on:
-      postgres-inventory:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    ports:
-      - "8086:8086"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-inventory:5432/inventory_db
-      SPRING_DATASOURCE_USERNAME: inventory_user
-      SPRING_DATASOURCE_PASSWORD: inventory_pass
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
-    networks:
-      - stock-network
-    restart: unless-stopped
-
-  movement-service:
-    build:
-      context: ../movement-service
-      dockerfile: Dockerfile
-    container_name: movement-service
-    depends_on:
-      postgres-movement:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    ports:
-      - "8084:8084"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-movement:5432/movement_db
-      SPRING_DATASOURCE_USERNAME: movement_user
-      SPRING_DATASOURCE_PASSWORD: movement_pass
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-    networks:
-      - stock-network
-    restart: unless-stopped
 
   auth-service:
     build:
@@ -364,23 +246,180 @@ services:
       - "8083:8083"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/user_db
       SPRING_DATASOURCE_USERNAME: user_user
       SPRING_DATASOURCE_PASSWORD: user_pass
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      JWT_SECRET: 7xK9mP2nQ5wR8tY3uV6zA1bC4dE7fG0hI2jK5lM8nO1pQ4rS7tU0vW3xY6zA9bB2cD5eF8gH1iJ4kL7mN0oP3qR6sT9uV2wX5yZ8aB1cD4eE7fF0gG3hH6iI9jJ2kK5lL8mM1nN4oO7pP0qQ3rR6sS9tT2uU5vV8wW1xX4yY7zZ0aA3b
+      JWT_SECRET: ${JWT_SECRET}
       SPRING_MAIL_HOST: smtp.gmail.com
       SPRING_MAIL_PORT: 587
-      SPRING_MAIL_USERNAME: houarimehdi7@gmail.com
-      SPRING_MAIL_PASSWORD: jflhephmpxlznycj
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
     networks:
       - stock-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8083/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
+  api-gateway:
+    build:
+      context: ../api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    depends_on:
+      redis:
+        condition: service_healthy
+      auth-service:
+        # Wait for auth-service to be fully ready before starting the gateway
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      JWT_JWKS_URL: http://auth-service:8083/.well-known/jwks.json
+      # Allows the frontend to be accessed from SERVER_IP (e.g. from a phone on the same network)
+      CORS_EXTRA_ORIGIN: "http://${SERVER_IP:-localhost}:3000"
+    networks:
+      - stock-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  product-service:
+    build:
+      context: ../product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    depends_on:
+      postgres-product:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/product_db
+      SPRING_DATASOURCE_USERNAME: product_user
+      SPRING_DATASOURCE_PASSWORD: product_pass
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - stock-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  location-service:
+    build:
+      context: ../location-service
+      dockerfile: Dockerfile
+    container_name: location-service
+    depends_on:
+      postgres-location:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-location:5432/location_db
+      SPRING_DATASOURCE_USERNAME: location_user
+      SPRING_DATASOURCE_PASSWORD: location_pass
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - stock-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8085/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  inventory-service:
+    build:
+      context: ../inventory-service
+      dockerfile: Dockerfile
+    container_name: inventory-service
+    depends_on:
+      postgres-inventory:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-inventory:5432/inventory_db
+      SPRING_DATASOURCE_USERNAME: inventory_user
+      SPRING_DATASOURCE_PASSWORD: inventory_pass
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    networks:
+      - stock-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8086/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  movement-service:
+    build:
+      context: ../movement-service
+      dockerfile: Dockerfile
+    container_name: movement-service
+    depends_on:
+      postgres-movement:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-movement:5432/movement_db
+      SPRING_DATASOURCE_USERNAME: movement_user
+      SPRING_DATASOURCE_PASSWORD: movement_pass
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - stock-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8084/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   alert-service:
     build:
@@ -396,69 +435,89 @@ services:
       - "8088:8088"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-alert:5432/alert_db
       SPRING_DATASOURCE_USERNAME: alert_user
       SPRING_DATASOURCE_PASSWORD: alert_pass
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_MAIL_HOST: smtp.gmail.com
       SPRING_MAIL_PORT: 587
-      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-houarimehdi7@gmail.com}
-      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-nnoivyxhebwhdhye}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
-      APP_ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@stock-management.com}
-      APP_DASHBOARD_URL: ${DASHBOARD_URL:-http://localhost:5173}
+      APP_ADMIN_EMAIL: ${ADMIN_EMAIL}
+      APP_DASHBOARD_URL: "http://${SERVER_IP:-localhost}:3000"
     networks:
       - stock-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8088/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   purchase-service:
     build:
       context: ../purchase-service
       dockerfile: Dockerfile
     container_name: purchase-service
-    ports:
-      - "8089:8089"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - JWT_SECRET=${JWT_SECRET:-mySecretKeyForJWTTokenGenerationThatIsAtLeast256BitsLong12345678}
     depends_on:
       postgres-purchase:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - stock-network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8089/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   sales-service:
     build:
       context: ../sales-service
       dockerfile: Dockerfile
     container_name: sales-service
-    ports:
-      - "8090:8090"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - JWT_SECRET=${JWT_SECRET:-mySecretKeyForJWTTokenGenerationThatIsAtLeast256BitsLong12345678}
     depends_on:
       postgres-sales:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8090:8090"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - stock-network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8090/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8090/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   # ================== MONITORING ==================
+  # Tip: start these separately with --profile monitoring to avoid slowing down service startup
+  # docker-compose --profile monitoring up -d
 
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
+    profiles: ["monitoring"]
     ports:
       - "9090:9090"
     volumes:
@@ -475,6 +534,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    profiles: ["monitoring"]
     ports:
       - "3001:3000"
     environment:
@@ -493,6 +553,7 @@ services:
   kafka-exporter:
     image: danielqsj/kafka-exporter:latest
     container_name: kafka-exporter
+    profiles: ["monitoring"]
     command:
       - '--kafka.server=kafka:29092'
     ports:
@@ -507,11 +568,27 @@ services:
   zipkin:
     image: openzipkin/zipkin:latest
     container_name: zipkin
+    profiles: ["monitoring"]
     ports:
       - "9411:9411"
     networks:
       - stock-network
     restart: unless-stopped
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    container_name: kafdrop
+    profiles: ["monitoring"]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka:29092
+      JVM_OPTS: "-Xms32M -Xmx64M"
+    networks:
+      - stock-network
 
 networks:
   stock-network:

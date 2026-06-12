@@ -10,6 +10,7 @@ spring:
               - "http://localhost:8080"
               - "http://host.docker.internal:3000"
               - "http://host.docker.internal:4200"
+              - "${CORS_EXTRA_ORIGIN:http://localhost:3000}"
             allowedMethods:
               - GET
               - POST
@@ -23,6 +24,10 @@ spring:
             maxAge: 3600
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      filter:
+        request-rate-limiter:
+          deny-empty-key: false
+          empty-key-status-code: 429
 
   data:
     redis:

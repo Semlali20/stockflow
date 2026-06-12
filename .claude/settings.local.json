@@ -192,7 +192,14 @@
       "Bash(size=5 2>&1)",
       "Bash(export JAVA_HOME=\"/c/Program Files/Java/jdk-17\")",
       "Bash(./mvnw -f ../sales-service/pom.xml clean package -DskipTests -q)",
-      "Bash(grep -i \"\\\\.tsx$\")"
+      "Bash(grep -i \"\\\\.tsx$\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stockflow-master\\\\stockflow-master\" -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stockflow-master\\\\stockflow-master\\\\frontend\" -Recurse -Depth 2)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(head -100)",
+      "Bash(dir \"C:\\\\Users\\\\Legion\\\\Downloads\\\\stockflow-master\\\\stockflow-master\\\\stockflow_mobile\" /s /b)"
     ],
     "deny": [],
     "ask": []

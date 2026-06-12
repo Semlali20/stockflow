@@ -1,3 +1,7 @@
+# Local env — never commit (contains IP / credentials)
+.env
+.env.local
+
 # Logs
 logs
 *.log
