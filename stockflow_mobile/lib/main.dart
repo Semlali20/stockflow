@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,13 +32,22 @@ class StockFlowApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final appThemeMode = ref.watch(themeProvider);
+
+    final ThemeData themeData;
+    switch (appThemeMode) {
+      case AppThemeMode.light:
+        themeData = AppTheme.light();
+      case AppThemeMode.teal:
+        themeData = AppTheme.teal();
+      case AppThemeMode.dark:
+        themeData = AppTheme.dark();
+    }
 
     return MaterialApp.router(
       title: 'StockFlow',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.dark,
+      theme: themeData,
       routerConfig: router,
     );
   }

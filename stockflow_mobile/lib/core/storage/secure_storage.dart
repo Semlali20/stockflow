@@ -57,4 +57,8 @@ class SecureStorageService {
     final token = await getToken();
     return token != null && token.isNotEmpty;
   }
+
+  Future<String?> read(String key) => _storage.read(key: key);
+
+  Future<void> write(String key, String value) => _storage.write(key: key, value: value);
 }

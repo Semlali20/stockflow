@@ -11,6 +11,10 @@ import '../../features/inventory/screens/inventory_screen.dart';
 import '../../features/movements/screens/movements_screen.dart';
 import '../../features/movements/screens/create_movement_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/purchases/screens/purchases_screen.dart';
+import '../../features/purchases/screens/create_purchase_order_screen.dart';
+import '../../features/sales/screens/sales_screen.dart';
+import '../../features/sales/screens/create_quote_screen.dart';
 import '../../shared/widgets/main_shell.dart';
 
 // Route names
@@ -23,6 +27,10 @@ abstract class AppRoutes {
   static const inventory = '/inventory';
   static const movements = '/movements';
   static const createMovement = '/movements/create';
+  static const purchases = '/purchases';
+  static const createPurchaseOrder = '/purchases/create-order';
+  static const sales = '/sales';
+  static const createQuote = '/sales/create-quote';
   static const profile = '/profile';
 }
 
@@ -90,10 +98,26 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (_, __) => const CreateMovementScreen(),
           ),
           GoRoute(
+            path: AppRoutes.purchases,
+            builder: (_, __) => const PurchasesScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.sales,
+            builder: (_, __) => const SalesScreen(),
+          ),
+          GoRoute(
             path: AppRoutes.profile,
             builder: (_, __) => const ProfileScreen(),
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.createPurchaseOrder,
+        builder: (_, __) => const CreatePurchaseOrderScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.createQuote,
+        builder: (_, __) => const CreateQuoteScreen(),
       ),
     ],
   );
