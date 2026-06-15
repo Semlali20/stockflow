@@ -1,7 +1,7 @@
 // src/components/items/ItemFormModal.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { X, ImageIcon } from 'lucide-react';
+import { X, ImageIcon, Search, ChevronDown } from 'lucide-react';
 import { productService } from '@/services/product.service';
 import { Item } from '@/types';
 import { toast } from 'react-hot-toast';
@@ -40,6 +40,9 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [categorySearch, setCategorySearch] = useState('');
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
     categoryId: '',
@@ -55,6 +58,16 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
   const [dynamicAttributes, setDynamicAttributes] = useState<DynamicAttribute[]>([]);
   const [temperatureControls, setTemperatureControls] = useState<string[]>([]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target as Node)) {
+        setCategoryDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -297,17 +310,56 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
                   <label className={labelCls}>
                     {t('products.items.form.category')} <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    className={inputCls}
-                    value={formData.categoryId}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
-                    required
-                  >
-                    <option value="">{t('products.items.form.selectCategory')}</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
+                  <div ref={categoryDropdownRef} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => { setCategoryDropdownOpen(o => !o); setCategorySearch(''); }}
+                      className={`${inputCls} flex items-center justify-between text-left w-full`}
+                    >
+                      <span className={formData.categoryId ? '' : 'text-gray-400 dark:text-gray-500'}>
+                        {formData.categoryId
+                          ? categories.find(c => c.id === formData.categoryId)?.name ?? t('products.items.form.selectCategory')
+                          : t('products.items.form.selectCategory')}
+                      </span>
+                      <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {categoryDropdownOpen && (
+                      <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg">
+                        <div className="p-2 border-b border-gray-100 dark:border-neutral-700">
+                          <div className="relative">
+                            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                              autoFocus
+                              type="text"
+                              value={categorySearch}
+                              onChange={e => setCategorySearch(e.target.value)}
+                              placeholder={t('common.search') + '...'}
+                              className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                            />
+                          </div>
+                        </div>
+                        <ul className="max-h-48 overflow-y-auto py-1">
+                          {categories
+                            .filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase()))
+                            .map(cat => (
+                              <li
+                                key={cat.id}
+                                onClick={() => { handleCategoryChange(cat.id); setCategoryDropdownOpen(false); }}
+                                className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                                  formData.categoryId === cat.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                                }`}
+                              >
+                                {cat.name}
+                              </li>
+                            ))}
+                          {categories.filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase())).length === 0 && (
+                            <li className="px-3 py-2 text-sm text-gray-400 text-center">{t('common.noResults') ?? 'No results'}</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>

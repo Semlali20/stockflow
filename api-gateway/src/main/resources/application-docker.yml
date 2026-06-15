@@ -4,7 +4,10 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            # Allow any origin so the app works on any server IP/hostname.
+            # Allow any origin so the app works on any server IP/hostname with no rebuild.
+            # The web frontend normally calls the gateway same-origin (nginx proxies
+            # /api -> api-gateway), so CORS rarely fires; this keeps direct browser and
+            # mobile clients working on any IP too.
             # Patterns are required because "*" can't be combined with allowCredentials=true.
             allowedOriginPatterns:
               - "*"
@@ -21,6 +24,10 @@ spring:
             maxAge: 3600
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      filter:
+        request-rate-limiter:
+          deny-empty-key: false
+          empty-key-status-code: 429
 
   data:
     redis:

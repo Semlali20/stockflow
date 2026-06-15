@@ -1,8 +1,8 @@
 // src/pages/sales/QuoteFormPage.tsx
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Send, ArrowLeft, Package } from 'lucide-react';
+import { Plus, Trash2, Send, ArrowLeft, Package, Search, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import { salesService } from '@/services/sales.service';
@@ -54,12 +54,35 @@ export const QuoteFormPage = () => {
   const [addCategoryId, setAddCategoryId] = useState('');
   const [addItemId, setAddItemId] = useState('');
 
+  // Searchable dropdown state
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [warehouseSearch, setWarehouseSearch] = useState('');
+  const [warehouseDropdownOpen, setWarehouseDropdownOpen] = useState(false);
+  const warehouseDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [locationSearch, setLocationSearch] = useState('');
+  const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
+  const locationDropdownRef = useRef<HTMLDivElement>(null);
+
   // UI state
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [loadingWarehouses, setLoadingWarehouses] = useState(false);
   const [loadingLocations, setLoadingLocations] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (customerDropdownRef.current && !customerDropdownRef.current.contains(e.target as Node)) setCustomerDropdownOpen(false);
+      if (warehouseDropdownRef.current && !warehouseDropdownRef.current.contains(e.target as Node)) setWarehouseDropdownOpen(false);
+      if (locationDropdownRef.current && !locationDropdownRef.current.contains(e.target as Node)) setLocationDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     setLoadingCustomers(true);
@@ -287,45 +310,125 @@ export const QuoteFormPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('sales.quotes.customer')} *</label>
-                <Select
-                  value={customerId}
-                  onChange={e => {
-                    setCustomerId(e.target.value);
-                    const c = customers.find(c => c.id === e.target.value);
-                    setCustomerName(c?.name || '');
-                  }}
-                  className="w-full"
-                  disabled={loadingCustomers}
-                >
-                  <option value="">{t('sales.quotes.selectCustomer')}</option>
-                  {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </Select>
+                <div ref={customerDropdownRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => { if (!loadingCustomers) { setCustomerDropdownOpen(o => !o); setCustomerSearch(''); } }}
+                    disabled={loadingCustomers}
+                    className={`w-full flex items-center justify-between border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-900 text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${loadingCustomers ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <span className={customerId ? '' : 'text-gray-400'}>
+                      {loadingCustomers ? 'Loading...' : customerId ? (customers.find(c => c.id === customerId)?.name ?? t('sales.quotes.selectCustomer')) : t('sales.quotes.selectCustomer')}
+                    </span>
+                    <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${customerDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {customerDropdownOpen && (
+                    <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg">
+                      <div className="p-2 border-b border-gray-100">
+                        <div className="relative">
+                          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input autoFocus type="text" value={customerSearch} onChange={e => setCustomerSearch(e.target.value)}
+                            placeholder="Search..." className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
+                        </div>
+                      </div>
+                      <ul className="max-h-52 overflow-y-auto py-1">
+                        {customers.filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase())).map(c => (
+                          <li key={c.id} onClick={() => { setCustomerId(c.id); setCustomerName(c.name); setCustomerDropdownOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${customerId === c.id ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-gray-700'}`}>
+                            {c.name}
+                          </li>
+                        ))}
+                        {customers.filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase())).length === 0 && (
+                          <li className="px-3 py-2 text-sm text-gray-400 text-center">No results</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('quoteForm.warehouse')}</label>
-                <Select
-                  value={inventoryId}
-                  onChange={e => handleWarehouseChange(e.target.value)}
-                  className="w-full"
-                  disabled={loadingWarehouses}
-                >
-                  <option value="">{t('quoteForm.selectWarehouse')}</option>
-                  {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                </Select>
+                <div ref={warehouseDropdownRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => { if (!loadingWarehouses) { setWarehouseDropdownOpen(o => !o); setWarehouseSearch(''); } }}
+                    disabled={loadingWarehouses}
+                    className={`w-full flex items-center justify-between border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-900 text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${loadingWarehouses ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <span className={inventoryId ? '' : 'text-gray-400'}>
+                      {loadingWarehouses ? 'Loading...' : inventoryId ? (warehouses.find(w => w.id === inventoryId)?.name ?? t('quoteForm.selectWarehouse')) : t('quoteForm.selectWarehouse')}
+                    </span>
+                    <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${warehouseDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {warehouseDropdownOpen && (
+                    <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg">
+                      <div className="p-2 border-b border-gray-100">
+                        <div className="relative">
+                          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input autoFocus type="text" value={warehouseSearch} onChange={e => setWarehouseSearch(e.target.value)}
+                            placeholder="Search..." className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
+                        </div>
+                      </div>
+                      <ul className="max-h-52 overflow-y-auto py-1">
+                        {warehouses.filter(w => w.name.toLowerCase().includes(warehouseSearch.toLowerCase())).map(w => (
+                          <li key={w.id} onClick={() => { handleWarehouseChange(w.id); setWarehouseDropdownOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${inventoryId === w.id ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-gray-700'}`}>
+                            {w.name}
+                          </li>
+                        ))}
+                        {warehouses.filter(w => w.name.toLowerCase().includes(warehouseSearch.toLowerCase())).length === 0 && (
+                          <li className="px-3 py-2 text-sm text-gray-400 text-center">No results</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('common.location')}</label>
-                <Select
-                  value={selectedLocationId}
-                  onChange={e => handleLocationChange(e.target.value)}
-                  className="w-full"
-                  disabled={!inventoryId || loadingLocations}
-                >
-                  <option value="">{t('common.allLocations')}</option>
-                  {warehouseLocations.map(l => (
-                    <option key={l.id} value={l.id}>{(l as any).code || l.name}</option>
-                  ))}
-                </Select>
+                <div ref={locationDropdownRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => { if (inventoryId && !loadingLocations) { setLocationDropdownOpen(o => !o); setLocationSearch(''); } }}
+                    disabled={!inventoryId || loadingLocations}
+                    className={`w-full flex items-center justify-between border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-900 text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${(!inventoryId || loadingLocations) ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <span className={selectedLocationId ? '' : 'text-gray-400'}>
+                      {loadingLocations ? 'Loading...' : selectedLocationId
+                        ? (() => { const loc = warehouseLocations.find(l => l.id === selectedLocationId); return (loc as any)?.code || loc?.name || t('common.allLocations'); })()
+                        : t('common.allLocations')}
+                    </span>
+                    <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${locationDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {locationDropdownOpen && (
+                    <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg">
+                      <div className="p-2 border-b border-gray-100">
+                        <div className="relative">
+                          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input autoFocus type="text" value={locationSearch} onChange={e => setLocationSearch(e.target.value)}
+                            placeholder="Search..." className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
+                        </div>
+                      </div>
+                      <ul className="max-h-52 overflow-y-auto py-1">
+                        <li onClick={() => { handleLocationChange(''); setLocationDropdownOpen(false); }}
+                          className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${!selectedLocationId ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-gray-700'}`}>
+                          {t('common.allLocations')}
+                        </li>
+                        {warehouseLocations
+                          .filter(l => ((l as any).code || l.name || '').toLowerCase().includes(locationSearch.toLowerCase()))
+                          .map(l => (
+                            <li key={l.id} onClick={() => { handleLocationChange(l.id); setLocationDropdownOpen(false); }}
+                              className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${selectedLocationId === l.id ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-gray-700'}`}>
+                              {(l as any).code || l.name}
+                            </li>
+                          ))}
+                        {warehouseLocations.filter(l => ((l as any).code || l.name || '').toLowerCase().includes(locationSearch.toLowerCase())).length === 0 && locationSearch && (
+                          <li className="px-3 py-2 text-sm text-gray-400 text-center">No results</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('sales.quotes.validUntil')}</label>

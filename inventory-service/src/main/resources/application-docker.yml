@@ -66,6 +66,10 @@ services:
   alert-service:
     url: http://alert-service:8088
 
+audit:
+  service:
+    url: http://auth-service:8083
+
 server:
   port: 8086
   error:

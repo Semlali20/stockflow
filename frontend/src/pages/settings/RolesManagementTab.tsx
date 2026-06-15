@@ -73,11 +73,28 @@ interface RoleFormModalProps {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const translateRoleName = (name: string, t: any): string => {
+  const tKey = `settings.roles.names.${name}`;
+  const translated = t(tKey);
+  return translated === tKey ? name.replace(/_/g, ' ') : translated;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const translateCategory = (cat: string, t: any): string => {
   const key = cat.toLowerCase();
   const tKey = `settings.roles.categories.${key}`;
   const translated = t(tKey);
   return translated === tKey ? formatCategory(cat) : translated;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const translatePermLabel = (perm: BackendPermission, t: any): string => {
+  const nameKey = perm.name.replace(/:/g, '_');
+  const tKey = `settings.roles.permissions.${nameKey}`;
+  const translated = t(tKey);
+  if (translated !== tKey) return translated;
+  // Fall back to description then parsed name
+  return formatPermLabel(perm);
 };
 
 const RoleFormModal: React.FC<RoleFormModalProps> = ({
@@ -384,7 +401,7 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
                               />
                               <div className="min-w-0">
                                 <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-tight">
-                                  {formatPermLabel(perm)}
+                                  {translatePermLabel(perm, t)}
                                 </p>
                                 <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
                                   {perm.name}
@@ -569,7 +586,7 @@ const RolesManagementTab: React.FC = () => {
                   ? <Lock className="w-3 h-3 shrink-0 opacity-60" />
                   : <span className={cn('w-2 h-2 rounded-full shrink-0', isSelected ? 'bg-current' : 'bg-neutral-400')} />
                 }
-                {role.name.replace(/_/g, ' ')}
+                {translateRoleName(role.name, t)}
                 <span
                   className={cn(
                     'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
@@ -607,7 +624,7 @@ const RolesManagementTab: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h4 className="text-sm font-bold text-neutral-800 dark:text-neutral-200">
-                    {selectedRole.name.replace(/_/g, ' ')}
+                    {translateRoleName(selectedRole.name, t)}
                   </h4>
                   {selectedRole.isSystem ? (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-200 dark:bg-neutral-700 text-neutral-500 uppercase tracking-wide">
@@ -674,7 +691,7 @@ const RolesManagementTab: React.FC = () => {
                       <div key={perm.id} className="flex items-center gap-2 px-4 py-2.5">
                         <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                         <span className="text-xs text-neutral-700 dark:text-neutral-300">
-                          {formatPermLabel(perm)}
+                          {translatePermLabel(perm, t)}
                         </span>
                       </div>
                     ))}

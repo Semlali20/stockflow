@@ -16,6 +16,7 @@ import autoTable from 'jspdf-autotable';
 import { salesService } from '@/services/sales.service';
 import { Quote, QuoteStatus, Customer } from '@/types';
 import { toast } from 'react-hot-toast';
+import { Pagination } from '@/components/ui/Pagination';
 
 // ─── StyledSelect ─────────────────────────────────────────────────────────────
 
@@ -94,7 +95,7 @@ const DetailModal = ({
   const fmtDate = (d?: string) =>
     d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
   const fmtPrice = (v: number) =>
-    v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
+    v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/\u00A0/g, ' ') + ' MAD';
 
   const subtotal = quote.subtotal ?? (quote.lines || []).reduce((s, l) => s + l.totalPrice, 0);
   const total = quote.totalAmount ?? subtotal;
@@ -627,6 +628,8 @@ const QuotesPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchQuotes = async () => {
     setLoading(true);
@@ -650,243 +653,299 @@ const QuotesPage = () => {
   };
 
   useEffect(() => { fetchQuotes(); }, [statusFilter, customerFilter]);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, statusFilter, customerFilter]);
   useEffect(() => { fetchCustomers(); }, []);
 
   const generateQuotePDF = (quote: Quote) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const W  = doc.internal.pageSize.getWidth();   // 210
-    const H  = doc.internal.pageSize.getHeight();  // 297
-    const ML = 14;  // left margin
-    const MR = 14;  // right margin
-    const RX = W - MR; // right edge x
-    const UW = W - ML - MR; // usable width
+    const W  = doc.internal.pageSize.getWidth();
+    const H  = doc.internal.pageSize.getHeight();
+    const ML = 14;
+    const MR = 14;
+    const RX = W - MR;
+    const UW = W - ML - MR;
 
+    // ── Helpers ────────────────────────────────────────────────────
     const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
-    const fmtPrice = (v: number) =>
-      v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MAD';
+    const fmtNum  = (v: number) => {
+      const parts = v.toFixed(2).split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      return parts.join(',');
+    };
+    const fmtPrice = (v: number) => fmtNum(v) + ' MAD';
 
-    // ── LEFT: Title + Company ──────────────────────────────────────
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
-    doc.setTextColor(26, 46, 74);
-    doc.text('DEVIS', ML, 24);
+    const statusLabelMap: Record<QuoteStatus, string> = {
+      DRAFT: 'BROUILLON', SENT: 'ENVOYE', ACCEPTED: 'ACCEPTE',
+      REJECTED: 'REJETE', EXPIRED: 'EXPIRE', CONVERTED: 'CONVERTI',
+    };
+    const statusColorMap: Record<QuoteStatus, [number, number, number]> = {
+      DRAFT:     [100, 116, 139],
+      SENT:      [37,  99,  235],
+      ACCEPTED:  [22,  163, 74],
+      REJECTED:  [220, 38,  38],
+      EXPIRED:   [217, 119, 6],
+      CONVERTED: [124, 58,  237],
+    };
 
+    // ── HEADER BAND ────────────────────────────────────────────────
+    // Dark navy full-width header
+    doc.setFillColor(15, 28, 58);
+    doc.rect(0, 0, W, 42, 'F');
+    // Blue accent stripe at bottom of header
+    doc.setFillColor(59, 130, 246);
+    doc.rect(0, 40, W, 2.5, 'F');
+
+    // Company name left
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(26, 46, 74);
-    doc.text('TechSupply Maroc', ML, 32);
+    doc.setFontSize(15);
+    doc.setTextColor(255, 255, 255);
+    doc.text('TechSupply Maroc', ML, 17);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
-    doc.setTextColor(120, 125, 138);
-    doc.text('Casablanca, Maroc', ML, 37);
-    doc.text('contact@techsupply.ma · +212 5XX XXX XXX', ML, 41);
+    doc.setTextColor(148, 172, 210);
+    doc.text('Casablanca, Maroc', ML, 24);
+    doc.text('contact@techsupply.ma  |  +212 5XX XXX XXX', ML, 30);
 
-    // ── RIGHT: Logo placeholder ────────────────────────────────────
-    const logoX = RX - 48;
-    doc.setDrawColor(200, 205, 218);
-    doc.setFillColor(248, 249, 252);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(logoX, 12, 22, 12, 2, 2, 'FD');
+    // DEVIS title right
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(26);
+    doc.setTextColor(255, 255, 255);
+    doc.text('DEVIS', RX, 20, { align: 'right' });
+
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.5);
-    doc.setTextColor(170, 175, 192);
-    doc.text('LOGO', logoX + 11, 19, { align: 'center' });
+    doc.setFontSize(8.5);
+    doc.setTextColor(148, 172, 210);
+    doc.text(quote.reference, RX, 29, { align: 'right' });
 
-    // ── RIGHT: Document info box ───────────────────────────────────
-    const ibX = RX - 48;
-    const ibY = 27;
-    const ibW = 48;
-    const statusLabelMap: Record<QuoteStatus, string> = {
-      DRAFT: 'BROUILLON', SENT: 'ENVOYÉ', ACCEPTED: 'ACCEPTÉ',
-      REJECTED: 'REJETÉ', EXPIRED: 'EXPIRÉ', CONVERTED: 'CONVERTI',
-    };
-    const ibRows: [string, string][] = [
-      ['DEVIS N°', quote.reference],
+    // ── INFO STRIP (light bg below header) ─────────────────────────
+    doc.setFillColor(244, 246, 251);
+    doc.rect(0, 42.5, W, 22, 'F');
+
+    const infoItems: [string, string][] = [
       ['DATE', fmtDate(quote.createdAt)],
-      ...(quote.validUntil ? [['VALIDITÉ', fmtDate(quote.validUntil)] as [string, string]] : []),
+      ['VALIDITE', quote.validUntil ? fmtDate(quote.validUntil) : '30 jours'],
       ['STATUT', statusLabelMap[quote.status] ?? quote.status],
+      ['REF.', quote.reference],
     ];
-    const ibH = 6 + ibRows.length * 6.5;
-    doc.setDrawColor(210, 218, 232);
-    doc.setFillColor(248, 250, 253);
-    doc.setLineWidth(0.25);
-    doc.roundedRect(ibX, ibY, ibW, ibH, 2, 2, 'FD');
-    let ibRowY = ibY + 6;
-    ibRows.forEach(([label, value]) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.5);
-      doc.setTextColor(26, 46, 74);
-      doc.text(label, ibX + 3, ibRowY);
+    const infoColW = UW / infoItems.length;
+    infoItems.forEach(([label, value], i) => {
+      const x = ML + i * infoColW;
+      // Vertical left accent line for each item (except first)
+      if (i > 0) {
+        doc.setDrawColor(210, 220, 235);
+        doc.setLineWidth(0.3);
+        doc.line(x - 4, 46, x - 4, 62);
+      }
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(42, 47, 58);
-      doc.text(value, ibX + ibW - 3, ibRowY, { align: 'right' });
-      ibRowY += 6.5;
+      doc.setFontSize(6);
+      doc.setTextColor(100, 116, 139);
+      doc.text(label, x, 49);
+      // Status gets colored pill treatment
+      if (label === 'STATUT') {
+        const sc = statusColorMap[quote.status] ?? [100, 116, 139];
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(sc[0], sc[1], sc[2]);
+        doc.text(value, x, 58);
+      } else {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(20, 30, 55);
+        doc.text(value, x, 58);
+      }
     });
 
-    // ── TOP SEPARATOR ──────────────────────────────────────────────
-    doc.setDrawColor(26, 46, 74);
+    // Bottom border of info strip
+    doc.setDrawColor(210, 220, 235);
+    doc.setLineWidth(0.4);
+    doc.line(0, 64.5, W, 64.5);
+
+    // ── BILL TO + META SECTION ─────────────────────────────────────
+    const billY = 74;
+
+    // Left: FACTURE A
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(59, 130, 246);
+    doc.text('FACTURE A', ML, billY);
+
+    // Underline
+    doc.setDrawColor(59, 130, 246);
     doc.setLineWidth(0.5);
-    doc.line(ML, 46, RX, 46);
-
-    // ── FACTURÉ À (left) ──────────────────────────────────────────
-    const sec2Y = 54;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(26, 46, 74);
-    doc.text('FACTURÉ À', ML, sec2Y);
+    doc.line(ML, billY + 1.5, ML + 18, billY + 1.5);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(25, 30, 42);
-    doc.text(quote.customerName, ML, sec2Y + 7);
+    doc.setFontSize(12);
+    doc.setTextColor(15, 28, 58);
+    doc.text(quote.customerName, ML, billY + 9);
 
     if (quote.notes) {
       doc.setFont('helvetica', 'italic');
-      doc.setFontSize(7.5);
-      doc.setTextColor(130, 135, 148);
-      const notesLines = doc.splitTextToSize(quote.notes, 82);
-      doc.text(notesLines, ML, sec2Y + 14);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      const notesLines = doc.splitTextToSize(quote.notes, 90);
+      doc.text(notesLines, ML, billY + 16);
     }
 
-    // ── META (right) ───────────────────────────────────────────────
-    const metaX = W / 2 + 5;
-    let metaRowY = sec2Y;
-    const metaRows: [string, string][] = [
-      ['CRÉÉ LE', fmtDate(quote.createdAt)],
-      ...(quote.validUntil ? [['VALIDE JUSQU\'AU', fmtDate(quote.validUntil)] as [string, string]] : []),
-    ];
-    metaRows.forEach(([label, value]) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.setTextColor(26, 46, 74);
-      doc.text(label, metaX, metaRowY);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(42, 47, 58);
-      doc.text(value, RX, metaRowY, { align: 'right' });
-      metaRowY += 7;
-    });
+    // Right: meta info box
+    const metaBoxX = W / 2 + 15;
+    const metaBoxW = RX - metaBoxX;
+    doc.setFillColor(248, 250, 253);
+    doc.setDrawColor(220, 228, 242);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(metaBoxX, billY - 5, metaBoxW, 26, 2, 2, 'FD');
 
-    // ── SECTION SEPARATOR ──────────────────────────────────────────
-    doc.setDrawColor(210, 218, 228);
-    doc.setLineWidth(0.3);
-    doc.line(ML, 80, RX, 80);
+    // Left accent bar on meta box
+    doc.setFillColor(59, 130, 246);
+    doc.roundedRect(metaBoxX, billY - 5, 2, 26, 1, 1, 'F');
+
+    const metaRows: [string, string][] = [
+      ['Cree le', fmtDate(quote.createdAt)],
+      ...(quote.validUntil ? [['Valide jusqu\'au', fmtDate(quote.validUntil)] as [string, string]] : []),
+    ];
+    let metaRowY = billY + 2;
+    metaRows.forEach(([label, value]) => {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(100, 116, 139);
+      doc.text(label, metaBoxX + 6, metaRowY);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(15, 28, 58);
+      doc.text(value, metaBoxX + metaBoxW - 4, metaRowY, { align: 'right' });
+      metaRowY += 9;
+    });
 
     // ── ITEMS TABLE ────────────────────────────────────────────────
     autoTable(doc, {
-      startY: 85,
-      head: [['DÉSIGNATION', 'QTÉ', 'PRIX UNIT. HT', 'REMISE', 'MONTANT HT']],
+      startY: 100,
+      head: [['DESIGNATION', 'QTE', 'PRIX UNIT. HT', 'REMISE', 'MONTANT HT']],
       body: (quote.lines || []).map(l => [
         l.itemSku ? `${l.itemName}\n(SKU: ${l.itemSku})` : l.itemName,
         l.quantity.toString(),
         fmtPrice(l.unitPrice),
-        l.discountPercent > 0 ? `-${l.discountPercent}%` : '—',
+        l.discountPercent > 0 ? `-${l.discountPercent}%` : '-',
         fmtPrice(l.totalPrice),
       ]),
       headStyles: {
-        fillColor: [26, 46, 74],
+        fillColor: [15, 28, 58],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
-        fontSize: 8,
+        fontSize: 7.5,
         halign: 'center',
-        cellPadding: { top: 4, bottom: 4, left: 4, right: 4 },
+        cellPadding: { top: 5, bottom: 5, left: 5, right: 5 },
       },
       bodyStyles: {
-        fontSize: 8,
-        textColor: [42, 50, 65],
-        cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 },
+        fontSize: 8.5,
+        textColor: [30, 40, 65],
+        cellPadding: { top: 4.5, bottom: 4.5, left: 5, right: 5 },
       },
-      alternateRowStyles: { fillColor: [248, 249, 250] },
+      alternateRowStyles: { fillColor: [247, 249, 253] },
       columnStyles: {
         0: { cellWidth: 'auto', fontStyle: 'bold' },
-        1: { halign: 'center', cellWidth: 18 },
-        2: { halign: 'right', cellWidth: 36 },
-        3: { halign: 'center', cellWidth: 22 },
-        4: { halign: 'right', cellWidth: 36 },
+        1: { halign: 'center', cellWidth: 14 },
+        2: { halign: 'right', cellWidth: 40 },
+        3: { halign: 'center', cellWidth: 18 },
+        4: { halign: 'right', cellWidth: 40 },
       },
-      styles: { lineColor: [220, 226, 235], lineWidth: 0.2, overflow: 'linebreak' },
+      styles: { lineColor: [225, 232, 245], lineWidth: 0.2, overflow: 'linebreak' },
       margin: { left: ML, right: MR },
+      // Blue bottom border on header row
+      didParseCell: (data) => {
+        if (data.section === 'head') {
+          data.cell.styles.lineColor = [59, 130, 246];
+          data.cell.styles.lineWidth = { bottom: 0.8, top: 0, left: 0, right: 0 };
+        }
+      },
     });
 
     const finalY: number = (doc as any).lastAutoTable?.finalY ?? 165;
 
-    // ── SUMMARY BOX ────────────────────────────────────────────────
+    // ── SUMMARY ────────────────────────────────────────────────────
     const subtotal = quote.subtotal ?? (quote.lines || []).reduce((s, l) => s + l.totalPrice, 0);
     const total    = quote.totalAmount ?? subtotal;
     const discAmt  = subtotal - total;
+    const hasDisc  = discAmt > 0.001;
 
-    const sumBoxX = W / 2 + 10;
-    const sumBoxW = RX - sumBoxX;
-    const sumBoxY = finalY + 8;
-    const hasDisc = discAmt > 0.001;
-    const sumBoxH = hasDisc ? 32 : 22;
+    const sumX  = W / 2 + 12;
+    const sumW  = RX - sumX;
+    let   sumY  = finalY + 10;
 
-    doc.setFillColor(248, 250, 253);
-    doc.setDrawColor(210, 218, 232);
-    doc.setLineWidth(0.25);
-    doc.roundedRect(sumBoxX, sumBoxY, sumBoxW, sumBoxH, 2, 2, 'FD');
-
+    // Subtotal row
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(75, 82, 98);
-    doc.text('Sous-total HT', sumBoxX + 4, sumBoxY + 7);
     doc.setFontSize(8.5);
-    doc.setTextColor(42, 47, 58);
-    doc.text(fmtPrice(subtotal), sumBoxX + sumBoxW - 4, sumBoxY + 7, { align: 'right' });
+    doc.setTextColor(100, 116, 139);
+    doc.text('Sous-total HT', sumX, sumY);
+    doc.setTextColor(30, 40, 65);
+    doc.text(fmtPrice(subtotal), RX, sumY, { align: 'right' });
+    sumY += 8;
 
-    let sumCurY = sumBoxY + 7;
+    // Discount row
     if (hasDisc) {
-      sumCurY += 7;
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
+      doc.setFontSize(8.5);
       doc.setTextColor(180, 83, 9);
-      doc.text(`Remise globale (${quote.discountPercent}%)`, sumBoxX + 4, sumCurY);
-      doc.text(`-${fmtPrice(discAmt)}`, sumBoxX + sumBoxW - 4, sumCurY, { align: 'right' });
+      doc.text(`Remise (${quote.discountPercent}%)`, sumX, sumY);
+      doc.text(`- ${fmtPrice(discAmt)}`, RX, sumY, { align: 'right' });
+      sumY += 8;
     }
 
-    doc.setDrawColor(210, 218, 232);
-    doc.setLineWidth(0.2);
-    doc.line(sumBoxX + 4, sumCurY + 4, sumBoxX + sumBoxW - 4, sumCurY + 4);
+    // Separator line (accent blue)
+    doc.setDrawColor(59, 130, 246);
+    doc.setLineWidth(0.6);
+    doc.line(sumX, sumY, RX, sumY);
+    sumY += 4;
 
+    // Total row — dark filled box
+    doc.setFillColor(15, 28, 58);
+    doc.roundedRect(sumX - 3, sumY - 1, sumW + 3, 13, 2, 2, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.setTextColor(26, 46, 74);
-    doc.text('TOTAL HT', sumBoxX + 4, sumCurY + 11);
-    doc.text(fmtPrice(total), sumBoxX + sumBoxW - 4, sumCurY + 11, { align: 'right' });
-
-    // ── FOOTER SEPARATOR ───────────────────────────────────────────
-    doc.setDrawColor(26, 46, 74);
-    doc.setLineWidth(0.4);
-    doc.line(ML, H - 52, RX, H - 52);
+    doc.setTextColor(255, 255, 255);
+    doc.text('TOTAL HT', sumX + 2, sumY + 8);
+    doc.text(fmtPrice(total), RX - 3, sumY + 8, { align: 'right' });
 
     // ── SIGNATURE ZONE ─────────────────────────────────────────────
-    const sigZoneY = H - 49;
-    const sigBoxW  = (UW - 8) / 2;
-    const sigBoxH  = 26;
+    const sigZoneY = H - 52;
 
-    ['Signature émetteur', 'Bon pour accord — Client'].forEach((label, i) => {
-      const sigX = ML + i * (sigBoxW + 8);
-      doc.setDrawColor(200, 210, 228);
+    // Thin separator line
+    doc.setDrawColor(210, 220, 235);
+    doc.setLineWidth(0.4);
+    doc.line(ML, sigZoneY - 6, RX, sigZoneY - 6);
+
+    const sigBoxW = (UW - 10) / 2;
+    const sigBoxH = 28;
+    ['Signature emetteur', 'Bon pour accord - Client'].forEach((label, i) => {
+      const sigX = ML + i * (sigBoxW + 10);
+      doc.setFillColor(248, 250, 253);
+      doc.setDrawColor(210, 220, 238);
       doc.setLineWidth(0.25);
-      doc.roundedRect(sigX, sigZoneY, sigBoxW, sigBoxH, 2, 2, 'S');
+      doc.roundedRect(sigX, sigZoneY, sigBoxW, sigBoxH, 2, 2, 'FD');
+      // Blue top accent line on each signature box
+      doc.setFillColor(59, 130, 246);
+      doc.roundedRect(sigX, sigZoneY, sigBoxW, 2, 1, 1, 'F');
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7.5);
-      doc.setTextColor(26, 46, 74);
-      doc.text(label, sigX + sigBoxW / 2, sigZoneY + 6, { align: 'center' });
-      doc.setDrawColor(185, 200, 220);
-      doc.setLineWidth(0.3);
+      doc.setTextColor(15, 28, 58);
+      doc.text(label, sigX + sigBoxW / 2, sigZoneY + 10, { align: 'center' });
+      doc.setDrawColor(180, 198, 225);
+      doc.setLineWidth(0.4);
       doc.line(sigX + 8, sigZoneY + sigBoxH - 6, sigX + sigBoxW - 8, sigZoneY + sigBoxH - 6);
     });
 
-    // ── TERMS ──────────────────────────────────────────────────────
+    // ── FOOTER BAND ────────────────────────────────────────────────
+    doc.setFillColor(15, 28, 58);
+    doc.rect(0, H - 16, W, 16, 'F');
+    doc.setFillColor(59, 130, 246);
+    doc.rect(0, H - 16, W, 1.5, 'F');
+
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.5);
-    doc.setTextColor(156, 163, 175);
+    doc.setTextColor(148, 172, 210);
     doc.text(
-      'Devis valable 30 jours — Tout accord doit être signé et retourné — TechSupply Maroc © 2024',
-      W / 2, H - 8, { align: 'center' },
+      'Devis valable 30 jours  |  Tout accord doit etre signe et retourne  |  TechSupply Maroc 2024',
+      W / 2, H - 6, { align: 'center' },
     );
 
     doc.save(`devis-${quote.reference}.pdf`);
@@ -1020,7 +1079,7 @@ const QuotesPage = () => {
                   </td>
                 </tr>
               ) : (
-                filtered.map((quote) => (
+                filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((quote) => (
                   <motion.tr
                     key={quote.id}
                     initial={{ opacity: 0, y: 4 }}
@@ -1100,6 +1159,14 @@ const QuotesPage = () => {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(filtered.length / pageSize)}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        />
       </div>
 
       {/* Modals */}

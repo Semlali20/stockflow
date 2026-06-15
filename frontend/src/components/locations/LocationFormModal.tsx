@@ -1,6 +1,6 @@
 // src/components/locations/LocationFormModal.tsx
-import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Plus, Trash2, Search, ChevronDown } from 'lucide-react';
 import { locationService } from '@/services/location.service';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
@@ -42,6 +42,19 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingWarehouses, setLoadingWarehouses] = useState(false);
+  const [warehouseSearch, setWarehouseSearch] = useState('');
+  const [warehouseDropdownOpen, setWarehouseDropdownOpen] = useState(false);
+  const warehouseDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (warehouseDropdownRef.current && !warehouseDropdownRef.current.contains(e.target as Node)) {
+        setWarehouseDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Fetch warehouses for dropdown
   useEffect(() => {
@@ -160,21 +173,58 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
               <label className="block text-sm font-medium mb-2">
                 {t('nav.warehouses')} <span className="text-red-500">*</span>
               </label>
-              <Select
-                value={formData.warehouseId}
-                onChange={(e) => setFormData({ ...formData, warehouseId: e.target.value })}
-                required
-                disabled={loadingWarehouses}
-              >
-                <option value="">
-                  {loadingWarehouses ? t('locations.locations.loadingWarehouses') : t('locations.locations.selectWarehouse')}
-                </option>
-                {warehouses.map((warehouse) => (
-                  <option key={warehouse.id} value={warehouse.id}>
-                    {warehouse.name} ({warehouse.code})
-                  </option>
-                ))}
-              </Select>
+              <div ref={warehouseDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => { if (!loadingWarehouses) { setWarehouseDropdownOpen(o => !o); setWarehouseSearch(''); } }}
+                  disabled={loadingWarehouses}
+                  className={`w-full flex items-center justify-between border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-2 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${loadingWarehouses ? 'opacity-60 cursor-not-allowed' : ''}`}
+                >
+                  <span className={formData.warehouseId ? '' : 'text-gray-400 dark:text-gray-500'}>
+                    {loadingWarehouses
+                      ? t('locations.locations.loadingWarehouses')
+                      : formData.warehouseId
+                        ? (() => { const w = warehouses.find(w => w.id === formData.warehouseId); return w ? `${w.name} (${w.code})` : t('locations.locations.selectWarehouse'); })()
+                        : t('locations.locations.selectWarehouse')}
+                  </span>
+                  <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${warehouseDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {warehouseDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg">
+                    <div className="p-2 border-b border-gray-100 dark:border-neutral-700">
+                      <div className="relative">
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          autoFocus
+                          type="text"
+                          value={warehouseSearch}
+                          onChange={e => setWarehouseSearch(e.target.value)}
+                          placeholder="Search..."
+                          className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                        />
+                      </div>
+                    </div>
+                    <ul className="max-h-52 overflow-y-auto py-1">
+                      {warehouses
+                        .filter(w => `${w.name} ${w.code}`.toLowerCase().includes(warehouseSearch.toLowerCase()))
+                        .map(warehouse => (
+                          <li
+                            key={warehouse.id}
+                            onClick={() => { setFormData({ ...formData, warehouseId: warehouse.id }); setWarehouseDropdownOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                              formData.warehouseId === warehouse.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                            }`}
+                          >
+                            {warehouse.name} ({warehouse.code})
+                          </li>
+                        ))}
+                      {warehouses.filter(w => `${w.name} ${w.code}`.toLowerCase().includes(warehouseSearch.toLowerCase())).length === 0 && (
+                        <li className="px-3 py-2 text-sm text-gray-400 text-center">No results</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Code - Required */}

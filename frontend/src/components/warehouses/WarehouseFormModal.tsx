@@ -1,6 +1,6 @@
 // src/components/warehouses/WarehouseFormModal.tsx
-import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Plus, Trash2, Search, ChevronDown } from 'lucide-react';
 import { locationService } from '@/services/location.service';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
@@ -42,8 +42,21 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
   const [sites, setSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingSites, setLoadingSites] = useState(false);
+  const [siteSearch, setSiteSearch] = useState('');
+  const [siteDropdownOpen, setSiteDropdownOpen] = useState(false);
+  const siteDropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch sites for dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (siteDropdownRef.current && !siteDropdownRef.current.contains(e.target as Node)) {
+        setSiteDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   useEffect(() => {
     if (isOpen) {
       fetchSites();
@@ -187,21 +200,58 @@ export const WarehouseFormModal: React.FC<WarehouseFormModalProps> = ({
             <label className="block text-sm font-medium mb-2">
               {t('common.site')} <span className="text-red-500">*</span>
             </label>
-            <Select
-              value={formData.siteId}
-              onChange={(e) => setFormData({ ...formData, siteId: e.target.value })}
-              required
-              disabled={loadingSites}
-            >
-              <option value="">
-                {loadingSites ? t('locations.warehouses.loadingSites') : t('locations.warehouses.selectSite')}
-              </option>
-              {sites.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {site.name}
-                </option>
-              ))}
-            </Select>
+            <div ref={siteDropdownRef} className="relative">
+              <button
+                type="button"
+                onClick={() => { if (!loadingSites) { setSiteDropdownOpen(o => !o); setSiteSearch(''); } }}
+                disabled={loadingSites}
+                className={`w-full flex items-center justify-between border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-2 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${loadingSites ? 'opacity-60 cursor-not-allowed' : ''}`}
+              >
+                <span className={formData.siteId ? '' : 'text-gray-400 dark:text-gray-500'}>
+                  {loadingSites
+                    ? t('locations.warehouses.loadingSites')
+                    : formData.siteId
+                      ? sites.find(s => s.id === formData.siteId)?.name ?? t('locations.warehouses.selectSite')
+                      : t('locations.warehouses.selectSite')}
+                </span>
+                <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${siteDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {siteDropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg">
+                  <div className="p-2 border-b border-gray-100 dark:border-neutral-700">
+                    <div className="relative">
+                      <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        autoFocus
+                        type="text"
+                        value={siteSearch}
+                        onChange={e => setSiteSearch(e.target.value)}
+                        placeholder="Search..."
+                        className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                      />
+                    </div>
+                  </div>
+                  <ul className="max-h-52 overflow-y-auto py-1">
+                    {sites
+                      .filter(s => s.name.toLowerCase().includes(siteSearch.toLowerCase()))
+                      .map(site => (
+                        <li
+                          key={site.id}
+                          onClick={() => { setFormData({ ...formData, siteId: site.id }); setSiteDropdownOpen(false); }}
+                          className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                            formData.siteId === site.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          {site.name}
+                        </li>
+                      ))}
+                    {sites.filter(s => s.name.toLowerCase().includes(siteSearch.toLowerCase())).length === 0 && (
+                      <li className="px-3 py-2 text-sm text-gray-400 text-center">No results</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

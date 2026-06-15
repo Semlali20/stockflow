@@ -1,6 +1,6 @@
 // src/components/item-variants/ItemVariantFormModal.tsx
-import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Plus, Trash2, Search, ChevronDown } from 'lucide-react';
 import { productService } from '@/services/product.service';
 import { ItemVariant } from '@/types';
 import { toast } from 'react-hot-toast';
@@ -30,9 +30,22 @@ export const ItemVariantFormModal: React.FC<ItemVariantFormModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [itemSearch, setItemSearch] = useState('');
+  const [itemDropdownOpen, setItemDropdownOpen] = useState(false);
+  const itemDropdownRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({ parentItemId: '', sku: '' });
   const [variantAttributes, setVariantAttributes] = useState<AttributeItem[]>([]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (itemDropdownRef.current && !itemDropdownRef.current.contains(e.target as Node)) {
+        setItemDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -152,17 +165,55 @@ export const ItemVariantFormModal: React.FC<ItemVariantFormModalProps> = ({
             <label className={labelCls}>
               {t('products.variants.form.parentItem')} <span className="text-red-500">*</span>
             </label>
-            <select
-              className={inputCls}
-              value={formData.parentItemId}
-              onChange={(e) => handleParentItemChange(e.target.value)}
-              required
-            >
-              <option value="">{t('products.variants.form.selectParentItem')}</option>
-              {items.map((item) => (
-                <option key={item.id} value={item.id}>{item.name} ({item.sku})</option>
-              ))}
-            </select>
+            <div ref={itemDropdownRef} className="relative">
+              <button
+                type="button"
+                onClick={() => { setItemDropdownOpen(o => !o); setItemSearch(''); }}
+                className={`${inputCls} flex items-center justify-between text-left w-full`}
+              >
+                <span className={formData.parentItemId ? '' : 'text-gray-400 dark:text-gray-500'}>
+                  {formData.parentItemId
+                    ? (() => { const i = items.find(x => x.id === formData.parentItemId); return i ? `${i.name} (${i.sku})` : t('products.variants.form.selectParentItem'); })()
+                    : t('products.variants.form.selectParentItem')}
+                </span>
+                <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${itemDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {itemDropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg">
+                  <div className="p-2 border-b border-gray-100 dark:border-neutral-700">
+                    <div className="relative">
+                      <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        autoFocus
+                        type="text"
+                        value={itemSearch}
+                        onChange={e => setItemSearch(e.target.value)}
+                        placeholder={`${t('common.search')}...`}
+                        className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                      />
+                    </div>
+                  </div>
+                  <ul className="max-h-52 overflow-y-auto py-1">
+                    {items
+                      .filter(i => `${i.name} ${i.sku}`.toLowerCase().includes(itemSearch.toLowerCase()))
+                      .map(item => (
+                        <li
+                          key={item.id}
+                          onClick={() => { handleParentItemChange(item.id); setItemDropdownOpen(false); }}
+                          className={`px-3 py-2 text-sm cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400 transition-colors ${
+                            formData.parentItemId === item.id ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          {item.name} <span className="text-gray-400 dark:text-gray-500">({item.sku})</span>
+                        </li>
+                      ))}
+                    {items.filter(i => `${i.name} ${i.sku}`.toLowerCase().includes(itemSearch.toLowerCase())).length === 0 && (
+                      <li className="px-3 py-2 text-sm text-gray-400 text-center">No results</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('products.variants.form.parentItemHint')}</p>
           </div>
 

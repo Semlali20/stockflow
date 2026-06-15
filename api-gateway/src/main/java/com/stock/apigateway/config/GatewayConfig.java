@@ -4,7 +4,10 @@ import com.stock.apigateway.filter.JwtAuthenticationFilter;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -19,11 +22,21 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 
 @Configuration
-
 public class GatewayConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private KeyResolver ipKeyResolver;
+
+    @Autowired
+    @Qualifier("authRateLimiter")
+    private RedisRateLimiter authRateLimiter;
+
+    @Autowired
+    @Qualifier("apiRateLimiter")
+    private RedisRateLimiter apiRateLimiter;
 
     @Value("${services.auth-service.url}")
     private String authServiceUrl;
@@ -52,74 +65,100 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                // Auth Service - NO JWT FILTER (public endpoints)
+
+                // Auth Service — public endpoints (login, register, etc.)
+                // Strict: 5 req/s per IP, burst 10
                 .route("auth-service-public", r -> r
                         .path("/api/auth/**")
+                        .filters(f -> f
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(authRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(authServiceUrl))
 
-                // Auth Service - JWT REQUIRED (user management endpoints)
+                // Auth Service — user management (JWT required)
                 .route("auth-service-users", r -> r
                         .path("/api/users/**")
                         .filters(f -> f
-                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(authServiceUrl))
 
-                // Auth Service - JWT REQUIRED (audit log endpoints)
+                // Auth Service — audit logs (JWT required)
                 .route("auth-service-audit", r -> r
                         .path("/api/audit/**")
                         .filters(f -> f
-                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(authServiceUrl))
 
-                // Auth Service - JWT REQUIRED (roles & permissions management)
+                // Auth Service — roles (JWT required)
                 .route("auth-service-roles", r -> r
                         .path("/api/roles/**")
                         .filters(f -> f
-                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(authServiceUrl))
 
+                // Auth Service — permissions (JWT required)
                 .route("auth-service-permissions", r -> r
                         .path("/api/permissions/**")
                         .filters(f -> f
-                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(authServiceUrl))
 
-                // Product Service - JWT only
+                // Product Service
                 .route("product-service", r -> r
                         .path("/api/item-variants/**", "/api/categories/**", "/api/items/**")
                         .filters(f -> f
-                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(productServiceUrl))
 
-                // Inventory Service - JWT only
+                // Inventory Service
                 .route("inventory-service", r -> r
                         .path("/api/inventory/**", "/api/lots/**", "/api/serials/**", "/api/v1/admin/cache/items/**")
                         .filters(f -> f
-                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(inventoryServiceUrl))
 
-                // ✅ Movement Service - JWT + X-User-Id header
+                // Movement Service — JWT + X-User-Id header injection
                 .route("movement-service", r -> r
                         .path("/api/movement-tasks/**", "/api/movement-lines/**", "/api/movements/**")
                         .filters(f -> f
                                 .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
-                                // ✅ Ajouter le filter pour extraire userId
                                 .filter((exchange, chain) -> {
                                     try {
                                         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
                                         if (authHeader != null && authHeader.startsWith("Bearer ")) {
                                             String jwt = authHeader.substring(7);
-                                            
-                                            // Extraire l'userId du JWT
                                             Claims claims = Jwts.parser()
                                                     .verifyWith(getPublicKey())
                                                     .build()
                                                     .parseSignedClaims(jwt)
                                                     .getPayload();
-                                            
-                                            // Adapter selon le nom du claim dans votre JWT
-                                            String userId = claims.get("userId", String.class); // ou "sub" ou "user_id"
-                                            
+                                            String userId = claims.get("userId", String.class);
                                             if (userId != null) {
                                                 ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                                                         .header("X-User-Id", userId)
@@ -128,42 +167,64 @@ public class GatewayConfig {
                                             }
                                         }
                                     } catch (Exception e) {
-                                        // Continue sans le header si erreur
+                                        // Continue without the header on error
                                     }
                                     return chain.filter(exchange);
-                                }))
+                                })
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(movementServiceUrl))
 
-                // Location Service - JWT only
+                // Location Service
                 .route("location-service", r -> r
                         .path("/api/locations/**", "/api/sites/**", "/api/warehouses/**")
                         .filters(f -> f
-                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(locationServiceUrl))
 
-                // Alert Service - JWT only
+                // Alert Service
                 .route("alert-service", r -> r
-                        .path("/api/alerts/**", "/api/notifications/**", "/api/notification-channels/**", "/api/notification-templates/**", "/api/rules/**")
+                        .path("/api/alerts/**", "/api/notifications/**", "/api/notification-channels/**",
+                              "/api/notification-templates/**", "/api/rules/**")
                         .filters(f -> f
-                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(alertServiceUrl))
 
-                // Purchase Service routes
+                // Purchase Service
                 .route("purchase-service", r -> r
                         .path("/api/suppliers/**", "/api/purchase-orders/**")
-                        .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                        .filters(f -> f
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(purchaseServiceUrl))
 
-                // Sales Service routes
+                // Sales Service
                 .route("sales-service", r -> r
                         .path("/api/customers/**", "/api/quotes/**", "/api/delivery-notes/**")
-                        .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                        .filters(f -> f
+                                .filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config()))
+                                .requestRateLimiter(c -> c
+                                        .setRateLimiter(apiRateLimiter)
+                                        .setKeyResolver(ipKeyResolver)
+                                ))
                         .uri(salesServiceUrl))
 
                 .build();
     }
-    
-    // ✅ Méthode helper pour obtenir la clé publique
+
     private PublicKey getPublicKey() throws Exception {
         String n = "zzxT2R2l-vnLM4Tmcj8yyukMh7bML0V_82tsB39BKomsoPsrCm05xXppVwyIUuBnS-5tmHAUD_Vc0cDocCRzX_eZ8dWMq5SXAUJRdxVBndFTtK4VC1Hou5JtwrqHFkThtsEBxbGe6zBr-BMsfHnaVQNZa75SWN5xbhTuUnXDF5k36bVwM51mlzoMVDWN6kTFvZ1YibZTORSny3ExwlZvse_vf9-ZsRhDoZYDSOtHHnWK_WQqcmiid2DHdbzDYPGggVLuRQTtvTGmd5K18eGU7zYOiNeeWX45uTS9s6_ozGQnbWYGD4gsaKueWcvL_K1swaCEkyPscFsTf6wfAKFWSQ";
         String e = "AQAB";
@@ -176,7 +237,6 @@ public class GatewayConfig {
 
         RSAPublicKeySpec spec = new RSAPublicKeySpec(modulus, exponent);
         KeyFactory factory = KeyFactory.getInstance("RSA");
-
         return factory.generatePublic(spec);
     }
 }
