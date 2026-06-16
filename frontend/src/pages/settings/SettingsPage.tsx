@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import RolesManagementTab from './RolesManagementTab';
+import { MobilePermissionsTab } from './MobilePermissionsTab';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings,
@@ -38,6 +39,7 @@ import {
   Database,
   Key,
   Check,
+  Smartphone,
 } from 'lucide-react';
 import {
   ROLE_META,
@@ -1898,7 +1900,7 @@ const PermissionsTab: React.FC = () => <RolesManagementTab />;
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
-type TabId = 'general' | 'users' | 'permissions' | 'logs';
+type TabId = 'general' | 'users' | 'permissions' | 'mobile' | 'logs';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -1910,6 +1912,7 @@ export const SettingsPage: React.FC = () => {
   useEffect(() => {
     if (activeTab === 'users' && !admin) setActiveTab('general');
     if (activeTab === 'permissions' && !admin) setActiveTab('general');
+    if (activeTab === 'mobile' && !admin) setActiveTab('general');
     if (activeTab === 'logs' && !adminOrAuditor) setActiveTab('general');
   }, [activeTab, admin, adminOrAuditor]);
 
@@ -1917,6 +1920,7 @@ export const SettingsPage: React.FC = () => {
     { id: 'general', label: t('settings.general'), icon: <Sliders className="w-4 h-4" />, desc: `${t('settings.appearance')}, ${t('settings.notifications')}, ${t('settings.localization')}`, visible: true },
     { id: 'users', label: t('settings.userManagement'), icon: <Users className="w-4 h-4" />, desc: t('settings.userManagementDesc'), visible: admin, badge: 'Admin' },
     { id: 'permissions', label: t('settings.permissions'), icon: <Key className="w-4 h-4" />, desc: t('settings.permissionsDesc'), visible: admin, badge: 'Admin' },
+    { id: 'mobile', label: 'Mobile Permissions', icon: <Smartphone className="w-4 h-4" />, desc: 'Mobile app feature access per role', visible: admin, badge: 'Admin' },
     { id: 'logs', label: t('settings.auditLogs'), icon: <ClipboardList className="w-4 h-4" />, desc: t('settings.auditLogsDesc'), visible: adminOrAuditor, badge: adminOrAuditor && !admin ? t('layout.auditor') : undefined },
   ];
 
@@ -1979,6 +1983,11 @@ export const SettingsPage: React.FC = () => {
                 </div>
               ))}
               {activeTab === 'permissions' && (admin ? <PermissionsTab /> : (
+                <div className="flex flex-col items-center justify-center py-20 gap-3 text-neutral-400">
+                  <Lock className="w-10 h-10" /><p className="font-semibold">{t('auth.adminRequired') || 'Admin access required'}</p>
+                </div>
+              ))}
+              {activeTab === 'mobile' && (admin ? <MobilePermissionsTab /> : (
                 <div className="flex flex-col items-center justify-center py-20 gap-3 text-neutral-400">
                   <Lock className="w-10 h-10" /><p className="font-semibold">{t('auth.adminRequired') || 'Admin access required'}</p>
                 </div>
