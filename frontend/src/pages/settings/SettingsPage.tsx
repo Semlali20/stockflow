@@ -877,9 +877,6 @@ const GeneralSettingsTab: React.FC = () => {
                         ))}
                       </div>
                     </SettingRow>
-                    <SettingRow label={t('settings.showAvatars')} description={t('settings.showAvatarsDesc')}>
-                      <Toggle checked={localSettings.showAvatars} onChange={v => set('showAvatars', v)} />
-                    </SettingRow>
                   </div>
                 </div>
               )}
@@ -1376,7 +1373,7 @@ const UserManagementTab: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [resetTarget, setResetTarget] = useState<{ id: string; username: string; email: string } | null>(null);
   const [isResetting, setIsResetting] = useState(false);
-  const pageSize = 10;
+  const pageSize = settings.defaultPageSize;
 
   const fetchUsers = useCallback(async (p = page) => {
     setLoading(true);
@@ -1620,6 +1617,7 @@ type AuditFilter = 'all' | 'security' | 'crud';
 
 const AuditLogsTab: React.FC = () => {
   const { t } = useTranslation();
+  const { settings } = useSettings();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -1628,7 +1626,7 @@ const AuditLogsTab: React.FC = () => {
   const [filter, setFilter] = useState<AuditFilter>('all');
   const [resourceFilter, setResourceFilter] = useState('');
   const [search, setSearch] = useState('');
-  const pageSize = 20;
+  const pageSize = settings.defaultPageSize;
 
   const fetchLogs = useCallback(async (p = page, f = filter) => {
     setLoading(true);
@@ -1828,20 +1826,27 @@ const AuditLogsTab: React.FC = () => {
                     {new Date(log.timestamp).toLocaleString()}
                   </td>
                   <td className="px-3 py-2.5 text-xs">
-                    {(log.firstName || log.lastName) ? (
-                      <div>
-                        <p className="font-semibold text-neutral-800 dark:text-neutral-200 leading-tight">
-                          {[log.firstName, log.lastName].filter(Boolean).join(' ')}
-                        </p>
-                        <p className="text-neutral-400 dark:text-neutral-500 leading-tight">
-                          @{log.username}
-                        </p>
-                      </div>
-                    ) : (
-                      <span className="font-semibold text-neutral-800 dark:text-neutral-200">
-                        {log.username ?? log.userId ?? '—'}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {settings.showAvatars && (
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                          {((log.firstName?.[0] ?? log.username?.[0] ?? '?')).toUpperCase()}
+                        </div>
+                      )}
+                      {(log.firstName || log.lastName) ? (
+                        <div>
+                          <p className="font-semibold text-neutral-800 dark:text-neutral-200 leading-tight">
+                            {[log.firstName, log.lastName].filter(Boolean).join(' ')}
+                          </p>
+                          <p className="text-neutral-400 dark:text-neutral-500 leading-tight">
+                            @{log.username}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                          {log.username ?? log.userId ?? '—'}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2.5">
                     <span className={`inline-block px-2 py-0.5 rounded-lg text-xs font-bold ${actionColor(log.action)}`}>

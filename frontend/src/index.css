@@ -154,6 +154,23 @@ html::after {
   70%  { transform: translate(40px, -25px) scale(0.94); }
 }
 
+/* ─── Theme Transition ───────────────────────────────────────── */
+/* Applied only during the switch — removed after 400ms so hover
+   animations are never affected by a lingering transition rule.   */
+.theme-transitioning,
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition:
+    color            350ms ease,
+    background-color 350ms ease,
+    background       350ms ease,
+    border-color     350ms ease,
+    box-shadow       350ms ease,
+    fill             350ms ease,
+    stroke           350ms ease !important;
+}
+
 /* ─── Header ─────────────────────────────────────────────────── */
 [data-theme="light"] header.fixed,
 [data-theme="dark"] header.fixed {

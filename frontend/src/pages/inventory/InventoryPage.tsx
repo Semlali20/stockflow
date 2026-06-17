@@ -23,6 +23,7 @@ import {
 import { inventoryService } from '@/services/inventory.service';
 import { productService } from '@/services/product.service';
 import { locationService } from '@/services/location.service';
+import { useSettings } from '@/contexts/SettingsContext';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
@@ -74,16 +75,17 @@ interface EnrichedInventory extends Inventory {
 
 export const InventoryPage: React.FC = () => {
   const { t } = useTranslation();
+  const { settings } = useSettings();
   const [inventories, setInventories] = useState<EnrichedInventory[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [filterStockLevel, setFilterStockLevel] = useState(''); // NEW: Filter by stock level
+  const [filterStockLevel, setFilterStockLevel] = useState('');
   const [selectedInventory, setSelectedInventory] = useState<EnrichedInventory | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [, setTick] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(settings.defaultPageSize);
 
   // Reference data
   const [items, setItems] = useState<Map<string, any>>(new Map());

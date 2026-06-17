@@ -109,7 +109,7 @@ function resolveTheme(theme: GeneralSettings['theme']): 'dark' | 'light' {
 
 function applyTheme(resolved: 'dark' | 'light') {
   const html = document.documentElement;
-  // Set data-theme so ThemeContext's event handler reads the correct value
+  html.classList.add('theme-transitioning');
   html.setAttribute('data-theme', resolved);
   if (resolved === 'dark') {
     html.classList.add('dark');
@@ -120,8 +120,8 @@ function applyTheme(resolved: 'dark' | 'light') {
     document.body.classList.remove('dark');
     localStorage.setItem('theme', 'light');
   }
-  // Notify ThemeContext so its isDark stays in sync
   window.dispatchEvent(new CustomEvent('theme:changed'));
+  window.setTimeout(() => html.classList.remove('theme-transitioning'), 400);
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────

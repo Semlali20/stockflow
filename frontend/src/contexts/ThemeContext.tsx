@@ -15,12 +15,14 @@ const THEME_CYCLE: ThemeMode[] = ['light', 'dark'];
 
 function applyTheme(theme: ThemeMode) {
   const root = document.documentElement;
+  root.classList.add('theme-transitioning');
   root.setAttribute('data-theme', theme);
   if (theme === 'dark') {
     root.classList.add('dark');
   } else {
     root.classList.remove('dark');
   }
+  window.setTimeout(() => root.classList.remove('theme-transitioning'), 400);
 }
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {

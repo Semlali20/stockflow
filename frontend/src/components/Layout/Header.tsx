@@ -12,6 +12,7 @@ import {
   Moon,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { ROUTES } from '@/config/constants';
 import toast from 'react-hot-toast';
 import { NotificationDropdown, useUnreadAlertCount } from '@/components/NotificationDropdown';
@@ -36,6 +37,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { theme, toggleTheme } = useTheme();
+  const { settings } = useSettings();
   const { t } = useTranslation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -186,6 +188,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
               profileImageUrl: profileImage || undefined,
               roles: user?.roles as string[],
             }}
+            showAvatar={settings.showAvatars}
             onLogout={handleLogout}
             onProfileClick={() => navigate(ROUTES.PROFILE)}
             onSettingsClick={() => navigate(ROUTES.SETTINGS)}
