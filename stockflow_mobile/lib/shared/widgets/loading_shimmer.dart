@@ -16,14 +16,16 @@ class ShimmerBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = context.colorSurfaceAlt;
+    final highlight = context.colorSurface;
     return Shimmer.fromColors(
-      baseColor: AppColors.darkSurfaceAlt,
-      highlightColor: AppColors.darkSurface.withValues(alpha: 0.9),
+      baseColor: base,
+      highlightColor: highlight,
       child: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.darkSurfaceAlt,
+          color: base,
           borderRadius: BorderRadius.circular(borderRadius),
         ),
       ),
@@ -36,15 +38,17 @@ class KpiCardShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = context.colorSurfaceAlt;
+    final highlight = context.colorSurface;
     return Shimmer.fromColors(
-      baseColor: AppColors.darkSurfaceAlt,
-      highlightColor: AppColors.darkSurface.withValues(alpha: 0.9),
+      baseColor: base,
+      highlightColor: highlight,
       child: Container(
         height: 120,
         decoration: BoxDecoration(
-          color: AppColors.darkSurface,
+          color: context.colorSurface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.darkBorder),
+          border: Border.all(color: context.colorBorder),
         ),
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -56,7 +60,7 @@ class KpiCardShimmer extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: AppColors.darkSurfaceAlt,
+                    color: base,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -65,7 +69,7 @@ class KpiCardShimmer extends StatelessWidget {
                   width: 50,
                   height: 20,
                   decoration: BoxDecoration(
-                    color: AppColors.darkSurfaceAlt,
+                    color: base,
                     borderRadius: BorderRadius.circular(99),
                   ),
                 ),
@@ -76,7 +80,7 @@ class KpiCardShimmer extends StatelessWidget {
               width: 80,
               height: 28,
               decoration: BoxDecoration(
-                color: AppColors.darkSurfaceAlt,
+                color: base,
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
@@ -85,7 +89,7 @@ class KpiCardShimmer extends StatelessWidget {
               width: 100,
               height: 12,
               decoration: BoxDecoration(
-                color: AppColors.darkSurfaceAlt,
+                color: base,
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
@@ -101,16 +105,18 @@ class ListItemShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = context.colorSurfaceAlt;
+    final highlight = context.colorSurface;
     return Shimmer.fromColors(
-      baseColor: AppColors.darkSurfaceAlt,
-      highlightColor: AppColors.darkSurface.withValues(alpha: 0.9),
+      baseColor: base,
+      highlightColor: highlight,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.darkSurface,
+          color: context.colorSurface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.darkBorder),
+          border: Border.all(color: context.colorBorder),
         ),
         child: Row(
           children: [
@@ -118,7 +124,7 @@ class ListItemShimmer extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.darkSurfaceAlt,
+                color: base,
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -131,7 +137,7 @@ class ListItemShimmer extends StatelessWidget {
                     height: 14,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.darkSurfaceAlt,
+                      color: base,
                       borderRadius: BorderRadius.circular(7),
                     ),
                   ),
@@ -140,7 +146,7 @@ class ListItemShimmer extends StatelessWidget {
                     height: 12,
                     width: 140,
                     decoration: BoxDecoration(
-                      color: AppColors.darkSurfaceAlt,
+                      color: base,
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
@@ -152,7 +158,7 @@ class ListItemShimmer extends StatelessWidget {
               width: 56,
               height: 24,
               decoration: BoxDecoration(
-                color: AppColors.darkSurfaceAlt,
+                color: base,
                 borderRadius: BorderRadius.circular(99),
               ),
             ),

@@ -8,6 +8,7 @@ abstract class ApiEndpoints {
   // Users
   static const me = '/api/users/me';
   static const users = '/api/users';
+  static const changePassword = '/api/users/me/password';
 
   // Products
   static const items = '/api/items';

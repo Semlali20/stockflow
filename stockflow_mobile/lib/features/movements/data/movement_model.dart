@@ -1,3 +1,11 @@
+/// Returns "MOV-XXXXXXXX" using the first 8 hex chars of the UUID.
+String _shortId(String? id) {
+  if (id == null || id.isEmpty) return 'MOV-UNKNOWN';
+  final clean = id.replaceAll('-', '');
+  final short = clean.length >= 8 ? clean.substring(0, 8).toUpperCase() : clean.toUpperCase();
+  return 'MOV-$short';
+}
+
 class Movement {
   final String id;
   final String reference;
@@ -27,9 +35,10 @@ class Movement {
         [];
     return Movement(
       id: json['id']?.toString() ?? '',
-      reference: json['reference'] as String? ??
+      reference: json['referenceNumber'] as String? ??
+          json['reference'] as String? ??
           json['movementReference'] as String? ??
-          '#${json['id']}',
+          _shortId(json['id']?.toString()),
       type: json['type'] as String? ?? json['movementType'] as String? ?? 'TRANSFER',
       status: json['status'] as String? ?? 'PENDING',
       fromWarehouse: json['fromWarehouseName'] as String? ??
@@ -104,42 +113,59 @@ class PaginatedMovements {
 
 class CreateMovementRequest {
   final String type;
-  final String? fromWarehouseId;
-  final String? toWarehouseId;
+  final String? warehouseId;
+  final String? sourceLocationId;
+  final String? destinationLocationId;
+  final String? referenceNumber;
+  final String? priority;
   final String? notes;
   final List<CreateMovementLine> lines;
 
   const CreateMovementRequest({
     required this.type,
-    this.fromWarehouseId,
-    this.toWarehouseId,
+    this.warehouseId,
+    this.sourceLocationId,
+    this.destinationLocationId,
+    this.referenceNumber,
+    this.priority,
     this.notes,
     required this.lines,
   });
 
   Map<String, dynamic> toJson() => {
         'type': type,
-        if (fromWarehouseId != null) 'fromWarehouseId': fromWarehouseId,
-        if (toWarehouseId != null) 'toWarehouseId': toWarehouseId,
-        if (notes != null) 'notes': notes,
+        if (warehouseId != null) 'warehouseId': warehouseId,
+        if (sourceLocationId != null) 'sourceLocationId': sourceLocationId,
+        if (destinationLocationId != null)
+          'destinationLocationId': destinationLocationId,
+        if (referenceNumber != null && referenceNumber!.isNotEmpty)
+          'referenceNumber': referenceNumber,
+        if (priority != null) 'priority': priority,
+        if (notes != null && notes!.isNotEmpty) 'notes': notes,
         'lines': lines.map((l) => l.toJson()).toList(),
       };
 }
 
 class CreateMovementLine {
   final String itemId;
-  final double quantity;
-  final String? lotNumber;
+  final double requestedQuantity;
+  final String? fromLocationId;
+  final String? toLocationId;
+  final String? uom;
 
   const CreateMovementLine({
     required this.itemId,
-    required this.quantity,
-    this.lotNumber,
+    required this.requestedQuantity,
+    this.fromLocationId,
+    this.toLocationId,
+    this.uom,
   });
 
   Map<String, dynamic> toJson() => {
         'itemId': itemId,
-        'quantity': quantity,
-        if (lotNumber != null) 'lotNumber': lotNumber,
+        'requestedQuantity': requestedQuantity,
+        if (fromLocationId != null) 'fromLocationId': fromLocationId,
+        if (toLocationId != null) 'toLocationId': toLocationId,
+        if (uom != null && uom!.isNotEmpty) 'uom': uom,
       };
 }

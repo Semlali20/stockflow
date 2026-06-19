@@ -30,11 +30,9 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen> {
     final itemsAsync = ref.watch(itemsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
               child: Column(
@@ -42,16 +40,11 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen> {
                 children: [
                   Text('Items', style: AppTextStyles.displayMd),
                   const SizedBox(height: 4),
-                  Text(
-                    'Browse your product catalog',
-                    style: AppTextStyles.bodySm,
-                  ),
+                  Text('Browse your product catalog', style: AppTextStyles.bodySm.copyWith(color: context.colorTextMuted)),
                   const SizedBox(height: 16),
-                  // Search bar
                   TextField(
                     controller: _searchCtrl,
-                    onChanged: (v) =>
-                        ref.read(itemsSearchProvider.notifier).state = v,
+                    onChanged: (v) => ref.read(itemsSearchProvider.notifier).state = v,
                     style: AppTextStyles.bodyMd,
                     decoration: InputDecoration(
                       hintText: 'Search items...',
@@ -71,11 +64,10 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen> {
               ),
             ),
 
-            // List
             Expanded(
               child: RefreshIndicator(
                 color: AppColors.primary,
-                backgroundColor: AppColors.darkSurface,
+                backgroundColor: context.colorSurface,
                 onRefresh: () async => ref.invalidate(itemsProvider),
                 child: itemsAsync.when(
                   loading: () => ListView.builder(
@@ -95,8 +87,7 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen> {
                       : ListView.builder(
                           padding: const EdgeInsets.only(bottom: 16),
                           itemCount: paginated.items.length,
-                          itemBuilder: (_, i) =>
-                              _ItemTile(item: paginated.items[i]),
+                          itemBuilder: (_, i) => _ItemTile(item: paginated.items[i]),
                         ),
                 ),
               ),
@@ -121,13 +112,12 @@ class _ItemTile extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.darkSurface,
+          color: context.colorSurface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.darkBorder, width: 1),
+          border: Border.all(color: context.colorBorder, width: 1),
         ),
         child: Row(
           children: [
-            // Icon / thumbnail
             Container(
               width: 46,
               height: 46,
@@ -135,48 +125,26 @@ class _ItemTile extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.inventory_2_rounded,
-                color: AppColors.primary,
-                size: 22,
-              ),
+              child: const Icon(Icons.inventory_2_rounded, color: AppColors.primary, size: 22),
             ),
 
             const SizedBox(width: 14),
 
-            // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.name,
-                    style: AppTextStyles.labelMd,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(item.name, style: AppTextStyles.labelMd, maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       if (item.sku != null) ...[
-                        Text(
-                          item.sku!,
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.darkTextMuted,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
+                        Text(item.sku!, style: AppTextStyles.caption.copyWith(color: context.colorTextMuted, fontFamily: 'monospace')),
                         if (item.categoryName != null)
-                          Text(
-                            ' · ',
-                            style: AppTextStyles.caption,
-                          ),
+                          Text(' · ', style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
                       ],
                       if (item.categoryName != null)
-                        Text(
-                          item.categoryName!,
-                          style: AppTextStyles.caption,
-                        ),
+                        Text(item.categoryName!, style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
                     ],
                   ),
                 ],
@@ -185,12 +153,11 @@ class _ItemTile extends StatelessWidget {
 
             const SizedBox(width: 8),
 
-            // Active indicator
             Container(
               width: 8,
               height: 8,
               decoration: BoxDecoration(
-                color: item.isActive ? AppColors.success : AppColors.darkTextSubtle,
+                color: item.isActive ? AppColors.success : context.colorTextSubtle,
                 shape: BoxShape.circle,
               ),
             ),

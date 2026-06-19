@@ -27,19 +27,14 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
 
   @override
   void dispose() {
-    _validUntilCtrl.dispose();
-    _discountCtrl.dispose();
-    _notesCtrl.dispose();
+    _validUntilCtrl.dispose(); _discountCtrl.dispose(); _notesCtrl.dispose();
     for (final l in _lines) { l.dispose(); }
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    if (_selectedCustomer == null) {
-      setState(() => _error = 'Please select a customer');
-      return;
-    }
+    if (_selectedCustomer == null) { setState(() => _error = 'Please select a customer'); return; }
     setState(() { _loading = true; _error = null; });
     try {
       final request = QuoteRequest(
@@ -47,15 +42,12 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
         validUntil: _validUntilCtrl.text.trim().isEmpty ? null : _validUntilCtrl.text.trim(),
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
         discountPercent: double.tryParse(_discountCtrl.text),
-        lines: _lines
-            .where((l) => l.itemIdCtrl.text.trim().isNotEmpty)
-            .map((l) => QuoteLineRequest(
-                  itemId: l.itemIdCtrl.text.trim(),
-                  quantity: int.tryParse(l.qtyCtrl.text) ?? 1,
-                  unitPrice: double.tryParse(l.priceCtrl.text) ?? 0,
-                  discountPercent: double.tryParse(l.discCtrl.text),
-                ))
-            .toList(),
+        lines: _lines.where((l) => l.itemIdCtrl.text.trim().isNotEmpty).map((l) => QuoteLineRequest(
+          itemId: l.itemIdCtrl.text.trim(),
+          quantity: int.tryParse(l.qtyCtrl.text) ?? 1,
+          unitPrice: double.tryParse(l.priceCtrl.text) ?? 0,
+          discountPercent: double.tryParse(l.discCtrl.text),
+        )).toList(),
       );
       await ref.read(salesRepositoryProvider).createQuote(request);
       if (mounted) {
@@ -79,9 +71,7 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
     final customersAsync = ref.watch(activeCustomersProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
       appBar: AppBar(
-        backgroundColor: AppColors.darkBg,
         leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20)),
         title: Text('New Quote', style: AppTextStyles.headingMd),
       ),
@@ -105,7 +95,6 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // Customer
               GlassCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,38 +106,21 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
                       error: (e, _) => Text(e.toString(), style: AppTextStyles.bodySm.copyWith(color: AppColors.danger)),
                       data: (customers) => DropdownButtonFormField<Customer>(
                         value: _selectedCustomer,
-                        dropdownColor: AppColors.darkSurface,
+                        dropdownColor: context.colorSurface,
                         style: AppTextStyles.bodyMd,
-                        decoration: const InputDecoration(
-                          labelText: 'Select Customer *',
-                          prefixIcon: Icon(Icons.person_outline_rounded),
-                        ),
-                        items: customers.map((c) => DropdownMenuItem(
-                          value: c,
-                          child: Text(c.name, style: AppTextStyles.bodyMd),
-                        )).toList(),
+                        decoration: const InputDecoration(labelText: 'Select Customer *', prefixIcon: Icon(Icons.person_outline_rounded)),
+                        items: customers.map((c) => DropdownMenuItem(value: c, child: Text(c.name, style: AppTextStyles.bodyMd))).toList(),
                         onChanged: (v) => setState(() => _selectedCustomer = v),
                         validator: (_) => _selectedCustomer == null ? 'Required' : null,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Row(children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _validUntilCtrl,
-                          style: AppTextStyles.bodyMd,
-                          decoration: const InputDecoration(labelText: 'Valid Until (YYYY-MM-DD)', prefixIcon: Icon(Icons.calendar_today_outlined)),
-                        ),
-                      ),
+                      Expanded(child: TextFormField(controller: _validUntilCtrl, style: AppTextStyles.bodyMd,
+                          decoration: const InputDecoration(labelText: 'Valid Until (YYYY-MM-DD)', prefixIcon: Icon(Icons.calendar_today_outlined)))),
                       const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _discountCtrl,
-                          keyboardType: TextInputType.number,
-                          style: AppTextStyles.bodyMd,
-                          decoration: const InputDecoration(labelText: 'Discount %', prefixIcon: Icon(Icons.percent_rounded)),
-                        ),
-                      ),
+                      Expanded(child: TextFormField(controller: _discountCtrl, keyboardType: TextInputType.number, style: AppTextStyles.bodyMd,
+                          decoration: const InputDecoration(labelText: 'Discount %', prefixIcon: Icon(Icons.percent_rounded)))),
                     ]),
                   ],
                 ),
@@ -156,7 +128,6 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
 
               const SizedBox(height: 16),
 
-              // Lines
               GlassCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,8 +142,7 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
                     ]),
                     const SizedBox(height: 12),
                     ...List.generate(_lines.length, (i) => _QuoteLineWidget(
-                      entry: _lines[i],
-                      index: i,
+                      entry: _lines[i], index: i,
                       onRemove: _lines.length > 1
                           ? () => setState(() { _lines[i].dispose(); _lines.removeAt(i); })
                           : null,
@@ -185,19 +155,11 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
 
               GlassCard(
                 child: TextFormField(
-                  controller: _notesCtrl,
-                  maxLines: 3,
-                  style: AppTextStyles.bodyMd,
+                  controller: _notesCtrl, maxLines: 3, style: AppTextStyles.bodyMd,
                   decoration: const InputDecoration(
-                    labelText: 'Notes (optional)',
-                    alignLabelWithHint: true,
-                    prefixIcon: Padding(
-                      padding: EdgeInsets.only(bottom: 40),
-                      child: Icon(Icons.notes_rounded),
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
+                    labelText: 'Notes (optional)', alignLabelWithHint: true,
+                    prefixIcon: Padding(padding: EdgeInsets.only(bottom: 40), child: Icon(Icons.notes_rounded)),
+                    border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none,
                   ),
                 ),
               ),
@@ -205,34 +167,19 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
               const SizedBox(height: 28),
 
               SizedBox(
-                width: double.infinity,
-                height: 52,
+                width: double.infinity, height: 52,
                 child: Container(
                   decoration: BoxDecoration(
-                    gradient: _loading
-                        ? null
-                        : const LinearGradient(
-                            colors: [AppColors.teal, AppColors.primary],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                    gradient: _loading ? null : const LinearGradient(colors: [AppColors.teal, AppColors.primary], begin: Alignment.topLeft, end: Alignment.bottomRight),
                     color: _loading ? AppColors.teal.withOpacity(0.4) : null,
                     borderRadius: BorderRadius.circular(14),
-                    boxShadow: _loading
-                        ? null
-                        : [BoxShadow(color: AppColors.teal.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 6))],
+                    boxShadow: _loading ? null : [BoxShadow(color: AppColors.teal.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 6))],
                   ),
                   child: ElevatedButton(
                     onPressed: _loading ? null : _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      disabledBackgroundColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, disabledBackgroundColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                     child: _loading
-                        ? const SizedBox(width: 20, height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : Text('Create Quote', style: AppTextStyles.button.copyWith(color: Colors.white)),
                   ),
                 ),
@@ -251,11 +198,7 @@ class _QuoteLine {
   final qtyCtrl = TextEditingController(text: '1');
   final priceCtrl = TextEditingController();
   final discCtrl = TextEditingController(text: '0');
-
-  void dispose() {
-    itemIdCtrl.dispose(); qtyCtrl.dispose();
-    priceCtrl.dispose(); discCtrl.dispose();
-  }
+  void dispose() { itemIdCtrl.dispose(); qtyCtrl.dispose(); priceCtrl.dispose(); discCtrl.dispose(); }
 }
 
 class _QuoteLineWidget extends StatelessWidget {
@@ -271,59 +214,37 @@ class _QuoteLineWidget extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.darkSurfaceAlt,
+        color: context.colorSurfaceAlt,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.darkBorder),
+        border: Border.all(color: context.colorBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Text('Line ${index + 1}', style: AppTextStyles.labelSm.copyWith(color: AppColors.darkTextSubtle)),
+            Text('Line ${index + 1}', style: AppTextStyles.labelSm.copyWith(color: context.colorTextSubtle)),
             const Spacer(),
             if (onRemove != null)
-              GestureDetector(onTap: onRemove,
-                  child: const Icon(Icons.remove_circle_outline_rounded, size: 18, color: AppColors.danger)),
+              GestureDetector(onTap: onRemove, child: const Icon(Icons.remove_circle_outline_rounded, size: 18, color: AppColors.danger)),
           ]),
           const SizedBox(height: 10),
           TextFormField(
-            controller: entry.itemIdCtrl,
-            style: AppTextStyles.bodyMd,
+            controller: entry.itemIdCtrl, style: AppTextStyles.bodyMd,
             decoration: const InputDecoration(labelText: 'Item ID *', prefixIcon: Icon(Icons.inventory_2_outlined)),
             validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
           ),
           const SizedBox(height: 10),
           Row(children: [
-            Expanded(child: TextFormField(
-              controller: entry.qtyCtrl,
-              keyboardType: TextInputType.number,
-              style: AppTextStyles.bodyMd,
-              decoration: const InputDecoration(labelText: 'Qty *'),
-              validator: (v) {
-                if (v == null || v.isEmpty) return 'Required';
-                if (int.tryParse(v) == null || int.parse(v) < 1) return 'Invalid';
-                return null;
-              },
-            )),
+            Expanded(child: TextFormField(controller: entry.qtyCtrl, keyboardType: TextInputType.number, style: AppTextStyles.bodyMd,
+                decoration: const InputDecoration(labelText: 'Qty *'),
+                validator: (v) { if (v == null || v.isEmpty) return 'Required'; if (int.tryParse(v) == null || int.parse(v) < 1) return 'Invalid'; return null; })),
             const SizedBox(width: 8),
-            Expanded(child: TextFormField(
-              controller: entry.priceCtrl,
-              keyboardType: TextInputType.number,
-              style: AppTextStyles.bodyMd,
-              decoration: const InputDecoration(labelText: 'Price *'),
-              validator: (v) {
-                if (v == null || v.isEmpty) return 'Required';
-                if (double.tryParse(v) == null) return 'Invalid';
-                return null;
-              },
-            )),
+            Expanded(child: TextFormField(controller: entry.priceCtrl, keyboardType: TextInputType.number, style: AppTextStyles.bodyMd,
+                decoration: const InputDecoration(labelText: 'Price *'),
+                validator: (v) { if (v == null || v.isEmpty) return 'Required'; if (double.tryParse(v) == null) return 'Invalid'; return null; })),
             const SizedBox(width: 8),
-            Expanded(child: TextFormField(
-              controller: entry.discCtrl,
-              keyboardType: TextInputType.number,
-              style: AppTextStyles.bodyMd,
-              decoration: const InputDecoration(labelText: 'Disc %'),
-            )),
+            Expanded(child: TextFormField(controller: entry.discCtrl, keyboardType: TextInputType.number, style: AppTextStyles.bodyMd,
+                decoration: const InputDecoration(labelText: 'Disc %'))),
           ]),
         ],
       ),

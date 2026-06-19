@@ -26,8 +26,8 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = backgroundColor ?? AppColors.darkSurface.withValues(alpha: 0.7);
-    final border = borderColor ?? AppColors.darkBorder;
+    final bg = backgroundColor ?? context.colorSurface.withValues(alpha: 0.85);
+    final border = borderColor ?? context.colorBorder;
     final shadow = shadows ?? AppColors.shadowCard;
 
     Widget content = ClipRRect(

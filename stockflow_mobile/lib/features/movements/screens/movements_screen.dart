@@ -20,7 +20,6 @@ class MovementsScreen extends ConsumerWidget {
     final movementsAsync = ref.watch(movementsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -34,11 +33,10 @@ class MovementsScreen extends ConsumerWidget {
                       children: [
                         Text('Movements', style: AppTextStyles.displayMd),
                         const SizedBox(height: 4),
-                        Text('Stock transfer history', style: AppTextStyles.bodySm),
+                        Text('Stock transfer history', style: AppTextStyles.bodySm.copyWith(color: context.colorTextMuted)),
                       ],
                     ),
                   ),
-                  // New movement button
                   GestureDetector(
                     onTap: () => context.go(AppRoutes.createMovement),
                     child: Container(
@@ -53,10 +51,7 @@ class MovementsScreen extends ConsumerWidget {
                         children: [
                           const Icon(Icons.add_rounded, color: Colors.white, size: 16),
                           const SizedBox(width: 4),
-                          Text(
-                            'New',
-                            style: AppTextStyles.buttonSm.copyWith(color: Colors.white),
-                          ),
+                          Text('New', style: AppTextStyles.buttonSm.copyWith(color: Colors.white)),
                         ],
                       ),
                     ),
@@ -67,7 +62,7 @@ class MovementsScreen extends ConsumerWidget {
             Expanded(
               child: RefreshIndicator(
                 color: AppColors.primary,
-                backgroundColor: AppColors.darkSurface,
+                backgroundColor: context.colorSurface,
                 onRefresh: () async => ref.invalidate(movementsProvider),
                 child: movementsAsync.when(
                   loading: () => ListView.builder(
@@ -89,8 +84,7 @@ class MovementsScreen extends ConsumerWidget {
                       : ListView.builder(
                           padding: const EdgeInsets.only(bottom: 16),
                           itemCount: paginated.movements.length,
-                          itemBuilder: (_, i) =>
-                              _MovementCard(movement: paginated.movements[i]),
+                          itemBuilder: (_, i) => _MovementCard(movement: paginated.movements[i]),
                         ),
                 ),
               ),
@@ -115,14 +109,13 @@ class _MovementCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.darkSurface,
+        color: context.colorSurface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.darkBorder, width: 1),
+        border: Border.all(color: context.colorBorder, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row
           Row(
             children: [
               Container(
@@ -132,11 +125,7 @@ class _MovementCard extends StatelessWidget {
                   color: AppColors.teal.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.swap_horiz_rounded,
-                  color: AppColors.teal,
-                  size: 20,
-                ),
+                child: const Icon(Icons.swap_horiz_rounded, color: AppColors.teal, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -163,38 +152,31 @@ class _MovementCard extends StatelessWidget {
 
           if (movement.fromWarehouse != null || movement.toWarehouse != null) ...[
             const SizedBox(height: 12),
-            const Divider(height: 1, color: AppColors.darkBorder),
+            Divider(height: 1, color: context.colorBorder),
             const SizedBox(height: 12),
-            // Route row
             Row(
               children: [
                 if (movement.fromWarehouse != null) ...[
-                  const Icon(Icons.warehouse_outlined, size: 14, color: AppColors.darkTextSubtle),
+                  Icon(Icons.warehouse_outlined, size: 14, color: context.colorTextSubtle),
                   const SizedBox(width: 4),
-                  Text(movement.fromWarehouse!, style: AppTextStyles.caption),
+                  Text(movement.fromWarehouse!, style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
                 ],
                 if (movement.fromWarehouse != null && movement.toWarehouse != null) ...[
                   const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.darkTextSubtle),
+                  Icon(Icons.arrow_forward_rounded, size: 14, color: context.colorTextSubtle),
                   const SizedBox(width: 8),
                 ],
                 if (movement.toWarehouse != null) ...[
                   const Icon(Icons.warehouse_rounded, size: 14, color: AppColors.primary),
                   const SizedBox(width: 4),
-                  Text(
-                    movement.toWarehouse!,
-                    style: AppTextStyles.caption.copyWith(color: AppColors.primaryLight),
-                  ),
+                  Text(movement.toWarehouse!, style: AppTextStyles.caption.copyWith(color: AppColors.primaryLight)),
                 ],
               ],
             ),
           ],
 
           const SizedBox(height: 10),
-          Text(
-            dateFormatter.format(movement.createdAt),
-            style: AppTextStyles.caption,
-          ),
+          Text(dateFormatter.format(movement.createdAt), style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
         ],
       ),
     );

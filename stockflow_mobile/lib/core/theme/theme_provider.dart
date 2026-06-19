@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../storage/secure_storage.dart';
 
-enum AppThemeMode { dark, light, teal }
+enum AppThemeMode { dark, light }
 
 extension AppThemeModeX on AppThemeMode {
   String get label {
     switch (this) {
       case AppThemeMode.dark: return 'Dark';
       case AppThemeMode.light: return 'Light';
-      case AppThemeMode.teal: return 'Teal';
     }
   }
 
@@ -17,7 +16,6 @@ extension AppThemeModeX on AppThemeMode {
     switch (this) {
       case AppThemeMode.dark: return Icons.dark_mode_rounded;
       case AppThemeMode.light: return Icons.light_mode_rounded;
-      case AppThemeMode.teal: return Icons.water_rounded;
     }
   }
 

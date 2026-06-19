@@ -22,22 +22,21 @@ class DashboardScreen extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
     final statsAsync = ref.watch(dashboardStatsProvider);
     final movementsAsync = ref.watch(recentMovementsProvider);
+    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
       body: Stack(
         children: [
-          // Background gradient
           Container(
             height: 260,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF0E0B1E),
-                  Color(0xFF1A1535),
-                  Color(0xFF0E0B1E),
+                  scaffoldBg.withOpacity(0.95),
+                  AppColors.primary.withOpacity(0.08),
+                  scaffoldBg,
                 ],
               ),
             ),
@@ -46,14 +45,13 @@ class DashboardScreen extends ConsumerWidget {
           SafeArea(
             child: RefreshIndicator(
               color: AppColors.primary,
-              backgroundColor: AppColors.darkSurface,
+              backgroundColor: context.colorSurface,
               onRefresh: () async {
                 ref.invalidate(dashboardStatsProvider);
                 ref.invalidate(recentMovementsProvider);
               },
               child: CustomScrollView(
                 slivers: [
-                  // Header
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -63,7 +61,6 @@ class DashboardScreen extends ConsumerWidget {
 
                   const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-                  // KPI Cards
                   SliverToBoxAdapter(
                     child: statsAsync.when(
                       loading: () => _buildKpiShimmer(),
@@ -79,7 +76,6 @@ class DashboardScreen extends ConsumerWidget {
 
                   const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-                  // Quick actions
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -89,7 +85,6 @@ class DashboardScreen extends ConsumerWidget {
 
                   const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-                  // Recent movements
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -125,10 +120,7 @@ class DashboardScreen extends ConsumerWidget {
                         ? SliverToBoxAdapter(
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Text(
-                                'No movements yet',
-                                style: AppTextStyles.bodySm,
-                              ),
+                              child: Text('No movements yet', style: AppTextStyles.bodySm),
                             ),
                           )
                         : SliverList(
@@ -151,11 +143,7 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context, String name) {
     final hour = DateTime.now().hour;
-    final greeting = hour < 12
-        ? 'Good morning'
-        : hour < 18
-            ? 'Good afternoon'
-            : 'Good evening';
+    final greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
     return Row(
       children: [
@@ -165,9 +153,7 @@ class DashboardScreen extends ConsumerWidget {
             children: [
               Text(
                 greeting,
-                style: AppTextStyles.bodySm.copyWith(
-                  color: AppColors.darkTextMuted,
-                ),
+                style: AppTextStyles.bodySm.copyWith(color: context.colorTextMuted),
               ),
               const SizedBox(height: 2),
               Text(name, style: AppTextStyles.headingLg),
@@ -202,35 +188,10 @@ class DashboardScreen extends ConsumerWidget {
         mainAxisSpacing: 12,
         childAspectRatio: 1.35,
         children: [
-          _KpiCard(
-            label: 'Total Items',
-            value: stats.totalItems.toString(),
-            icon: Icons.inventory_2_rounded,
-            color: AppColors.primary,
-            trend: '+12%',
-          ),
-          _KpiCard(
-            label: 'Low Stock',
-            value: stats.lowStockCount.toString(),
-            icon: Icons.warning_amber_rounded,
-            color: AppColors.amber,
-            trend: stats.lowStockCount > 0 ? '⚠ Alert' : '✓ OK',
-            trendPositive: stats.lowStockCount == 0,
-          ),
-          _KpiCard(
-            label: 'Movements',
-            value: stats.movementsToday.toString(),
-            icon: Icons.swap_horiz_rounded,
-            color: AppColors.teal,
-            trend: 'Total',
-          ),
-          _KpiCard(
-            label: 'Warehouses',
-            value: stats.warehouseCount.toString(),
-            icon: Icons.warehouse_rounded,
-            color: AppColors.violet,
-            trend: 'Active',
-          ),
+          _KpiCard(label: 'Total Items', value: stats.totalItems.toString(), icon: Icons.inventory_2_rounded, color: AppColors.primary, trend: '+12%'),
+          _KpiCard(label: 'Low Stock', value: stats.lowStockCount.toString(), icon: Icons.warning_amber_rounded, color: AppColors.amber, trend: stats.lowStockCount > 0 ? '⚠ Alert' : '✓ OK', trendPositive: stats.lowStockCount == 0),
+          _KpiCard(label: 'Movements', value: stats.movementsToday.toString(), icon: Icons.swap_horiz_rounded, color: AppColors.teal, trend: 'Total'),
+          _KpiCard(label: 'Warehouses', value: stats.warehouseCount.toString(), icon: Icons.warehouse_rounded, color: AppColors.violet, trend: 'Active'),
         ],
       ),
     );
@@ -267,9 +228,7 @@ class DashboardScreen extends ConsumerWidget {
           children: actions
               .map((a) => Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(
-                        right: a == actions.last ? 0 : 10,
-                      ),
+                      padding: EdgeInsets.only(right: a == actions.last ? 0 : 10),
                       child: GestureDetector(
                         onTap: () => context.go(a.route),
                         child: GlassCard(
@@ -278,11 +237,7 @@ class DashboardScreen extends ConsumerWidget {
                             children: [
                               Icon(a.icon, color: a.color, size: 24),
                               const SizedBox(height: 6),
-                              Text(
-                                a.label,
-                                style: AppTextStyles.caption.copyWith(fontSize: 10),
-                                textAlign: TextAlign.center,
-                              ),
+                              Text(a.label, style: AppTextStyles.caption.copyWith(fontSize: 10), textAlign: TextAlign.center),
                             ],
                           ),
                         ),
@@ -335,8 +290,7 @@ class _KpiCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (trendPositive ? AppColors.success : AppColors.amber)
-                      .withValues(alpha: 0.12),
+                  color: (trendPositive ? AppColors.success : AppColors.amber).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -356,15 +310,12 @@ class _KpiCard extends StatelessWidget {
             style: GoogleFonts.jetBrainsMono(
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: AppColors.darkTextPrimary,
+              color: context.colorTextPrimary,
               letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            label,
-            style: AppTextStyles.caption.copyWith(fontSize: 11),
-          ),
+          Text(label, style: AppTextStyles.caption.copyWith(fontSize: 11)),
         ],
       ),
     );
@@ -384,9 +335,9 @@ class _MovementTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.darkSurface,
+        color: context.colorSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.darkBorder, width: 1),
+        border: Border.all(color: context.colorBorder, width: 1),
       ),
       child: Row(
         children: [
@@ -406,10 +357,7 @@ class _MovementTile extends StatelessWidget {
               children: [
                 Text(movement.reference, style: AppTextStyles.labelMd),
                 const SizedBox(height: 2),
-                Text(
-                  formatter.format(movement.createdAt),
-                  style: AppTextStyles.caption,
-                ),
+                Text(formatter.format(movement.createdAt), style: AppTextStyles.caption),
               ],
             ),
           ),

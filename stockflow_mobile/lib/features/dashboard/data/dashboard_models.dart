@@ -1,3 +1,10 @@
+String _shortMovId(String? id) {
+  if (id == null || id.isEmpty) return 'MOV-UNKNOWN';
+  final clean = id.replaceAll('-', '');
+  final short = clean.length >= 8 ? clean.substring(0, 8).toUpperCase() : clean.toUpperCase();
+  return 'MOV-$short';
+}
+
 class DashboardStats {
   final int totalItems;
   final int lowStockCount;
@@ -34,9 +41,10 @@ class RecentMovement {
   factory RecentMovement.fromJson(Map<String, dynamic> json) {
     return RecentMovement(
       id: json['id']?.toString() ?? '',
-      reference: json['reference'] as String? ??
+      reference: json['referenceNumber'] as String? ??
+          json['reference'] as String? ??
           json['movementReference'] as String? ??
-          '#${json['id']}',
+          _shortMovId(json['id']?.toString()),
       type: json['type'] as String? ?? json['movementType'] as String? ?? 'TRANSFER',
       status: json['status'] as String? ?? 'PENDING',
       fromLocation: json['fromLocation'] as String? ??

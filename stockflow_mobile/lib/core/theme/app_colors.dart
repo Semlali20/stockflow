@@ -33,8 +33,8 @@ abstract class AppColors {
   static const darkBgDeep = Color(0xFF070511);
   static const darkSurface = Color(0xFF100D23);
   static const darkSurfaceAlt = Color(0xFF16121E);
-  static const darkBorder = Color(0x0FFFFFFF);    // rgba(255,255,255,0.06)
-  static const darkBorderHover = Color(0x12FFFFFF); // rgba(255,255,255,0.07)
+  static const darkBorder = Color(0x0FFFFFFF);
+  static const darkBorderHover = Color(0x12FFFFFF);
   static const darkTextPrimary = Color(0xFFE8E6FF);
   static const darkTextMuted = Color(0xFF8B88B8);
   static const darkTextSubtle = Color(0xFF6B6B94);
@@ -43,7 +43,7 @@ abstract class AppColors {
   static const lightBg = Color(0xFFF8F7FF);
   static const lightSurface = Color(0xFFFFFFFF);
   static const lightSurfaceAlt = Color(0xFFF5F3FF);
-  static const lightBorder = Color(0x1A4F46E5);  // rgba(79,70,229,0.10)
+  static const lightBorder = Color(0x1A4F46E5);
   static const lightTextPrimary = Color(0xFF1E1B4B);
   static const lightTextMuted = Color(0xFF6B6B94);
   static const lightTextSubtle = Color(0xFF4A4A6A);
@@ -107,4 +107,17 @@ abstract class AppColors {
       offset: const Offset(0, 0),
     ),
   ];
+}
+
+/// Context extension providing theme-aware color lookups.
+extension AppColorsX on BuildContext {
+  bool get _isDark => Theme.of(this).brightness == Brightness.dark;
+
+  Color get colorBg => _isDark ? AppColors.darkBg : AppColors.lightBg;
+  Color get colorSurface => _isDark ? AppColors.darkSurface : AppColors.lightSurface;
+  Color get colorSurfaceAlt => _isDark ? AppColors.darkSurfaceAlt : AppColors.lightSurfaceAlt;
+  Color get colorBorder => _isDark ? AppColors.darkBorder : AppColors.lightBorder;
+  Color get colorTextPrimary => _isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+  Color get colorTextMuted => _isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted;
+  Color get colorTextSubtle => _isDark ? AppColors.darkTextSubtle : AppColors.lightTextSubtle;
 }

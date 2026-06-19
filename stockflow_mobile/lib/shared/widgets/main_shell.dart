@@ -39,10 +39,10 @@ class MainShell extends StatelessWidget {
       body: child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.darkSurface,
-          border: const Border(top: BorderSide(color: AppColors.darkBorder, width: 1)),
+          color: context.colorSurface,
+          border: Border(top: BorderSide(color: context.colorBorder, width: 1)),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, -4)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, -4)),
           ],
         ),
         child: NavigationBar(

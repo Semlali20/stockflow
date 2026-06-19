@@ -17,9 +17,7 @@ class ItemDetailScreen extends ConsumerWidget {
     final itemAsync = ref.watch(itemDetailProvider(itemId));
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
       appBar: AppBar(
-        backgroundColor: AppColors.darkBg,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
@@ -27,9 +25,7 @@ class ItemDetailScreen extends ConsumerWidget {
         title: Text('Item Detail', style: AppTextStyles.headingMd),
       ),
       body: itemAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
         error: (e, _) => ErrorView(
           message: e.toString(),
           onRetry: () => ref.invalidate(itemDetailProvider(itemId)),
@@ -39,7 +35,6 @@ class ItemDetailScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Hero card
               GlassCard(
                 padding: const EdgeInsets.all(20),
                 child: Row(
@@ -55,11 +50,7 @@ class ItemDetailScreen extends ConsumerWidget {
                         ),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(
-                        Icons.inventory_2_rounded,
-                        color: Colors.white,
-                        size: 36,
-                      ),
+                      child: const Icon(Icons.inventory_2_rounded, color: Colors.white, size: 36),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -73,25 +64,21 @@ class ItemDetailScreen extends ConsumerWidget {
                               item.sku!,
                               style: GoogleFonts.jetBrainsMono(
                                 fontSize: 12,
-                                color: AppColors.darkTextMuted,
+                                color: context.colorTextMuted,
                               ),
                             ),
                           ],
                           if (item.categoryName != null) ...[
                             const SizedBox(height: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 item.categoryName!,
-                                style: AppTextStyles.caption.copyWith(
-                                  color: AppColors.primaryLight,
-                                ),
+                                style: AppTextStyles.caption.copyWith(color: AppColors.primaryLight),
                               ),
                             ),
                           ],
@@ -104,7 +91,6 @@ class ItemDetailScreen extends ConsumerWidget {
 
               const SizedBox(height: 16),
 
-              // Details
               GlassCard(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -112,12 +98,9 @@ class ItemDetailScreen extends ConsumerWidget {
                   children: [
                     Text('Details', style: AppTextStyles.headingMd),
                     const SizedBox(height: 16),
-                    if (item.description != null)
-                      _DetailRow('Description', item.description!),
-                    if (item.unit != null)
-                      _DetailRow('Unit', item.unit!),
-                    if (item.price != null)
-                      _DetailRow('Price', item.price!.toStringAsFixed(2)),
+                    if (item.description != null) _DetailRow('Description', item.description!),
+                    if (item.unit != null) _DetailRow('Unit', item.unit!),
+                    if (item.price != null) _DetailRow('Price', item.price!.toStringAsFixed(2)),
                     _DetailRow('Status', item.isActive ? 'Active' : 'Inactive'),
                   ],
                 ),
@@ -145,11 +128,9 @@ class _DetailRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 100,
-            child: Text(label, style: AppTextStyles.caption),
+            child: Text(label, style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
           ),
-          Expanded(
-            child: Text(value, style: AppTextStyles.bodyMd),
-          ),
+          Expanded(child: Text(value, style: AppTextStyles.bodyMd)),
         ],
       ),
     );

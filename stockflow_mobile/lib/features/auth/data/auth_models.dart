@@ -61,6 +61,17 @@ class UserInfo {
   }
 
   factory UserInfo.fromJson(Map<String, dynamic> json) {
+    // Extract single role from either 'role' string or 'roles' list
+    String? role = json['role'] as String?;
+    if (role == null) {
+      final roles = json['roles'];
+      if (roles is List && roles.isNotEmpty) {
+        role = (roles.first as String).replaceFirst('ROLE_', '');
+      } else if (roles is Set && roles.isNotEmpty) {
+        role = (roles.first as String).replaceFirst('ROLE_', '');
+      }
+    }
+
     return UserInfo(
       id: json['id']?.toString() ?? json['userId']?.toString() ?? '',
       email: json['email'] as String? ?? '',
@@ -69,8 +80,11 @@ class UserInfo {
           json['username'] as String? ??
           '',
       lastName: json['lastName'] as String? ?? json['last_name'] as String? ?? '',
-      role: json['role'] as String?,
-      avatarUrl: json['avatarUrl'] as String? ?? json['avatar'] as String?,
+      role: role,
+      // Backend stores the avatar as 'profileImageUrl' (base64 data URI)
+      avatarUrl: json['profileImageUrl'] as String? ??
+          json['avatarUrl'] as String? ??
+          json['avatar'] as String?,
     );
   }
 

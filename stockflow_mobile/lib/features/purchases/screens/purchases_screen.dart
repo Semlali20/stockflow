@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stockflow_mobile/features/purchases/data/purchases_repository.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../shared/widgets/glass_card.dart';
@@ -40,16 +41,14 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
       appBar: AppBar(
-        backgroundColor: AppColors.darkBg,
         title: Text('Purchases', style: AppTextStyles.headingMd),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
           indicatorWeight: 2,
           labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.darkTextMuted,
+          unselectedLabelColor: context.colorTextMuted,
           labelStyle: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
           tabs: const [
             Tab(text: 'Suppliers'),
@@ -124,9 +123,10 @@ class _SuppliersTab extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
             error: (e, _) => Center(child: Text(e.toString(), style: AppTextStyles.bodySm.copyWith(color: AppColors.danger))),
             data: (paged) => paged.content.isEmpty
-                ? _empty('No suppliers found')
+                ? _empty(context, 'No suppliers found')
                 : RefreshIndicator(
                     color: AppColors.primary,
+                    backgroundColor: context.colorSurface,
                     onRefresh: () async => ref.invalidate(suppliersListProvider(search)),
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
@@ -149,6 +149,7 @@ class _SupplierCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = supplier.status == 'ACTIVE';
+    final inactiveColor = context.colorTextSubtle;
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -177,11 +178,11 @@ class _SupplierCard extends StatelessWidget {
                 Text(supplier.name, style: AppTextStyles.labelMd),
                 if (supplier.email != null) ...[
                   const SizedBox(height: 2),
-                  Text(supplier.email!, style: AppTextStyles.bodySm.copyWith(color: AppColors.darkTextMuted)),
+                  Text(supplier.email!, style: AppTextStyles.bodySm.copyWith(color: context.colorTextMuted)),
                 ],
                 if (supplier.contactPerson != null) ...[
                   const SizedBox(height: 2),
-                  Text(supplier.contactPerson!, style: AppTextStyles.caption.copyWith(color: AppColors.darkTextSubtle)),
+                  Text(supplier.contactPerson!, style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
                 ],
               ],
             ),
@@ -192,20 +193,20 @@ class _SupplierCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (isActive ? AppColors.success : AppColors.darkTextSubtle).withOpacity(0.12),
+                  color: (isActive ? AppColors.success : inactiveColor).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
                   supplier.status,
                   style: AppTextStyles.caption.copyWith(
-                    color: isActive ? AppColors.success : AppColors.darkTextSubtle,
+                    color: isActive ? AppColors.success : inactiveColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 10,
                   ),
                 ),
               ),
               const SizedBox(height: 4),
-              Text('${supplier.leadTimeDays}d lead', style: AppTextStyles.caption.copyWith(color: AppColors.darkTextSubtle)),
+              Text('${supplier.leadTimeDays}d lead', style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
             ],
           ),
         ],
@@ -243,15 +244,15 @@ class _PurchaseOrdersTab extends ConsumerWidget {
                   duration: const Duration(milliseconds: 150),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: sel ? AppColors.primary.withOpacity(0.2) : AppColors.darkSurfaceAlt,
+                    color: sel ? AppColors.primary.withOpacity(0.2) : context.colorSurfaceAlt,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: sel ? AppColors.primary.withOpacity(0.5) : AppColors.darkBorder,
+                      color: sel ? AppColors.primary.withOpacity(0.5) : context.colorBorder,
                     ),
                   ),
                   child: Text(s,
                       style: AppTextStyles.labelSm.copyWith(
-                        color: sel ? AppColors.primaryLight : AppColors.darkTextMuted,
+                        color: sel ? AppColors.primaryLight : context.colorTextMuted,
                         fontSize: 12,
                       )),
                 ),
@@ -265,9 +266,10 @@ class _PurchaseOrdersTab extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
             error: (e, _) => Center(child: Text(e.toString(), style: AppTextStyles.bodySm.copyWith(color: AppColors.danger))),
             data: (paged) => paged.content.isEmpty
-                ? _empty('No purchase orders')
+                ? _empty(context, 'No purchase orders')
                 : RefreshIndicator(
                     color: AppColors.primary,
+                    backgroundColor: context.colorSurface,
                     onRefresh: () async => ref.invalidate(purchaseOrdersProvider(status)),
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
@@ -287,18 +289,19 @@ class _PurchaseOrderCard extends StatelessWidget {
   final PurchaseOrder order;
   const _PurchaseOrderCard({required this.order});
 
-  Color get _statusColor {
+  Color _statusColor(BuildContext context) {
     switch (order.status) {
       case 'CONFIRMED': return AppColors.primary;
       case 'SENT': return AppColors.teal;
       case 'RECEIVED': return AppColors.success;
       case 'CANCELLED': return AppColors.danger;
-      default: return AppColors.darkTextSubtle;
+      default: return context.colorTextSubtle;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final statusColor = _statusColor(context);
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -310,11 +313,11 @@ class _PurchaseOrderCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _statusColor.withOpacity(0.12),
+                  color: statusColor.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(order.status,
-                    style: AppTextStyles.caption.copyWith(color: _statusColor, fontWeight: FontWeight.w600, fontSize: 10)),
+                    style: AppTextStyles.caption.copyWith(color: statusColor, fontWeight: FontWeight.w600, fontSize: 10)),
               ),
             ],
           ),
@@ -322,21 +325,21 @@ class _PurchaseOrderCard extends StatelessWidget {
             const SizedBox(height: 6),
             Row(
               children: [
-                const Icon(Icons.business_outlined, size: 14, color: AppColors.darkTextSubtle),
+                Icon(Icons.business_outlined, size: 14, color: context.colorTextSubtle),
                 const SizedBox(width: 6),
-                Text(order.supplierName!, style: AppTextStyles.bodySm.copyWith(color: AppColors.darkTextMuted)),
+                Text(order.supplierName!, style: AppTextStyles.bodySm.copyWith(color: context.colorTextMuted)),
               ],
             ),
           ],
           const SizedBox(height: 10),
           Row(
             children: [
-              _info(Icons.inventory_2_outlined, '${order.lines.length} items'),
+              _info(context, Icons.inventory_2_outlined, '${order.lines.length} items'),
               const SizedBox(width: 16),
-              _info(Icons.attach_money_rounded, order.totalAmount.toStringAsFixed(2)),
+              _info(context, Icons.attach_money_rounded, order.totalAmount.toStringAsFixed(2)),
               if (order.expectedDeliveryDate != null) ...[
                 const SizedBox(width: 16),
-                _info(Icons.calendar_today_outlined, order.expectedDeliveryDate!),
+                _info(context, Icons.calendar_today_outlined, order.expectedDeliveryDate!),
               ],
             ],
           ),
@@ -345,23 +348,23 @@ class _PurchaseOrderCard extends StatelessWidget {
     );
   }
 
-  Widget _info(IconData icon, String text) => Row(
+  Widget _info(BuildContext context, IconData icon, String text) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Icon(icon, size: 13, color: AppColors.darkTextSubtle),
+      Icon(icon, size: 13, color: context.colorTextSubtle),
       const SizedBox(width: 4),
-      Text(text, style: AppTextStyles.caption.copyWith(color: AppColors.darkTextSubtle)),
+      Text(text, style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
     ],
   );
 }
 
-Widget _empty(String msg) => Center(
+Widget _empty(BuildContext context, String msg) => Center(
   child: Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Icon(Icons.inbox_outlined, size: 48, color: AppColors.darkTextSubtle.withOpacity(0.4)),
+      Icon(Icons.inbox_outlined, size: 48, color: context.colorTextSubtle.withOpacity(0.4)),
       const SizedBox(height: 12),
-      Text(msg, style: AppTextStyles.bodySm.copyWith(color: AppColors.darkTextSubtle)),
+      Text(msg, style: AppTextStyles.bodySm.copyWith(color: context.colorTextSubtle)),
     ],
   ),
 );
@@ -421,9 +424,9 @@ class _CreateSupplierSheetState extends ConsumerState<_CreateSupplierSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.darkSurface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: context.colorSurface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Form(
@@ -434,7 +437,7 @@ class _CreateSupplierSheetState extends ConsumerState<_CreateSupplierSheet> {
           children: [
             Center(
               child: Container(width: 40, height: 4,
-                  decoration: BoxDecoration(color: AppColors.darkBorder, borderRadius: BorderRadius.circular(2))),
+                  decoration: BoxDecoration(color: context.colorBorder, borderRadius: BorderRadius.circular(2))),
             ),
             const SizedBox(height: 20),
             Text('New Supplier', style: AppTextStyles.headingMd),

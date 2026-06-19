@@ -23,8 +23,9 @@ class InventoryEntry {
     this.serialNumber,
   });
 
-  bool get isLowStock =>
-      minQuantity != null && quantity <= minQuantity!;
+  // When backend provides no minimum, treat ≤10 units as low stock
+  bool get isLowStock => quantity > 0 &&
+      (minQuantity != null ? quantity <= minQuantity! : quantity <= 10);
 
   bool get isOutOfStock => quantity <= 0;
 
@@ -34,16 +35,22 @@ class InventoryEntry {
     return 'in_stock';
   }
 
-  factory InventoryEntry.fromJson(Map<String, dynamic> json) {
+  /// [item] is the joined item record from /api/items (optional).
+  factory InventoryEntry.fromJson(Map<String, dynamic> json, {Map<String, dynamic>? item}) {
     return InventoryEntry(
       id: json['id']?.toString() ?? '',
       itemId: json['itemId']?.toString() ??
           (json['item'] as Map?)?['id']?.toString() ?? '',
-      itemName: json['itemName'] as String? ??
+      // Name comes from the joined item; fall back to inline fields for other endpoints
+      itemName: item?['name'] as String? ??
+          json['itemName'] as String? ??
           (json['item'] as Map?)?['name'] as String? ?? '',
-      sku: json['sku'] as String? ??
+      sku: item?['sku'] as String? ??
+          json['sku'] as String? ??
           (json['item'] as Map?)?['sku'] as String?,
-      quantity: (json['quantity'] as num?)?.toDouble() ??
+      // Backend uses quantityOnHand; other endpoints may use quantity / currentStock
+      quantity: (json['quantityOnHand'] as num?)?.toDouble() ??
+          (json['quantity'] as num?)?.toDouble() ??
           (json['currentStock'] as num?)?.toDouble() ?? 0,
       minQuantity: (json['minQuantity'] as num?)?.toDouble() ??
           (json['minimumStock'] as num?)?.toDouble(),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'app_colors.dart';
 
 abstract class AppTextStyles {
   // ── Display / Headings — Syne ─────────────────────────────────────────────
@@ -8,35 +7,30 @@ abstract class AppTextStyles {
     fontSize: 32,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.04 * 32,
-    color: AppColors.darkTextPrimary,
   );
 
   static TextStyle displayMd = GoogleFonts.syne(
     fontSize: 24,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.03 * 24,
-    color: AppColors.darkTextPrimary,
   );
 
   static TextStyle headingLg = GoogleFonts.syne(
     fontSize: 20,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.025 * 20,
-    color: AppColors.darkTextPrimary,
   );
 
   static TextStyle headingMd = GoogleFonts.syne(
     fontSize: 17,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.02 * 17,
-    color: AppColors.darkTextPrimary,
   );
 
   static TextStyle headingSm = GoogleFonts.syne(
     fontSize: 14,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.01 * 14,
-    color: AppColors.darkTextPrimary,
   );
 
   // ── Body — Plus Jakarta Sans ──────────────────────────────────────────────
@@ -44,42 +38,36 @@ abstract class AppTextStyles {
     fontSize: 16,
     fontWeight: FontWeight.w400,
     letterSpacing: -0.01 * 16,
-    color: AppColors.darkTextPrimary,
   );
 
   static TextStyle bodyMd = GoogleFonts.plusJakartaSans(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     letterSpacing: -0.01 * 14,
-    color: AppColors.darkTextPrimary,
   );
 
   static TextStyle bodySm = GoogleFonts.plusJakartaSans(
     fontSize: 12,
     fontWeight: FontWeight.w400,
     letterSpacing: 0,
-    color: AppColors.darkTextMuted,
   );
 
   static TextStyle labelMd = GoogleFonts.plusJakartaSans(
     fontSize: 13,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.01 * 13,
-    color: AppColors.darkTextPrimary,
   );
 
   static TextStyle labelSm = GoogleFonts.plusJakartaSans(
     fontSize: 11,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.07 * 11,
-    color: AppColors.darkTextMuted,
   );
 
   static TextStyle caption = GoogleFonts.plusJakartaSans(
     fontSize: 11,
     fontWeight: FontWeight.w500,
     letterSpacing: 0,
-    color: AppColors.darkTextSubtle,
   );
 
   // ── Numbers / Data — JetBrains Mono ──────────────────────────────────────
@@ -87,7 +75,6 @@ abstract class AppTextStyles {
     fontSize: 28,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.02 * 28,
-    color: AppColors.darkTextPrimary,
     fontFeatures: [const FontFeature.tabularFigures()],
   );
 
@@ -95,7 +82,6 @@ abstract class AppTextStyles {
     fontSize: 22,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.02 * 22,
-    color: AppColors.darkTextPrimary,
     fontFeatures: [const FontFeature.tabularFigures()],
   );
 
@@ -103,7 +89,6 @@ abstract class AppTextStyles {
     fontSize: 16,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.01 * 16,
-    color: AppColors.darkTextPrimary,
     fontFeatures: [const FontFeature.tabularFigures()],
   );
 
@@ -111,7 +96,6 @@ abstract class AppTextStyles {
     fontSize: 13,
     fontWeight: FontWeight.w500,
     letterSpacing: 0,
-    color: AppColors.darkTextMuted,
     fontFeatures: [const FontFeature.tabularFigures()],
   );
 

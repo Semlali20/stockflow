@@ -44,16 +44,14 @@ class _SalesScreenState extends ConsumerState<SalesScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
       appBar: AppBar(
-        backgroundColor: AppColors.darkBg,
         title: Text('Sales', style: AppTextStyles.headingMd),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.teal,
           indicatorWeight: 2,
           labelColor: AppColors.teal,
-          unselectedLabelColor: AppColors.darkTextMuted,
+          unselectedLabelColor: context.colorTextMuted,
           labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
           tabs: const [
             Tab(text: 'Customers'),
@@ -138,9 +136,10 @@ class _CustomersTab extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator(color: AppColors.teal)),
             error: (e, _) => Center(child: Text(e.toString(), style: AppTextStyles.bodySm.copyWith(color: AppColors.danger))),
             data: (paged) => paged.content.isEmpty
-                ? _empty('No customers found')
+                ? _empty(context, 'No customers found')
                 : RefreshIndicator(
                     color: AppColors.teal,
+                    backgroundColor: context.colorSurface,
                     onRefresh: () async => ref.invalidate(customersListProvider(search)),
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
@@ -163,6 +162,7 @@ class _CustomerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = customer.status == 'ACTIVE';
+    final inactiveColor = context.colorTextSubtle;
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -191,11 +191,11 @@ class _CustomerCard extends StatelessWidget {
                 Text(customer.name, style: AppTextStyles.labelMd),
                 if (customer.email != null) ...[
                   const SizedBox(height: 2),
-                  Text(customer.email!, style: AppTextStyles.bodySm.copyWith(color: AppColors.darkTextMuted)),
+                  Text(customer.email!, style: AppTextStyles.bodySm.copyWith(color: context.colorTextMuted)),
                 ],
                 if (customer.phone != null) ...[
                   const SizedBox(height: 2),
-                  Text(customer.phone!, style: AppTextStyles.caption.copyWith(color: AppColors.darkTextSubtle)),
+                  Text(customer.phone!, style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
                 ],
               ],
             ),
@@ -203,13 +203,13 @@ class _CustomerCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: (isActive ? AppColors.teal : AppColors.darkTextSubtle).withOpacity(0.12),
+              color: (isActive ? AppColors.teal : inactiveColor).withOpacity(0.12),
               borderRadius: BorderRadius.circular(99),
             ),
             child: Text(
               customer.status,
               style: AppTextStyles.caption.copyWith(
-                color: isActive ? AppColors.teal : AppColors.darkTextSubtle,
+                color: isActive ? AppColors.teal : inactiveColor,
                 fontWeight: FontWeight.w600,
                 fontSize: 10,
               ),
@@ -252,13 +252,13 @@ class _QuotesTab extends ConsumerWidget {
                   duration: const Duration(milliseconds: 150),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: sel ? AppColors.teal.withOpacity(0.2) : AppColors.darkSurfaceAlt,
+                    color: sel ? AppColors.teal.withOpacity(0.2) : context.colorSurfaceAlt,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: sel ? AppColors.teal.withOpacity(0.5) : AppColors.darkBorder),
+                    border: Border.all(color: sel ? AppColors.teal.withOpacity(0.5) : context.colorBorder),
                   ),
                   child: Text(s,
                       style: AppTextStyles.labelSm.copyWith(
-                        color: sel ? AppColors.teal : AppColors.darkTextMuted,
+                        color: sel ? AppColors.teal : context.colorTextMuted,
                         fontSize: 12,
                       )),
                 ),
@@ -272,9 +272,10 @@ class _QuotesTab extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator(color: AppColors.teal)),
             error: (e, _) => Center(child: Text(e.toString(), style: AppTextStyles.bodySm.copyWith(color: AppColors.danger))),
             data: (paged) => paged.content.isEmpty
-                ? _empty('No quotes found')
+                ? _empty(context, 'No quotes found')
                 : RefreshIndicator(
                     color: AppColors.teal,
+                    backgroundColor: context.colorSurface,
                     onRefresh: () async => ref.invalidate(quotesProvider(status)),
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
@@ -294,17 +295,18 @@ class _QuoteCard extends ConsumerWidget {
   final Quote quote;
   const _QuoteCard({required this.quote});
 
-  Color get _statusColor {
+  Color _statusColor(BuildContext context) {
     switch (quote.status) {
       case 'SENT': return AppColors.amber;
       case 'ACCEPTED': return AppColors.success;
       case 'REJECTED': return AppColors.danger;
-      default: return AppColors.darkTextSubtle;
+      default: return context.colorTextSubtle;
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final statusColor = _statusColor(context);
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -316,30 +318,30 @@ class _QuoteCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _statusColor.withOpacity(0.12),
+                  color: statusColor.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(quote.status,
-                    style: AppTextStyles.caption.copyWith(color: _statusColor, fontWeight: FontWeight.w600, fontSize: 10)),
+                    style: AppTextStyles.caption.copyWith(color: statusColor, fontWeight: FontWeight.w600, fontSize: 10)),
               ),
             ],
           ),
           if (quote.customerName != null) ...[
             const SizedBox(height: 6),
             Row(children: [
-              const Icon(Icons.person_outline_rounded, size: 14, color: AppColors.darkTextSubtle),
+              Icon(Icons.person_outline_rounded, size: 14, color: context.colorTextSubtle),
               const SizedBox(width: 6),
-              Text(quote.customerName!, style: AppTextStyles.bodySm.copyWith(color: AppColors.darkTextMuted)),
+              Text(quote.customerName!, style: AppTextStyles.bodySm.copyWith(color: context.colorTextMuted)),
             ]),
           ],
           const SizedBox(height: 10),
           Row(children: [
-            _info(Icons.list_alt_rounded, '${quote.lines.length} items'),
+            _info(context, Icons.list_alt_rounded, '${quote.lines.length} items'),
             const SizedBox(width: 16),
-            _info(Icons.attach_money_rounded, quote.totalAmount.toStringAsFixed(2)),
+            _info(context, Icons.attach_money_rounded, quote.totalAmount.toStringAsFixed(2)),
             if (quote.validUntil != null) ...[
               const SizedBox(width: 16),
-              _info(Icons.timer_outlined, quote.validUntil!),
+              _info(context, Icons.timer_outlined, quote.validUntil!),
             ],
           ]),
           if (quote.status == 'DRAFT') ...[
@@ -369,12 +371,12 @@ class _QuoteCard extends ConsumerWidget {
     );
   }
 
-  Widget _info(IconData icon, String text) => Row(
+  Widget _info(BuildContext context, IconData icon, String text) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Icon(icon, size: 13, color: AppColors.darkTextSubtle),
+      Icon(icon, size: 13, color: context.colorTextSubtle),
       const SizedBox(width: 4),
-      Text(text, style: AppTextStyles.caption.copyWith(color: AppColors.darkTextSubtle)),
+      Text(text, style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
     ],
   );
 }
@@ -410,13 +412,13 @@ class _DeliveriesTab extends ConsumerWidget {
                   duration: const Duration(milliseconds: 150),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: sel ? AppColors.teal.withOpacity(0.2) : AppColors.darkSurfaceAlt,
+                    color: sel ? AppColors.teal.withOpacity(0.2) : context.colorSurfaceAlt,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: sel ? AppColors.teal.withOpacity(0.5) : AppColors.darkBorder),
+                    border: Border.all(color: sel ? AppColors.teal.withOpacity(0.5) : context.colorBorder),
                   ),
                   child: Text(s,
                       style: AppTextStyles.labelSm.copyWith(
-                        color: sel ? AppColors.teal : AppColors.darkTextMuted,
+                        color: sel ? AppColors.teal : context.colorTextMuted,
                         fontSize: 12,
                       )),
                 ),
@@ -430,9 +432,10 @@ class _DeliveriesTab extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator(color: AppColors.teal)),
             error: (e, _) => Center(child: Text(e.toString(), style: AppTextStyles.bodySm.copyWith(color: AppColors.danger))),
             data: (paged) => paged.content.isEmpty
-                ? _empty('No delivery notes')
+                ? _empty(context, 'No delivery notes')
                 : RefreshIndicator(
                     color: AppColors.teal,
+                    backgroundColor: context.colorSurface,
                     onRefresh: () async => ref.invalidate(deliveryNotesProvider(status)),
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -452,7 +455,7 @@ class _DeliveryCard extends StatelessWidget {
   final DeliveryNote dn;
   const _DeliveryCard({required this.dn});
 
-  Color get _statusColor {
+  Color _statusColor(BuildContext context) {
     switch (dn.status) {
       case 'VALIDATED': return AppColors.primary;
       case 'DELIVERED': return AppColors.success;
@@ -463,6 +466,7 @@ class _DeliveryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statusColor = _statusColor(context);
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -474,50 +478,50 @@ class _DeliveryCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _statusColor.withOpacity(0.12),
+                  color: statusColor.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(dn.status,
-                    style: AppTextStyles.caption.copyWith(color: _statusColor, fontWeight: FontWeight.w600, fontSize: 10)),
+                    style: AppTextStyles.caption.copyWith(color: statusColor, fontWeight: FontWeight.w600, fontSize: 10)),
               ),
             ],
           ),
           if (dn.customerName != null) ...[
             const SizedBox(height: 6),
             Row(children: [
-              const Icon(Icons.person_outline_rounded, size: 14, color: AppColors.darkTextSubtle),
+              Icon(Icons.person_outline_rounded, size: 14, color: context.colorTextSubtle),
               const SizedBox(width: 6),
-              Text(dn.customerName!, style: AppTextStyles.bodySm.copyWith(color: AppColors.darkTextMuted)),
+              Text(dn.customerName!, style: AppTextStyles.bodySm.copyWith(color: context.colorTextMuted)),
             ]),
           ],
           const SizedBox(height: 10),
           Row(children: [
-            _info(Icons.local_shipping_outlined, dn.deliveryDate ?? 'No date'),
+            _info(context, Icons.local_shipping_outlined, dn.deliveryDate ?? 'No date'),
             const SizedBox(width: 16),
-            _info(Icons.attach_money_rounded, dn.totalAmount.toStringAsFixed(2)),
+            _info(context, Icons.attach_money_rounded, dn.totalAmount.toStringAsFixed(2)),
           ]),
         ],
       ),
     );
   }
 
-  Widget _info(IconData icon, String text) => Row(
+  Widget _info(BuildContext context, IconData icon, String text) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Icon(icon, size: 13, color: AppColors.darkTextSubtle),
+      Icon(icon, size: 13, color: context.colorTextSubtle),
       const SizedBox(width: 4),
-      Text(text, style: AppTextStyles.caption.copyWith(color: AppColors.darkTextSubtle)),
+      Text(text, style: AppTextStyles.caption.copyWith(color: context.colorTextSubtle)),
     ],
   );
 }
 
-Widget _empty(String msg) => Center(
+Widget _empty(BuildContext context, String msg) => Center(
   child: Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Icon(Icons.inbox_outlined, size: 48, color: AppColors.darkTextSubtle.withOpacity(0.4)),
+      Icon(Icons.inbox_outlined, size: 48, color: context.colorTextSubtle.withOpacity(0.4)),
       const SizedBox(height: 12),
-      Text(msg, style: AppTextStyles.bodySm.copyWith(color: AppColors.darkTextSubtle)),
+      Text(msg, style: AppTextStyles.bodySm.copyWith(color: context.colorTextSubtle)),
     ],
   ),
 );
@@ -571,9 +575,9 @@ class _CreateCustomerSheetState extends ConsumerState<_CreateCustomerSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.darkSurface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: context.colorSurface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Form(
@@ -583,7 +587,7 @@ class _CreateCustomerSheetState extends ConsumerState<_CreateCustomerSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(child: Container(width: 40, height: 4,
-                decoration: BoxDecoration(color: AppColors.darkBorder, borderRadius: BorderRadius.circular(2)))),
+                decoration: BoxDecoration(color: context.colorBorder, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 20),
             Text('New Customer', style: AppTextStyles.headingMd),
             const SizedBox(height: 16),

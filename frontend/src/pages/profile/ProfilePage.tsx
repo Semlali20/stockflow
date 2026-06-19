@@ -406,11 +406,6 @@ export const ProfilePage: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-3 mt-4 flex-wrap">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-700/50 rounded-xl border border-neutral-200/50 dark:border-neutral-600/30">
-                    <AtSign className="w-3.5 h-3.5 text-neutral-500" />
-                    <span className="text-sm font-bold text-neutral-600 dark:text-neutral-300">{user.username}</span>
-                  </div>
-                  
                   {userRoles.length > 0 && (
                     <span className={cn(
                       'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r shadow-lg shadow-primary-500/20',

@@ -49,7 +49,7 @@ class EmptyView extends StatelessWidget {
             Text(
               subtitle,
               style: AppTextStyles.bodySm.copyWith(
-                color: AppColors.darkTextSubtle,
+                color: context.colorTextSubtle,
               ),
               textAlign: TextAlign.center,
             ),

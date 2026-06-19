@@ -38,8 +38,6 @@ class StockFlowApp extends ConsumerWidget {
     switch (appThemeMode) {
       case AppThemeMode.light:
         themeData = AppTheme.light();
-      case AppThemeMode.teal:
-        themeData = AppTheme.teal();
       case AppThemeMode.dark:
         themeData = AppTheme.dark();
     }
