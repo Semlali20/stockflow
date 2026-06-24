@@ -4,8 +4,8 @@ package com.stock.productservice.service;
 import com.stock.productservice.dto.ItemCreateRequest;
 import com.stock.productservice.dto.ItemDTO;
 import com.stock.productservice.dto.ItemUpdateRequest;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ItemService {
 
@@ -15,15 +15,9 @@ public interface ItemService {
 
     ItemDTO getItemBySku(String sku);
 
-    List<ItemDTO> getAllItems();
+    Page<ItemDTO> getAllItems(String categoryId, Boolean active, Pageable pageable);
 
-    List<ItemDTO> getItemsByCategory(String categoryId);
-
-    List<ItemDTO> getItemsByItemVariant(String itemVariantId);
-
-    List<ItemDTO> getActiveItems();
-
-    List<ItemDTO> searchItems(String keyword);
+    Page<ItemDTO> searchItems(String keyword, Pageable pageable);
 
     ItemDTO updateItem(String id, ItemUpdateRequest request);
 

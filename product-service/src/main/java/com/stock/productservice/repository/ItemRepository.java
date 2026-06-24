@@ -1,6 +1,8 @@
 package com.stock.productservice.repository;
 
 import com.stock.productservice.entity.Item;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,9 +18,15 @@ public interface ItemRepository extends JpaRepository<Item, String> {
 
     List<Item> findByCategoryId(String categoryId);
 
+    Page<Item> findByCategoryId(String categoryId, Pageable pageable);
+
     List<Item> findByIsActive(Boolean isActive);
 
+    Page<Item> findByIsActive(Boolean isActive, Pageable pageable);
+
     List<Item> findByCategoryIdAndIsActive(String categoryId, Boolean isActive);
+
+    Page<Item> findByCategoryIdAndIsActive(String categoryId, Boolean isActive, Pageable pageable);
 
     boolean existsBySku(String sku);
 
@@ -29,5 +37,5 @@ public interface ItemRepository extends JpaRepository<Item, String> {
     Long countByCategoryId(@Param("categoryId") String categoryId);
 
     @Query("SELECT i FROM Item i WHERE LOWER(i.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(i.sku) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    List<Item> searchItems(@Param("keyword") String keyword);
+    Page<Item> searchItems(@Param("keyword") String keyword, Pageable pageable);
 }

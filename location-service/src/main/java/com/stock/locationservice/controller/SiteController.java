@@ -7,11 +7,13 @@ import com.stock.locationservice.service.SiteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/sites")
@@ -36,22 +38,12 @@ public class SiteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SiteDTO>> getAllSites(
+    public ResponseEntity<Page<SiteDTO>> getAllSites(
             @RequestParam(required = false) SiteType type,
-            @RequestParam(required = false) Boolean active) {
+            @RequestParam(required = false) Boolean active,
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         log.info("REST request to get all sites - type: {}, active: {}", type, active);
-
-        List<SiteDTO> sites;
-
-        if (type != null) {
-            sites = siteService.getSitesByType(type);
-        } else if (active != null && active) {
-            sites = siteService.getActiveSites();
-        } else {
-            sites = siteService.getAllSites();
-        }
-
-        return ResponseEntity.ok(sites);
+        return ResponseEntity.ok(siteService.getAllSites(type, active, pageable));
     }
 
     @PutMapping("/{id}")

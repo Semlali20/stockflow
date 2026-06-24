@@ -67,7 +67,7 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
     setLoadingWarehouses(true);
     try {
       const data = await locationService.getWarehouses();
-      setWarehouses(Array.isArray(data) ? data : []);
+      setWarehouses(Array.isArray(data) ? data : (data?.content || []));
     } catch (error) {
       console.error('Failed to fetch warehouses:', error);
       toast.error('Failed to load warehouses');

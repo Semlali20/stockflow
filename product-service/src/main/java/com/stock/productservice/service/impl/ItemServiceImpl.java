@@ -14,12 +14,12 @@ import com.stock.productservice.repository.ItemRepository;
 import com.stock.productservice.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -118,64 +118,35 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ItemDTO> getAllItems() {
-        log.info("Fetching all items");
+    public Page<ItemDTO> getAllItems(String categoryId, Boolean active, Pageable pageable) {
+        log.info("Fetching items - categoryId: {}, active: {}", categoryId, active);
 
-        return itemRepository.findAll().stream()
-                .map(item -> {
-                    String categoryName = getCategoryName(item.getCategoryId());
-                    return mapToDTO(item, categoryName);
-                })
-                .collect(Collectors.toList());
+        Page<Item> page;
+        if (categoryId != null && active != null) {
+            page = itemRepository.findByCategoryIdAndIsActive(categoryId, active, pageable);
+        } else if (categoryId != null) {
+            page = itemRepository.findByCategoryId(categoryId, pageable);
+        } else if (active != null) {
+            page = itemRepository.findByIsActive(active, pageable);
+        } else {
+            page = itemRepository.findAll(pageable);
+        }
+
+        return page.map(item -> {
+            String categoryName = getCategoryName(item.getCategoryId());
+            return mapToDTO(item, categoryName);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ItemDTO> getItemsByCategory(String categoryId) {
-        log.info("Fetching items for category ID: {}", categoryId);
-
-        String categoryName = getCategoryName(categoryId);
-
-        return itemRepository.findByCategoryId(categoryId).stream()
-                .map(item -> mapToDTO(item, categoryName))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ItemDTO> getItemsByItemVariant(String itemVariantId) {
-        log.info("Fetching items for item variant ID: {}", itemVariantId);
-
-        // Note: Based on the entity structure, ItemVariant references Item (parent_item_id)
-        // This method would need different implementation or might not be needed
-        // For now, returning empty list
-        return List.of();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ItemDTO> getActiveItems() {
-        log.info("Fetching active items");
-
-        return itemRepository.findByIsActive(true).stream()
-                .map(item -> {
-                    String categoryName = getCategoryName(item.getCategoryId());
-                    return mapToDTO(item, categoryName);
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ItemDTO> searchItems(String keyword) {
+    public Page<ItemDTO> searchItems(String keyword, Pageable pageable) {
         log.info("Searching items with keyword: {}", keyword);
 
-        return itemRepository.searchItems(keyword).stream()
-                .map(item -> {
-                    String categoryName = getCategoryName(item.getCategoryId());
-                    return mapToDTO(item, categoryName);
-                })
-                .collect(Collectors.toList());
+        return itemRepository.searchItems(keyword, pageable).map(item -> {
+            String categoryName = getCategoryName(item.getCategoryId());
+            return mapToDTO(item, categoryName);
+        });
     }
 
     @Override

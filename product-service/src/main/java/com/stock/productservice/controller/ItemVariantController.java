@@ -9,11 +9,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/item-variants")
@@ -49,28 +51,21 @@ public class ItemVariantController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all item variants", description = "Get all item variants with optional filters")
-    public ResponseEntity<List<ItemVariantDTO>> getAllItemVariants(
-            @RequestParam(required = false) Boolean active) {
+    @Operation(summary = "Get all item variants", description = "Get all item variants with optional filters and pagination")
+    public ResponseEntity<Page<ItemVariantDTO>> getAllItemVariants(
+            @RequestParam(required = false) Boolean active,
+            @PageableDefault(size = 20, sort = "sku", direction = Sort.Direction.ASC) Pageable pageable) {
         log.info("REST request to get all item variants - active: {}", active);
-
-        List<ItemVariantDTO> itemVariants;
-
-        if (active != null && active) {
-            itemVariants = itemVariantService.getActiveItemVariants();
-        } else {
-            itemVariants = itemVariantService.getAllItemVariants();
-        }
-
-        return ResponseEntity.ok(itemVariants);
+        return ResponseEntity.ok(itemVariantService.getAllItemVariants(active, pageable));
     }
 
     @GetMapping("/search")
     @Operation(summary = "Search item variants", description = "Search item variants by keyword")
-    public ResponseEntity<List<ItemVariantDTO>> searchItemVariants(@RequestParam String keyword) {
+    public ResponseEntity<Page<ItemVariantDTO>> searchItemVariants(
+            @RequestParam String keyword,
+            @PageableDefault(size = 20, sort = "sku", direction = Sort.Direction.ASC) Pageable pageable) {
         log.info("REST request to search item variants with keyword: {}", keyword);
-        List<ItemVariantDTO> itemVariants = itemVariantService.searchItemVariants(keyword);
-        return ResponseEntity.ok(itemVariants);
+        return ResponseEntity.ok(itemVariantService.searchItemVariants(keyword, pageable));
     }
 
     @PutMapping("/{id}")

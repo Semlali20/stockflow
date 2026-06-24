@@ -412,8 +412,8 @@ services:
       SPRING_DATASOURCE_USERNAME: inventory_user
       SPRING_DATASOURCE_PASSWORD: inventory_pass
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     networks:
       - stock-network
     restart: unless-stopped
@@ -600,7 +600,6 @@ services:
   zipkin:
     image: openzipkin/zipkin:latest
     container_name: zipkin
-    profiles: ["monitoring"]
     ports:
       - "9411:9411"
     networks:

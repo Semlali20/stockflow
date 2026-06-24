@@ -17,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -62,7 +63,7 @@ public class ItemCsvController {
                 });
 
                 // Data
-                List<ItemDTO> items = itemService.getAllItems();
+                List<ItemDTO> items = itemService.getAllItems(null, null, Pageable.unpaged()).getContent();
                 for (ItemDTO item : items) {
                     csvWriter.writeNext(new String[]{
                             nullSafe(item.getId()),

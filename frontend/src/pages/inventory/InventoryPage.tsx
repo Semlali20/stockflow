@@ -1081,7 +1081,7 @@ const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
   const fetchItems = async () => {
     try {
       const response = await productService.getItems();
-      setItems(Array.isArray(response) ? response : []);
+      setItems(Array.isArray(response) ? response : (response?.content || []));
     } catch (error) {
       console.error('Error fetching items:', error);
     }
@@ -1090,7 +1090,7 @@ const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
   const fetchWarehouses = async () => {
     try {
       const response = await locationService.getWarehouses();
-      setWarehouses(Array.isArray(response) ? response : []);
+      setWarehouses(Array.isArray(response) ? response : (response?.content || []));
     } catch (error) {
       console.error('Error fetching warehouses:', error);
     }
