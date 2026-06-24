@@ -20,6 +20,7 @@ import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/hooks/usePermissions';
 import { PERMISSIONS } from '@/config/permissions';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const ItemsPage = () => {
   const { t } = useTranslation();
@@ -32,6 +33,8 @@ export const ItemsPage = () => {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -108,6 +111,7 @@ export const ItemsPage = () => {
       filtered = filtered.filter((item) => item.isActive === isActive);
     }
     setFilteredItems(filtered);
+    setCurrentPage(1);
   }, [searchTerm, filterCategory, filterStatus, items]);
 
   // ──────────────────────────────────────────────────────────────
@@ -227,8 +231,9 @@ export const ItemsPage = () => {
         doc.text(`Page ${i} / ${pageCount}`, doc.internal.pageSize.getWidth() - 30, pageH - 5);
       }
 
-      doc.save(`items-${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('PDF downloaded successfully');
+      const pdfUrl = doc.output('bloburl');
+      window.open(pdfUrl, '_blank');
+      toast.success('PDF opened in new tab');
     } catch (err) {
       console.error(err);
       toast.error('Failed to export PDF');
@@ -372,6 +377,7 @@ export const ItemsPage = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
               <thead className="bg-gray-50 dark:bg-neutral-700">
@@ -404,7 +410,7 @@ export const ItemsPage = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredItems.map((item) => (
+                  filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-neutral-700/50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</div>
@@ -456,6 +462,15 @@ export const ItemsPage = () => {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredItems.length / pageSize)}
+            totalItems={filteredItems.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+          />
+          </>
         )}
       </div>
 

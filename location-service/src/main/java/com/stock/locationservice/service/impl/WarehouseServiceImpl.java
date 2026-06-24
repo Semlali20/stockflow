@@ -10,11 +10,12 @@ import com.stock.locationservice.repository.WarehouseRepository;
 import com.stock.locationservice.service.WarehouseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,40 +83,24 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<WarehouseDTO> getAllWarehouses() {
-        log.info("Fetching all warehouses");
+    public Page<WarehouseDTO> getAllWarehouses(String siteId, Boolean active, Pageable pageable) {
+        log.info("Fetching warehouses - siteId: {}, active: {}", siteId, active);
 
-        return warehouseRepository.findAll().stream()
-                .map(warehouse -> {
-                    String siteName = getSiteName(warehouse.getSiteId());
-                    return mapToDTO(warehouse, siteName);
-                })
-                .collect(Collectors.toList());
-    }
+        Page<Warehouse> page;
+        if (siteId != null && active != null) {
+            page = warehouseRepository.findBySiteIdAndIsActive(siteId, active, pageable);
+        } else if (siteId != null) {
+            page = warehouseRepository.findBySiteId(siteId, pageable);
+        } else if (active != null) {
+            page = warehouseRepository.findByIsActive(active, pageable);
+        } else {
+            page = warehouseRepository.findAll(pageable);
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<WarehouseDTO> getWarehousesBySiteId(String siteId) {
-        log.info("Fetching warehouses for site ID: {}", siteId);
-
-        String siteName = getSiteName(siteId);
-
-        return warehouseRepository.findBySiteId(siteId).stream()
-                .map(warehouse -> mapToDTO(warehouse, siteName))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<WarehouseDTO> getActiveWarehouses() {
-        log.info("Fetching active warehouses");
-
-        return warehouseRepository.findByIsActive(true).stream()
-                .map(warehouse -> {
-                    String siteName = getSiteName(warehouse.getSiteId());
-                    return mapToDTO(warehouse, siteName);
-                })
-                .collect(Collectors.toList());
+        return page.map(warehouse -> {
+            String siteName = getSiteName(warehouse.getSiteId());
+            return mapToDTO(warehouse, siteName);
+        });
     }
 
     @Override

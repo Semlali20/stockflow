@@ -19,6 +19,8 @@ public class ItemUpdateRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
+    private String sku;
+
     private String description;
 
     private String attributes;

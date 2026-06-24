@@ -1,0 +1,50 @@
+name: stockflow_mobile
+description: StockFlow Mobile — Professional Stock Management System
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # HTTP
+  dio: ^5.4.3
+
+  # Secure storage for JWT
+  flutter_secure_storage: ^9.2.2
+
+  # Environment variables
+  flutter_dotenv: ^5.2.1
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Charts
+  fl_chart: ^0.67.0
+
+  # Loading shimmer
+  shimmer: ^3.0.0
+
+  # Date formatting
+  intl: ^0.19.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env

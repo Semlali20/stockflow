@@ -30,6 +30,10 @@ server:
     include-message: always
     include-binding-errors: always
 
+audit:
+  service:
+    url: http://auth-service:8083
+
 services:
   inventory-service:
     url: http://inventory-service:8086

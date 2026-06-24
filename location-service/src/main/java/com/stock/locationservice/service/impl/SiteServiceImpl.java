@@ -8,11 +8,10 @@ import com.stock.locationservice.repository.SiteRepository;
 import com.stock.locationservice.service.SiteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -59,32 +58,21 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SiteDTO> getAllSites() {
-        log.info("Fetching all sites");
+    public Page<SiteDTO> getAllSites(SiteType type, Boolean active, Pageable pageable) {
+        log.info("Fetching sites - type: {}, active: {}", type, active);
 
-        return siteRepository.findAll().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
+        Page<Site> page;
+        if (type != null && active != null) {
+            page = siteRepository.findByTypeAndIsActive(type, active, pageable);
+        } else if (type != null) {
+            page = siteRepository.findByType(type, pageable);
+        } else if (active != null) {
+            page = siteRepository.findByIsActive(active, pageable);
+        } else {
+            page = siteRepository.findAll(pageable);
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<SiteDTO> getSitesByType(SiteType type) {
-        log.info("Fetching sites by type: {}", type);
-
-        return siteRepository.findByType(type).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<SiteDTO> getActiveSites() {
-        log.info("Fetching active sites");
-
-        return siteRepository.findByIsActive(true).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return page.map(this::mapToDTO);
     }
 
     @Override

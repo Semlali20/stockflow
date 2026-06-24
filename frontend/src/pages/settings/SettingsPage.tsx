@@ -1,6 +1,8 @@
 // frontend/src/pages/settings/SettingsPage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import RolesManagementTab from './RolesManagementTab';
+import { MobilePermissionsTab } from './MobilePermissionsTab';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings,
@@ -37,6 +39,7 @@ import {
   Database,
   Key,
   Check,
+  Smartphone,
 } from 'lucide-react';
 import {
   ROLE_META,
@@ -96,7 +99,11 @@ interface AuditLog {
   id: string;
   userId?: string;
   username?: string;
+  firstName?: string;
+  lastName?: string;
   action: string;
+  resourceType?: string;
+  resourceId?: string;
   status: 'SUCCESS' | 'FAILURE';
   ipAddress?: string;
   userAgent?: string;
@@ -307,35 +314,40 @@ const RoleBadge: React.FC<{ role: string }> = ({ role }) => {
   );
 };
 
-const EmailVerifiedBadge: React.FC<{ verified?: boolean }> = ({ verified }) => (
-  verified
+const EmailVerifiedBadge: React.FC<{ verified?: boolean }> = ({ verified }) => {
+  const { t } = useTranslation();
+  return verified
     ? (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-        <CheckCircle2 className="w-3 h-3" /> Verified
+        <CheckCircle2 className="w-3 h-3" /> {t('settings.users.verified')}
       </span>
     ) : (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-        <XCircle className="w-3 h-3" /> Unverified
+        <XCircle className="w-3 h-3" /> {t('settings.users.unverified')}
       </span>
-    )
-);
+    );
+};
 
-const AuditStatusBadge: React.FC<{ status: string }> = ({ status }) => (
-  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${status === 'SUCCESS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-    {status === 'SUCCESS' ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-    {status}
-  </span>
-);
+const AuditStatusBadge: React.FC<{ status: string }> = ({ status }) => {
+  const { t } = useTranslation();
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${status === 'SUCCESS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+      {status === 'SUCCESS' ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+      {t(`audit.status.${status}`, status)}
+    </span>
+  );
+};
 
 const Pagination: React.FC<{
   page: number; totalPages: number; totalElements: number;
   size: number; onPage: (p: number) => void;
 }> = ({ page, totalPages, totalElements, size, onPage }) => {
+  const { t } = useTranslation();
   const from = page * size + 1;
   const to = Math.min((page + 1) * size, totalElements);
   return (
     <div className="flex items-center justify-between pt-4 border-t border-neutral-200 dark:border-neutral-700">
-      <p className="text-sm text-neutral-500 dark:text-neutral-400">Showing {from}–{to} of {totalElements}</p>
+      <p className="text-sm text-neutral-500 dark:text-neutral-400">{t('common.showing', { from, to, total: totalElements })}</p>
       <div className="flex gap-2">
         <button disabled={page === 0} onClick={() => onPage(page - 1)} className="p-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 disabled:opacity-40 hover:bg-neutral-100 dark:hover:bg-neutral-700">
           <ChevronLeft className="w-4 h-4" />
@@ -364,6 +376,7 @@ const AVAILABLE_ROLES = [
 ];
 
 const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> = ({ onClose, onCreated }) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ username: '', email: '', password: '', firstName: '', lastName: '', role: 'USER' });
   const [autoGenPassword, setAutoGenPassword] = useState(true); // default: auto-generate
   const [showPwd, setShowPwd] = useState(false);
@@ -375,11 +388,11 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.username || !form.email) {
-      toast.error('Username and email are required');
+      toast.error(t('settings.users.validationRequired'));
       return;
     }
     if (!autoGenPassword && (!form.password || form.password.length < 8)) {
-      toast.error('Password must be at least 8 characters');
+      toast.error(t('settings.users.passwordTooShort'));
       return;
     }
     setLoading(true);
@@ -395,8 +408,8 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
       });
       toast.success(
         autoGenPassword
-          ? `Account created! Login credentials have been sent to ${form.email}`
-          : `User "${form.username}" created successfully`,
+          ? t('settings.users.createSuccess', { email: form.email })
+          : t('settings.users.createSuccessUsername', { username: form.username }),
       );
       onCreated();
       onClose();
@@ -407,7 +420,7 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
         const firstEntry = Object.entries(data.validationErrors as Record<string, string>)[0];
         toast.error(`${firstEntry[0]}: ${firstEntry[1]}`);
       } else {
-        toast.error(data?.message ?? 'Failed to create user');
+        toast.error(data?.message ?? t('settings.users.createError'));
       }
     } finally {
       setLoading(false);
@@ -416,8 +429,8 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
 
   const inputCls = 'w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors';
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -431,8 +444,8 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
               <UserPlus className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Create New Account</h2>
-              <p className="text-sm text-blue-100">Add a new user to the system</p>
+              <h2 className="text-lg font-bold text-white">{t('settings.users.createAccount')}</h2>
+              <p className="text-sm text-blue-100">{t('settings.users.createAccountDesc')}</p>
             </div>
           </div>
         </div>
@@ -443,7 +456,7 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
             {(['firstName', 'lastName'] as const).map(k => (
               <div key={k}>
                 <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-1">
-                  {k === 'firstName' ? 'First Name' : 'Last Name'}
+                  {k === 'firstName' ? t('settings.users.firstName') : t('settings.users.lastName')}
                 </label>
                 <input type="text" value={form[k]} onChange={set(k)}
                   placeholder={k === 'firstName' ? 'John' : 'Doe'}
@@ -456,7 +469,7 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
           {(['username', 'email'] as const).map(k => (
             <div key={k}>
               <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-1">
-                {k === 'username' ? 'Username' : 'Email Address'} <span className="text-red-500">*</span>
+                {k === 'username' ? t('settings.users.username') : t('settings.users.emailAddress')} <span className="text-red-500">*</span>
               </label>
               <input
                 type={k === 'email' ? 'email' : 'text'}
@@ -472,7 +485,7 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
             {/* Toggle row */}
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                Password
+                {t('settings.users.password')}
               </label>
               <button
                 type="button"
@@ -485,7 +498,7 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
                 )}
               >
                 <span>{autoGenPassword ? '✓' : '○'}</span>
-                Auto-generate &amp; email
+                {t('settings.users.autoGenerate')}
               </button>
             </div>
 
@@ -495,10 +508,10 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
                 <span className="text-emerald-500 text-base mt-0.5">📧</span>
                 <div>
                   <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 mb-0.5">
-                    Secure password will be auto-generated
+                    {t('settings.users.securePasswordGenerated')}
                   </p>
                   <p className="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed">
-                    A strong random password will be created and sent to the user's email address along with their username and login instructions.
+                    {t('settings.users.autoGenerateNotice')}
                   </p>
                 </div>
               </div>
@@ -508,7 +521,7 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
                   type={showPwd ? 'text' : 'password'}
                   value={form.password}
                   onChange={set('password')}
-                  placeholder="Min 8 characters"
+                  placeholder={t('settings.users.minChars')}
                   className={cn(inputCls, 'pr-10')}
                 />
                 <button
@@ -525,7 +538,7 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
           {/* ── Role picker ── */}
           <div>
             <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-2">
-              Role <span className="text-red-500">*</span>
+              {t('settings.users.role')} <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-0.5">
               {AVAILABLE_ROLES.map(r => {
@@ -549,10 +562,10 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
                       </span>
                     )}
                     <span className={cn('text-[11px] font-bold leading-tight', active ? meta.color : 'text-neutral-700 dark:text-neutral-200')}>
-                      {meta.label}
+                      {t(meta.label)}
                     </span>
                     <span className="text-[9px] text-neutral-400 dark:text-neutral-500 leading-tight line-clamp-2">
-                      {meta.description}
+                      {t(meta.description)}
                     </span>
                   </button>
                 );
@@ -566,7 +579,7 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
               type="button" onClick={onClose}
               className="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit" disabled={loading}
@@ -575,25 +588,27 @@ const CreateUserModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
               {loading ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Creating…
+                  {t('settings.users.creating')}
                 </>
               ) : (
                 <>
                   <UserPlus className="w-4 h-4" />
-                  Create Account
+                  {t('settings.users.createAccountBtn')}
                 </>
               )}
             </button>
           </div>
         </form>
       </motion.div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
 // ─── CHANGE PASSWORD MODAL ────────────────────────────────────────────────────
 
 const ChangePasswordModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [showPwd, setShowPwd] = useState({ current: false, new: false, confirm: false });
   const [loading, setLoading] = useState(false);
@@ -603,19 +618,18 @@ const ChangePasswordModal: React.FC<{ onClose: () => void }> = ({ onClose }) => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.newPassword !== form.confirmPassword) { toast.error('New passwords do not match'); return; }
-    if (form.newPassword.length < 8) { toast.error('Password must be at least 8 characters'); return; }
+    if (form.newPassword !== form.confirmPassword) { toast.error(t('settings.users.passwordMismatch')); return; }
+    if (form.newPassword.length < 8) { toast.error(t('settings.users.passwordTooShort')); return; }
     setLoading(true);
     try {
-      await apiClient.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
+      await apiClient.put('/api/users/change-password', {
         currentPassword: form.currentPassword,
         newPassword: form.newPassword,
-        confirmPassword: form.confirmPassword,
       });
-      toast.success('Password changed successfully');
+      toast.success(t('settings.users.passwordChangedSuccess'));
       onClose();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'Failed to change password');
+      toast.error(err?.response?.data?.message ?? t('settings.users.passwordChangeError'));
     } finally { setLoading(false); }
   };
 
@@ -633,15 +647,15 @@ const ChangePasswordModal: React.FC<{ onClose: () => void }> = ({ onClose }) => 
         <div className="p-6 border-b border-neutral-200 dark:border-neutral-700 flex items-center gap-3">
           <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl"><KeyRound className="w-5 h-5 text-blue-600" /></div>
           <div>
-            <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">Change Password</h2>
-            <p className="text-sm text-neutral-500">Update your account password</p>
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">{t('settings.users.changePasswordTitle')}</h2>
+            <p className="text-sm text-neutral-500">{t('settings.users.changePasswordDesc')}</p>
           </div>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {([
-            { key: 'currentPassword' as const, label: 'Current Password', field: 'current' as const },
-            { key: 'newPassword' as const, label: 'New Password', field: 'new' as const },
-            { key: 'confirmPassword' as const, label: 'Confirm New Password', field: 'confirm' as const },
+            { key: 'currentPassword' as const, label: t('settings.users.currentPassword'), field: 'current' as const },
+            { key: 'newPassword' as const, label: t('settings.users.newPassword'), field: 'new' as const },
+            { key: 'confirmPassword' as const, label: t('settings.users.confirmNewPassword'), field: 'confirm' as const },
           ]).map(({ key, label, field }) => (
             <div key={key}>
               <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-1">{label} <span className="text-red-500">*</span></label>
@@ -659,12 +673,12 @@ const ChangePasswordModal: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             </div>
           ))}
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-xs text-blue-700 dark:text-blue-300">
-            Password must be at least 8 characters with uppercase, lowercase, digit and special character.
+            {t('settings.users.passwordRequirements')}
           </div>
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 text-sm font-semibold rounded-xl border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700">Cancel</button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 text-sm font-semibold rounded-xl border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700">{t('common.cancel')}</button>
             <button type="submit" disabled={loading} className="flex-1 px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:opacity-90 disabled:opacity-50">
-              {loading ? 'Changing…' : 'Change Password'}
+              {loading ? t('settings.users.changing') : t('settings.users.changePasswordBtn')}
             </button>
           </div>
         </form>
@@ -863,9 +877,6 @@ const GeneralSettingsTab: React.FC = () => {
                         ))}
                       </div>
                     </SettingRow>
-                    <SettingRow label={t('settings.showAvatars')} description={t('settings.showAvatarsDesc')}>
-                      <Toggle checked={localSettings.showAvatars} onChange={v => set('showAvatars', v)} />
-                    </SettingRow>
                   </div>
                 </div>
               )}
@@ -1013,17 +1024,7 @@ const GeneralSettingsTab: React.FC = () => {
                 <div>
                   <SectionTitle icon={<ShieldCheck className="w-5 h-5" />} title={t('settings.security')} subtitle={t('settings.securitySubtitle')} />
                   <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                    <SettingRow label={t('settings.twoFactor')} description={t('settings.twoFactorDesc')}>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-medium ${localSettings.twoFactorEnabled ? 'text-green-600 dark:text-green-400' : 'text-neutral-400'}`}>
-                          {localSettings.twoFactorEnabled ? t('settings.twoFactorEnabled') : t('settings.twoFactorDisabled')}
-                        </span>
-                        <Toggle checked={localSettings.twoFactorEnabled} onChange={v => {
-                          set('twoFactorEnabled', v);
-                          toast(v ? '2FA enabled — connect your authenticator app' : '2FA disabled', { icon: v ? '🔐' : '⚠️' });
-                        }} />
-                      </div>
-                    </SettingRow>
+
                     <SettingRow label={t('settings.loginNotifications')} description={t('settings.loginNotificationsDesc')}>
                       <Toggle checked={localSettings.loginNotifications} onChange={v => set('loginNotifications', v)} />
                     </SettingRow>
@@ -1372,7 +1373,7 @@ const UserManagementTab: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [resetTarget, setResetTarget] = useState<{ id: string; username: string; email: string } | null>(null);
   const [isResetting, setIsResetting] = useState(false);
-  const pageSize = 10;
+  const pageSize = settings.defaultPageSize;
 
   const fetchUsers = useCallback(async (p = page) => {
     setLoading(true);
@@ -1421,7 +1422,7 @@ const UserManagementTab: React.FC = () => {
       toast.success(res.data?.message ?? `New password sent to ${resetTarget.email}`);
       setResetTarget(null);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'Failed to reset password');
+      toast.error(err?.response?.data?.message ?? t('settings.users.passwordChangeError'));
     } finally {
       setIsResetting(false);
       setActionLoading(null);
@@ -1591,83 +1592,187 @@ const UserManagementTab: React.FC = () => {
 
 // ─── AUDIT LOGS TAB ───────────────────────────────────────────────────────────
 
+// Resource type → display label + color
+const RESOURCE_META: Record<string, { label: string; color: string; bg: string }> = {
+  PRODUCT:        { label: 'Product',       color: 'text-violet-700 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/20' },
+  CATEGORY:       { label: 'Category',      color: 'text-purple-700 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+  VARIANT:        { label: 'Variant',       color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50/60 dark:bg-purple-900/10' },
+  QUOTE:          { label: 'Quote',         color: 'text-blue-700 dark:text-blue-400',     bg: 'bg-blue-50 dark:bg-blue-900/20' },
+  CUSTOMER:       { label: 'Customer',      color: 'text-cyan-700 dark:text-cyan-400',     bg: 'bg-cyan-50 dark:bg-cyan-900/20' },
+  DELIVERY_NOTE:  { label: 'Delivery Note', color: 'text-teal-700 dark:text-teal-400',     bg: 'bg-teal-50 dark:bg-teal-900/20' },
+  INVENTORY:      { label: 'Inventory',     color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+  LOT:            { label: 'Lot',           color: 'text-green-700 dark:text-green-400',   bg: 'bg-green-50 dark:bg-green-900/20' },
+  SERIAL:         { label: 'Serial',        color: 'text-lime-700 dark:text-lime-400',     bg: 'bg-lime-50 dark:bg-lime-900/20' },
+  MOVEMENT:       { label: 'Movement',      color: 'text-amber-700 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-900/20' },
+  MOVEMENT_LINE:  { label: 'Mvt. Line',     color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50/60 dark:bg-amber-900/10' },
+  MOVEMENT_TASK:  { label: 'Mvt. Task',     color: 'text-orange-700 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-900/20' },
+  PURCHASE_ORDER: { label: 'Purchase Order',color: 'text-rose-700 dark:text-rose-400',     bg: 'bg-rose-50 dark:bg-rose-900/20' },
+  SUPPLIER:       { label: 'Supplier',      color: 'text-pink-700 dark:text-pink-400',     bg: 'bg-pink-50 dark:bg-pink-900/20' },
+  LOCATION:       { label: 'Location',      color: 'text-indigo-700 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+  SITE:           { label: 'Site',          color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50/60 dark:bg-indigo-900/10' },
+  WAREHOUSE:      { label: 'Warehouse',     color: 'text-blue-600 dark:text-blue-400',     bg: 'bg-blue-50/60 dark:bg-blue-900/10' },
+};
+
+type AuditFilter = 'all' | 'security' | 'crud';
+
 const AuditLogsTab: React.FC = () => {
   const { t } = useTranslation();
+  const { settings } = useSettings();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
-  const [filter, setFilter] = useState<'all' | 'failed' | 'security'>('all');
+  const [filter, setFilter] = useState<AuditFilter>('all');
+  const [resourceFilter, setResourceFilter] = useState('');
   const [search, setSearch] = useState('');
-  const pageSize = 15;
+  const pageSize = settings.defaultPageSize;
 
   const fetchLogs = useCallback(async (p = page, f = filter) => {
     setLoading(true);
-    const endpoint = f === 'failed' ? '/api/audit/failed-logins' : f === 'security' ? '/api/audit/security-events' : '/api/audit';
-    // Only the main /api/audit endpoint accepts sortBy / sortDirection
-    const params = f === 'all'
-      ? { page: p, size: pageSize, sortBy: 'timestamp', sortDirection: 'DESC' }
-      : { page: p, size: pageSize };
-    const res = await safe(() => apiClient.get(endpoint, { params }));
-    if (res?.data) {
+    try {
+      const endpoint =
+        f === 'security' ? '/api/audit/security-events' :
+        '/api/audit';
+      const params = f === 'crud'
+        ? { page: 0, size: 200, sortBy: 'timestamp', sortDirection: 'DESC' }
+        : { page: p, size: pageSize, sortBy: 'timestamp', sortDirection: 'DESC' };
+
+      const res = await apiClient.get(endpoint, { params });
       const d = res.data as any;
-      if (Array.isArray(d)) { setLogs(d); setTotalElements(d.length); setTotalPages(1); }
-      else { setLogs(d.content ?? []); setTotalElements(d.totalElements ?? 0); setTotalPages(d.totalPages ?? 1); }
+      const all: AuditLog[] = Array.isArray(d) ? d : (d.content ?? []);
+
+      if (f === 'crud') {
+        const CRUD_ACTIONS_LIST = ['CREATE', 'UPDATE', 'DELETE', 'STATUS_CHANGE', 'IMPORT', 'EXPORT'];
+        const crud = all.filter(l => CRUD_ACTIONS_LIST.some(a => l.action.includes(a)));
+        setLogs(crud);
+        setTotalElements(crud.length);
+        setTotalPages(1);
+      } else {
+        setLogs(all);
+        setTotalElements(d.totalElements ?? all.length);
+        setTotalPages(d.totalPages ?? 1);
+      }
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message ?? err?.message ?? 'Unknown error';
+      console.error('[AuditLogs] fetch failed — status:', status, '| message:', msg, '| full error:', err);
+      if (status === 401 || status === 403) {
+        toast.error(`Access denied (${status}) — check your role/token`);
+      } else {
+        toast.error(`Failed to load audit logs (${status ?? 'network error'})`);
+      }
+      setLogs([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [page, filter]);
 
   useEffect(() => { fetchLogs(page, filter); }, [page, filter]);
 
-  const filtered = search
-    ? logs.filter(l =>
-        (l.username ?? '').toLowerCase().includes(search.toLowerCase()) ||
-        l.action.toLowerCase().includes(search.toLowerCase()) ||
-        (l.ipAddress ?? '').includes(search)
-      )
-    : logs;
+  // Reset page when search / resource filter changes
+  useEffect(() => { setPage(0); }, [search, resourceFilter]);
+
+  const filtered = logs.filter(l => {
+    if (resourceFilter && l.resourceType !== resourceFilter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return (
+        (l.username ?? '').toLowerCase().includes(q) ||
+        l.action.toLowerCase().includes(q) ||
+        (l.resourceType ?? '').toLowerCase().includes(q) ||
+        (l.details ?? '').toLowerCase().includes(q) ||
+        (l.ipAddress ?? '').includes(q)
+      );
+    }
+    return true;
+  });
+
+  // For CRUD tab: client-side pagination over filtered results
+  // For other tabs: server already paginated — show filtered as-is
+  const isCrud = filter === 'crud';
+  const effectiveTotalElements = isCrud ? filtered.length : totalElements;
+  const effectiveTotalPages    = isCrud ? Math.max(1, Math.ceil(filtered.length / pageSize)) : totalPages;
+  const displayedLogs          = isCrud ? filtered.slice(page * pageSize, (page + 1) * pageSize) : filtered;
 
   const actionColor = (action: string) => {
     const a = action.toUpperCase();
-    if (a.includes('LOGIN')) return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20';
-    if (a.includes('LOGOUT')) return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-700';
-    if (a.includes('CREATE') || a.includes('REGISTER')) return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20';
-    if (a.includes('DELETE')) return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
-    if (a.includes('UPDATE') || a.includes('CHANGE') || a.includes('RESET')) return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20';
-    if (a.includes('LOCK') || a.includes('UNLOCK')) return 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20';
+    if (a === 'CREATE')        return 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20';
+    if (a === 'UPDATE')        return 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20';
+    if (a === 'DELETE')        return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
+    if (a === 'STATUS_CHANGE') return 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20';
+    if (a === 'IMPORT')        return 'text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20';
+    if (a.includes('LOGIN'))   return 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20';
+    if (a.includes('LOGOUT'))  return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-700';
+    if (a.includes('LOCK'))         return 'text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20';
+    if (a === 'ACCOUNT_DEACTIVATED') return 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
+    if (a === 'ACCOUNT_ACTIVATED')   return 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20';
+    if (a.includes('PASSWORD') || a.includes('RESET')) return 'text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20';
     return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-700';
   };
 
+  // Unique resource types present in current page
+  const presentTypes = Array.from(new Set(logs.map(l => l.resourceType).filter(Boolean))) as string[];
+
+  const FILTER_TABS: { id: AuditFilter; label: string }[] = [
+    { id: 'all',      label: t('audit.allLogs') },
+    { id: 'crud',     label: t('audit.crud') },
+    { id: 'security', label: t('audit.securityEvents') },
+  ];
+
+  const crudCount   = logs.filter(l => ['CREATE','UPDATE','DELETE','STATUS_CHANGE','IMPORT','EXPORT'].some(a => l.action.includes(a))).length;
+  const createCount = logs.filter(l => l.action === 'CREATE').length;
+  const updateCount = logs.filter(l => l.action === 'UPDATE').length;
+  const deleteCount = logs.filter(l => l.action === 'DELETE').length;
+
   return (
     <div className="space-y-4">
+      {/* ── Toolbar ── */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex gap-2">
-          {(['all', 'failed', 'security'] as const).map(f => (
-            <button key={f} onClick={() => { setFilter(f); setPage(0); }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${filter === f ? 'bg-blue-500 text-white' : 'border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}>
-              {f === 'all' ? t('audit.allLogs') : f === 'failed' ? t('audit.failedLogins') : t('audit.securityEvents')}
+        <div className="flex gap-1.5 flex-wrap">
+          {FILTER_TABS.map(f => (
+            <button key={f.id} onClick={() => { setFilter(f.id); setPage(0); setResourceFilter(''); }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                filter === f.id
+                  ? 'bg-primary-600 text-white shadow-sm'
+                  : 'border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+              }`}>
+              {f.label}
             </button>
           ))}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* Resource type filter */}
+          {presentTypes.length > 0 && (
+            <select
+              value={resourceFilter}
+              onChange={e => setResourceFilter(e.target.value)}
+              className="text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-400"
+            >
+              <option value="">{t('audit.allResources')}</option>
+              {presentTypes.map(rt => (
+                <option key={rt} value={rt}>{t(`audit.resources.${rt}`, RESOURCE_META[rt]?.label ?? rt)}</option>
+              ))}
+            </select>
+          )}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400" />
             <input type="text" placeholder={t('audit.searchPlaceholder')} value={search} onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 text-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 w-48" />
+              className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-400 w-40" />
           </div>
-          <button onClick={() => fetchLogs(page, filter)} className="p-2 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700" title={t('common.refresh')}>
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <button onClick={() => fetchLogs(page, filter)} className="p-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
+      {/* ── Stats ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: t('audit.totalLogs'), value: totalElements, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-          { label: t('audit.successful'), value: logs.filter(l => l.status === 'SUCCESS').length, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
-          { label: t('audit.failed'), value: logs.filter(l => l.status === 'FAILURE').length, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
-          { label: t('audit.uniqueUsers'), value: new Set(logs.map(l => l.username).filter(Boolean)).size, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+          { label: t('audit.totalLogs'),      value: totalElements,                                          color: 'text-primary-600',  bg: 'bg-primary-50 dark:bg-primary-900/20' },
+          { label: t('audit.crudOperations'), value: crudCount,                                              color: 'text-emerald-600',  bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+          { label: t('audit.failed'),       value: logs.filter(l => l.status === 'FAILURE').length,    color: 'text-red-600',      bg: 'bg-red-50 dark:bg-red-900/20' },
+          { label: t('audit.uniqueUsers'),  value: new Set(logs.map(l => l.username).filter(Boolean)).size, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
         ].map(s => (
           <div key={s.label} className={`${s.bg} rounded-xl p-3`}>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">{s.label}</p>
@@ -1676,42 +1781,120 @@ const AuditLogsTab: React.FC = () => {
         ))}
       </div>
 
+      {/* ── CRUD breakdown pills (only when in CRUD mode) ── */}
+      {filter === 'crud' && (
+        <div className="flex gap-2 flex-wrap text-xs">
+          {[
+            { label: `${t('audit.breakdown.create')} (${createCount})`, color: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' },
+            { label: `${t('audit.breakdown.update')} (${updateCount})`, color: 'text-amber-700 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' },
+            { label: `${t('audit.breakdown.delete')} (${deleteCount})`, color: 'text-red-700 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' },
+          ].map(p => (
+            <span key={p.label} className={`px-2.5 py-1 rounded-full font-semibold border ${p.color}`}>{p.label}</span>
+          ))}
+        </div>
+      )}
+
+      {/* ── Table ── */}
       <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-700">
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800/60">
-            <tr>{[
-              t('audit.table.timestamp'),
-              t('audit.table.user'),
-              t('audit.table.action'),
-              t('audit.table.status'),
-              t('audit.table.ipAddress'),
-              t('audit.table.details')
-            ].map(h => (
-              <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">{h}</th>
-            ))}</tr>
+            <tr>
+              {[
+                t('audit.table.timestamp'),
+                t('audit.table.user'),
+                t('audit.table.action'),
+                t('audit.table.resource'),
+                t('audit.table.description'),
+                t('audit.table.status'),
+              ].map(h => (
+                <th key={h} className="px-3 py-3 text-left text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide whitespace-nowrap">{h}</th>
+              ))}
+            </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
             {loading ? Array.from({ length: 8 }).map((_, i) => (
               <tr key={i}>{Array.from({ length: 6 }).map((__, j) => (
-                <td key={j} className="px-4 py-3"><div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /></td>
+                <td key={j} className="px-3 py-3"><div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /></td>
               ))}</tr>
-            )) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-neutral-400">{t('audit.noLogsFound')}</td></tr>
-            ) : filtered.map(log => (
-              <tr key={log.id} className={`hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors ${log.status === 'FAILURE' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
-                <td className="px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{new Date(log.timestamp).toLocaleString()}</td>
-                <td className="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-200">{log.username ?? log.userId ?? '—'}</td>
-                <td className="px-4 py-3"><span className={`inline-block px-2 py-0.5 rounded-lg text-xs font-semibold ${actionColor(log.action)}`}>{log.action}</span></td>
-                <td className="px-4 py-3"><AuditStatusBadge status={log.status} /></td>
-                <td className="px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 font-mono">{log.ipAddress ?? '—'}</td>
-                <td className="px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 max-w-xs truncate" title={log.details}>{log.details ?? '—'}</td>
-              </tr>
-            ))}
+            )) : displayedLogs.length === 0 ? (
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-neutral-400 text-sm">{t('audit.noLogsFound')}</td></tr>
+            ) : displayedLogs.map(log => {
+              const rm = log.resourceType ? RESOURCE_META[log.resourceType] : null;
+              return (
+                <tr key={log.id} className={`hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors ${log.status === 'FAILURE' ? 'bg-red-50/30 dark:bg-red-900/5' : ''}`}>
+                  <td className="px-3 py-2.5 text-xs text-neutral-500 dark:text-neutral-400 whitespace-nowrap font-mono">
+                    {new Date(log.timestamp).toLocaleString()}
+                  </td>
+                  <td className="px-3 py-2.5 text-xs">
+                    <div className="flex items-center gap-2">
+                      {settings.showAvatars && (
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                          {((log.firstName?.[0] ?? log.username?.[0] ?? '?')).toUpperCase()}
+                        </div>
+                      )}
+                      {(log.firstName || log.lastName) ? (
+                        <div>
+                          <p className="font-semibold text-neutral-800 dark:text-neutral-200 leading-tight">
+                            {[log.firstName, log.lastName].filter(Boolean).join(' ')}
+                          </p>
+                          <p className="text-neutral-400 dark:text-neutral-500 leading-tight">
+                            @{log.username}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                          {log.username ?? log.userId ?? '—'}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <span className={`inline-block px-2 py-0.5 rounded-lg text-xs font-bold ${actionColor(log.action)}`}>
+                      {t(`audit.actions.${log.action}`, log.action)}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    {rm ? (
+                      <span className={`inline-block px-2 py-0.5 rounded-lg text-xs font-semibold ${rm.color} ${rm.bg}`}>
+                        {t(`audit.resources.${log.resourceType}`, rm.label)}
+                      </span>
+                    ) : log.resourceType ? (
+                      <span className="inline-block px-2 py-0.5 rounded-lg text-xs font-semibold text-neutral-600 bg-neutral-100 dark:bg-neutral-700">
+                        {t(`audit.resources.${log.resourceType}`, log.resourceType)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-neutral-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2.5 text-xs max-w-[220px]">
+                    {log.details ? (
+                      <div>
+                        <p className="text-neutral-600 dark:text-neutral-400 truncate" title={log.details}>
+                          {log.details}
+                        </p>
+                        {log.action === 'LOGIN_FAILED' && log.ipAddress && (
+                          <p className="text-neutral-400 dark:text-neutral-500 font-mono mt-0.5">
+                            {log.ipAddress}
+                          </p>
+                        )}
+                      </div>
+                    ) : log.action === 'LOGIN_FAILED' && log.ipAddress ? (
+                      <p className="text-neutral-400 dark:text-neutral-500 font-mono">
+                        {log.ipAddress}
+                      </p>
+                    ) : (
+                      <span className="text-neutral-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2.5"><AuditStatusBadge status={log.status} /></td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {totalPages > 1 && <Pagination page={page} totalPages={totalPages} totalElements={totalElements} size={pageSize} onPage={p => setPage(p)} />}
+      <Pagination page={page} totalPages={effectiveTotalPages} totalElements={effectiveTotalElements} size={pageSize} onPage={p => setPage(p)} />
     </div>
   );
 };
@@ -1722,7 +1905,7 @@ const PermissionsTab: React.FC = () => <RolesManagementTab />;
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
-type TabId = 'general' | 'users' | 'permissions' | 'logs';
+type TabId = 'general' | 'users' | 'permissions' | 'mobile' | 'logs';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -1734,6 +1917,7 @@ export const SettingsPage: React.FC = () => {
   useEffect(() => {
     if (activeTab === 'users' && !admin) setActiveTab('general');
     if (activeTab === 'permissions' && !admin) setActiveTab('general');
+    if (activeTab === 'mobile' && !admin) setActiveTab('general');
     if (activeTab === 'logs' && !adminOrAuditor) setActiveTab('general');
   }, [activeTab, admin, adminOrAuditor]);
 
@@ -1741,6 +1925,7 @@ export const SettingsPage: React.FC = () => {
     { id: 'general', label: t('settings.general'), icon: <Sliders className="w-4 h-4" />, desc: `${t('settings.appearance')}, ${t('settings.notifications')}, ${t('settings.localization')}`, visible: true },
     { id: 'users', label: t('settings.userManagement'), icon: <Users className="w-4 h-4" />, desc: t('settings.userManagementDesc'), visible: admin, badge: 'Admin' },
     { id: 'permissions', label: t('settings.permissions'), icon: <Key className="w-4 h-4" />, desc: t('settings.permissionsDesc'), visible: admin, badge: 'Admin' },
+    { id: 'mobile', label: 'Mobile Permissions', icon: <Smartphone className="w-4 h-4" />, desc: 'Mobile app feature access per role', visible: admin, badge: 'Admin' },
     { id: 'logs', label: t('settings.auditLogs'), icon: <ClipboardList className="w-4 h-4" />, desc: t('settings.auditLogsDesc'), visible: adminOrAuditor, badge: adminOrAuditor && !admin ? t('layout.auditor') : undefined },
   ];
 
@@ -1803,6 +1988,11 @@ export const SettingsPage: React.FC = () => {
                 </div>
               ))}
               {activeTab === 'permissions' && (admin ? <PermissionsTab /> : (
+                <div className="flex flex-col items-center justify-center py-20 gap-3 text-neutral-400">
+                  <Lock className="w-10 h-10" /><p className="font-semibold">{t('auth.adminRequired') || 'Admin access required'}</p>
+                </div>
+              ))}
+              {activeTab === 'mobile' && (admin ? <MobilePermissionsTab /> : (
                 <div className="flex flex-col items-center justify-center py-20 gap-3 text-neutral-400">
                   <Lock className="w-10 h-10" /><p className="font-semibold">{t('auth.adminRequired') || 'Admin access required'}</p>
                 </div>

@@ -1,18 +1,19 @@
 // frontend/src/pages/movements/CreateMovementPage.tsx
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Check, ChevronRight, Info, Plus, Trash2,
   PackagePlus, PackageMinus, ArrowLeftRight, Scale,
   ShoppingCart, Warehouse as WarehouseIcon, Undo2, ClipboardList,
   ShieldAlert, MapPin, AlertTriangle, CheckCircle2,
-  Loader2, Package,
+  Loader2, Package, Search, ChevronDown,
 } from 'lucide-react';
 import { movementService } from '@/services/movement.service';
 import { productService } from '@/services/product.service';
 import { locationService } from '@/services/location.service';
 import { inventoryService } from '@/services/inventory.service';
+import { useTranslation } from 'react-i18next';
 import {
   MovementType, MovementStatus, MovementPriority, LineStatus, TaskType,
 } from '@/types';
@@ -37,25 +38,8 @@ const MOVEMENT_TYPE_ICONS: Record<MovementType, LucideIcon> = {
   [MovementType.RELOCATION]: MapPin,
 };
 
-const MOVEMENT_TYPES: { value: MovementType; label: string; description: string }[] = [
-  { value: MovementType.RECEIPT,     label: 'Receipt',     description: 'Receive incoming goods' },
-  { value: MovementType.ISSUE,       label: 'Issue',       description: 'Issue goods out of warehouse' },
-  { value: MovementType.TRANSFER,    label: 'Transfer',    description: 'Move between locations' },
-  { value: MovementType.ADJUSTMENT,  label: 'Adjustment',  description: 'Correct inventory discrepancies' },
-  { value: MovementType.PICKING,     label: 'Picking',     description: 'Pick items for orders' },
-  { value: MovementType.PUTAWAY,     label: 'Putaway',     description: 'Store goods in locations' },
-  { value: MovementType.RETURN,      label: 'Return',      description: 'Process returns' },
-  { value: MovementType.CYCLE_COUNT, label: 'Cycle Count', description: 'Physical inventory count' },
-  { value: MovementType.QUARANTINE,  label: 'Quarantine',  description: 'Isolate items for inspection' },
-  { value: MovementType.RELOCATION,  label: 'Relocation',  description: 'Reorganize warehouse layout' },
-];
-
-const STEPS = [
-  { id: 1, label: 'Movement Info' },
-  { id: 2, label: 'Items' },
-  { id: 3, label: 'Tasks' },
-  { id: 4, label: 'Review' },
-];
+// MOVEMENT_TYPES and STEPS are built inside the component using t()
+// (see below)
 
 // ─── Form types ───────────────────────────────────────────────────────────────
 interface MovementFormData {
@@ -99,9 +83,51 @@ const labelCls = 'block text-sm font-medium text-neutral-700 dark:text-neutral-3
 // ─── Component ────────────────────────────────────────────────────────────────
 const CreateMovementPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const MOVEMENT_TYPES = useMemo(() => [
+    { value: MovementType.RECEIPT,     label: t('movements.types.receipt'),     description: t('movements.types.receiptDesc') },
+    { value: MovementType.ISSUE,       label: t('movements.types.issue'),       description: t('movements.types.issueDesc') },
+    { value: MovementType.TRANSFER,    label: t('movements.types.transfer'),    description: t('movements.types.transferDesc') },
+    { value: MovementType.ADJUSTMENT,  label: t('movements.types.adjustment'),  description: t('movements.types.adjustmentDesc') },
+    { value: MovementType.PICKING,     label: t('movements.types.picking'),     description: t('movements.types.pickingDesc') },
+    { value: MovementType.PUTAWAY,     label: t('movements.types.putAway'),     description: t('movements.types.putAwayDesc') },
+    { value: MovementType.RETURN,      label: t('movements.types.return'),      description: t('movements.types.returnDesc') },
+    { value: MovementType.CYCLE_COUNT, label: t('movements.types.cycleCount'),  description: t('movements.types.cycleCountDesc') },
+    { value: MovementType.QUARANTINE,  label: t('movements.types.quarantine'),  description: t('movements.types.quarantineDesc') },
+    { value: MovementType.RELOCATION,  label: t('movements.types.relocation'),  description: t('movements.types.relocationDesc') },
+  ], [t]);
+
+  const STEPS = useMemo(() => [
+    { id: 1, label: t('movements.steps.movementInfo') },
+    { id: 2, label: t('movements.steps.items') },
+    { id: 3, label: t('movements.steps.tasks') },
+    { id: 4, label: t('movements.steps.review') },
+  ], [t]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading]         = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+
+  // Searchable dropdown state
+  const [whSearch, setWhSearch] = useState(''); const [whOpen, setWhOpen] = useState(false); const whRef = useRef<HTMLDivElement>(null);
+  const [srcSearch, setSrcSearch] = useState(''); const [srcOpen, setSrcOpen] = useState(false); const srcRef = useRef<HTMLDivElement>(null);
+  const [dstSearch, setDstSearch] = useState(''); const [dstOpen, setDstOpen] = useState(false); const dstRef = useRef<HTMLDivElement>(null);
+  const [itemSearch, setItemSearch] = useState(''); const [itemOpen, setItemOpen] = useState(false); const itemRef = useRef<HTMLDivElement>(null);
+
+  // Item IDs that have stock at the selected source location (used to filter items)
+  const [locationItemIds, setLocationItemIds] = useState<Set<string> | null>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (whRef.current && !whRef.current.contains(e.target as Node)) setWhOpen(false);
+      if (srcRef.current && !srcRef.current.contains(e.target as Node)) setSrcOpen(false);
+      if (dstRef.current && !dstRef.current.contains(e.target as Node)) setDstOpen(false);
+      if (itemRef.current && !itemRef.current.contains(e.target as Node)) setItemOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const [items,      setItems]      = useState<Item[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -134,6 +160,35 @@ const CreateMovementPage = () => {
   const currentConfig    = getMovementTypeConfig(formData.type);
   const filteredLocations = locations.filter(loc => loc.warehouseId === formData.warehouseId);
 
+  // ─── Load items available at source location ────────────────────────────────
+  useEffect(() => {
+    const locId = formData.sourceLocationId;
+    if (!locId || !requiresStockCheck(formData.type)) {
+      setLocationItemIds(null);
+      return;
+    }
+    let cancelled = false;
+    inventoryService.getInventoriesByLocation(locId).then((invList: any[]) => {
+      if (cancelled) return;
+      const ids = new Set<string>(
+        (invList || []).filter((i: any) => (i.availableQuantity ?? i.quantityOnHand ?? 0) > 0).map((i: any) => i.itemId as string)
+      );
+      setLocationItemIds(ids);
+    }).catch(() => {
+      if (!cancelled) setLocationItemIds(null);
+    });
+    return () => { cancelled = true; };
+  }, [formData.sourceLocationId, formData.type]);
+
+  // Items shown in the dropdown — filtered by location stock when applicable
+  const dropdownItems = useMemo(() => {
+    const bySearch = items.filter(item =>
+      `${item.name} ${item.sku ?? ''}`.toLowerCase().includes(itemSearch.toLowerCase())
+    );
+    if (!locationItemIds) return bySearch;
+    return bySearch.filter(item => locationItemIds.has(item.id));
+  }, [items, itemSearch, locationItemIds]);
+
   // ─── Load reference data ────────────────────────────────────────────────────
   useEffect(() => {
     const load = async () => {
@@ -152,7 +207,7 @@ const CreateMovementPage = () => {
         setWarehouses(ext(warehousesRes));
         setLocations(ext(locationsRes));
       } catch {
-        toast.error('Failed to load form data');
+        toast.error(t('movements.loadError'));
       } finally {
         setDataLoading(false);
       }
@@ -187,12 +242,12 @@ const CreateMovementPage = () => {
       const ok = await inventoryService.checkStockAvailability(itemId, locationId, quantity);
       if (!ok) {
         const qty = await inventoryService.getAvailableQuantity(itemId, locationId);
-        toast.error(`Insufficient stock. Only ${qty} units available`);
+        toast.error(t('movements.insufficientStock', { qty }));
         return false;
       }
       return true;
     } catch {
-      toast.error('Failed to validate stock availability');
+      toast.error(t('movements.stockValidationError'));
       return false;
     }
   };
@@ -207,12 +262,12 @@ const CreateMovementPage = () => {
   // ─── Line handlers ──────────────────────────────────────────────────────────
   const addLine = async () => {
     if (!newLine.itemId || !newLine.requestedQuantity) {
-      toast.error('Please fill in Item and Quantity');
+      toast.error(t('movements.fillItemAndQty'));
       return;
     }
     if (requiresStockCheck(formData.type)) {
       if (!formData.sourceLocationId) {
-        toast.error(`Please select ${currentConfig.sourceLabel || 'source location'} first`);
+        toast.error(t('movements.selectSourceFirst', { label: currentConfig.sourceLabel || t('common.location') }));
         return;
       }
       const ok = await validateStockAvailability(
@@ -230,7 +285,7 @@ const CreateMovementPage = () => {
       },
     ]);
     setNewLine({ itemId: '', requestedQuantity: 0, actualQuantity: 0, uom: 'UNIT', fromLocationId: '', toLocationId: '', notes: '' });
-    toast.success('Line added');
+    toast.success(t('movements.lineAdded'));
   };
 
   const removeLine = (index: number) => setLines(prev => prev.filter((_, i) => i !== index));
@@ -251,20 +306,20 @@ const CreateMovementPage = () => {
   const handleNext = () => {
     if (currentStep === 1) {
       if (!formData.type || !formData.warehouseId) {
-        toast.error('Please select Movement Type and Warehouse');
+        toast.error(t('movements.selectTypeAndWarehouse'));
         return;
       }
       if (requiresSource(formData.type) && !formData.sourceLocationId) {
-        toast.error(`${currentConfig.sourceLabel || 'Source location'} is required`);
+        toast.error(t('movements.sourceRequired', { label: currentConfig.sourceLabel || t('common.location') }));
         return;
       }
       if (requiresDestination(formData.type) && !formData.destinationLocationId) {
-        toast.error(`${currentConfig.destinationLabel || 'Destination location'} is required`);
+        toast.error(t('movements.destinationRequired', { label: currentConfig.destinationLabel || t('common.location') }));
         return;
       }
     }
     if (currentStep === 2 && lines.length === 0) {
-      toast.error('Please add at least one item');
+      toast.error(t('movements.addOneItem'));
       return;
     }
     setCurrentStep(prev => prev + 1);
@@ -273,7 +328,7 @@ const CreateMovementPage = () => {
   // ─── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (lines.length === 0) {
-      toast.error('Please add at least one item');
+      toast.error(t('movements.addOneItem'));
       return;
     }
     setLoading(true);
@@ -312,14 +367,14 @@ const CreateMovementPage = () => {
             : undefined,
         })),
       });
-      toast.success('Movement created successfully');
+      toast.success(t('movements.createSuccess'));
       navigate('/movements');
     } catch (error: any) {
       const msg =
         error.response?.data?.message ||
         error.response?.data?.error   ||
         error.message                 ||
-        'Failed to create movement';
+        t('movements.createError');
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -332,7 +387,7 @@ const CreateMovementPage = () => {
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mx-auto" />
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading form data…</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">{t('movements.loadingData')}</p>
         </div>
       </div>
     );
@@ -353,10 +408,10 @@ const CreateMovementPage = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-              Create Movement
+              {t('movements.createTitle')}
             </h1>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
-              Fill in the details to create a new warehouse movement
+              {t('movements.createSubtitle')}
             </p>
           </div>
         </div>
@@ -410,17 +465,17 @@ const CreateMovementPage = () => {
             <div className="p-6 space-y-6">
               <div>
                 <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-                  Movement Information
+                  {t('movements.movementInformation')}
                 </h2>
                 <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
-                  Select the movement type and configure locations
+                  {t('movements.movementInformationDesc')}
                 </p>
               </div>
 
               {/* Movement Type Grid */}
               <div>
                 <label className={labelCls}>
-                  Movement Type <span className="text-red-500">*</span>
+                  {t('movements.movementType')} <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                   {MOVEMENT_TYPES.map(type => {
@@ -507,63 +562,83 @@ const CreateMovementPage = () => {
 
               {/* Warehouse */}
               <div>
-                <label className={labelCls}>
-                  Warehouse <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.warehouseId}
-                  onChange={e =>
-                    setFormData(prev => ({
-                      ...prev,
-                      warehouseId: e.target.value,
-                      sourceLocationId: '',
-                      destinationLocationId: '',
-                    }))
-                  }
-                  className={inputCls}
-                >
-                  <option value="">Select warehouse</option>
-                  {warehouses.map(wh => (
-                    <option key={wh.id} value={wh.id}>
-                      {wh.name} — {wh.code}
-                    </option>
-                  ))}
-                </select>
+                <label className={labelCls}>{t('movements.warehouse')} <span className="text-red-500">*</span></label>
+                <div ref={whRef} className="relative">
+                  <button type="button" onClick={() => { setWhOpen(o => !o); setWhSearch(''); }}
+                    className="w-full flex items-center justify-between border border-neutral-200 dark:border-neutral-700 rounded-lg px-3.5 py-2.5 bg-white dark:bg-neutral-800 text-sm text-left text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-colors">
+                    <span className={formData.warehouseId ? '' : 'text-neutral-400'}>
+                      {formData.warehouseId
+                        ? (() => { const w = warehouses.find(w => w.id === formData.warehouseId); return w ? `${w.name} — ${w.code}` : t('movements.selectWarehouse'); })()
+                        : t('movements.selectWarehouse')}
+                    </span>
+                    <ChevronDown size={15} className={`ml-2 shrink-0 text-neutral-400 transition-transform ${whOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {whOpen && (
+                    <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg">
+                      <div className="p-2 border-b border-neutral-100 dark:border-neutral-700">
+                        <div className="relative">
+                          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                          <input autoFocus type="text" value={whSearch} onChange={e => setWhSearch(e.target.value)} placeholder="Search warehouse..."
+                            className="w-full pl-7 pr-3 py-1.5 text-sm rounded-md border border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40" />
+                        </div>
+                      </div>
+                      <ul className="max-h-52 overflow-y-auto py-1">
+                        {warehouses.filter(w => `${w.name} ${w.code}`.toLowerCase().includes(whSearch.toLowerCase())).map(w => (
+                          <li key={w.id} onClick={() => { setFormData(prev => ({ ...prev, warehouseId: w.id, sourceLocationId: '', destinationLocationId: '' })); setWhOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors ${formData.warehouseId === w.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 font-medium' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                            {w.name} <span className="text-neutral-400">— {w.code}</span>
+                          </li>
+                        ))}
+                        {warehouses.filter(w => `${w.name} ${w.code}`.toLowerCase().includes(whSearch.toLowerCase())).length === 0 && (
+                          <li className="px-3 py-2 text-sm text-neutral-400 text-center">{t('movements.noResults')}</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Source Location */}
               {requiresSource(formData.type) && (
                 <div>
-                  <label className={labelCls}>
-                    {currentConfig.sourceLabel || 'Source Location'}{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={formData.sourceLocationId}
-                    onChange={e => {
-                      setFormData(prev => ({ ...prev, sourceLocationId: e.target.value }));
-                      if (newLine.itemId && e.target.value)
-                        fetchInventoryInfo(newLine.itemId, e.target.value);
-                    }}
-                    className={inputCls}
-                    disabled={!formData.warehouseId}
-                  >
-                    <option value="">
-                      Select {currentConfig.sourceLabel || 'source location'}
-                    </option>
-                    {filteredLocations.map(loc => (
-                      <option key={loc.id} value={loc.id}>
-                        {loc.name} — {loc.code}
-                      </option>
-                    ))}
-                  </select>
-                  {!formData.warehouseId && (
-                    <p className="text-xs text-neutral-400 mt-1">Select a warehouse first</p>
-                  )}
+                  <label className={labelCls}>{currentConfig.sourceLabel || 'Source Location'} <span className="text-red-500">*</span></label>
+                  <div ref={srcRef} className="relative">
+                    <button type="button" disabled={!formData.warehouseId}
+                      onClick={() => { if (formData.warehouseId) { setSrcOpen(o => !o); setSrcSearch(''); } }}
+                      className={`w-full flex items-center justify-between border border-neutral-200 dark:border-neutral-700 rounded-lg px-3.5 py-2.5 bg-white dark:bg-neutral-800 text-sm text-left text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-colors ${!formData.warehouseId ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      <span className={formData.sourceLocationId ? '' : 'text-neutral-400'}>
+                        {formData.sourceLocationId
+                          ? (() => { const l = filteredLocations.find(l => l.id === formData.sourceLocationId); return l ? (l.name ? `${l.name} — ${l.code}` : l.code) : t('movements.searchLocation'); })()
+                          : t('movements.selectSourceLocation', { label: currentConfig.sourceLabel || t('common.location') })}
+                      </span>
+                      <ChevronDown size={15} className={`ml-2 shrink-0 text-neutral-400 transition-transform ${srcOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {srcOpen && (
+                      <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg">
+                        <div className="p-2 border-b border-neutral-100 dark:border-neutral-700">
+                          <div className="relative">
+                            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                            <input autoFocus type="text" value={srcSearch} onChange={e => setSrcSearch(e.target.value)} placeholder={t('movements.searchLocation')}
+                              className="w-full pl-7 pr-3 py-1.5 text-sm rounded-md border border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40" />
+                          </div>
+                        </div>
+                        <ul className="max-h-52 overflow-y-auto py-1">
+                          {filteredLocations.filter(l => `${l.name} ${l.code}`.toLowerCase().includes(srcSearch.toLowerCase())).map(loc => (
+                            <li key={loc.id} onClick={() => { setFormData(prev => ({ ...prev, sourceLocationId: loc.id })); if (newLine.itemId) fetchInventoryInfo(newLine.itemId, loc.id); setSrcOpen(false); }}
+                              className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors ${formData.sourceLocationId === loc.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 font-medium' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                              {loc.name ? <>{loc.name} <span className="text-neutral-400">— {loc.code}</span></> : loc.code}
+                            </li>
+                          ))}
+                          {filteredLocations.filter(l => `${l.name} ${l.code}`.toLowerCase().includes(srcSearch.toLowerCase())).length === 0 && (
+                            <li className="px-3 py-2 text-sm text-neutral-400 text-center">{t('movements.noResults')}</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  {!formData.warehouseId && <p className="text-xs text-neutral-400 mt-1">Select a warehouse first</p>}
                   {formData.warehouseId && currentConfig.locationHelp && (
-                    <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
-                      {currentConfig.locationHelp}
-                    </p>
+                    <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">{currentConfig.locationHelp}</p>
                   )}
                 </div>
               )}
@@ -571,30 +646,42 @@ const CreateMovementPage = () => {
               {/* Destination Location */}
               {requiresDestination(formData.type) && (
                 <div>
-                  <label className={labelCls}>
-                    {currentConfig.destinationLabel || 'Destination Location'}{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={formData.destinationLocationId}
-                    onChange={e =>
-                      setFormData(prev => ({ ...prev, destinationLocationId: e.target.value }))
-                    }
-                    className={inputCls}
-                    disabled={!formData.warehouseId}
-                  >
-                    <option value="">
-                      Select {currentConfig.destinationLabel || 'destination location'}
-                    </option>
-                    {filteredLocations.map(loc => (
-                      <option key={loc.id} value={loc.id}>
-                        {loc.name} — {loc.code}
-                      </option>
-                    ))}
-                  </select>
-                  {!formData.warehouseId && (
-                    <p className="text-xs text-neutral-400 mt-1">Select a warehouse first</p>
-                  )}
+                  <label className={labelCls}>{currentConfig.destinationLabel || 'Destination Location'} <span className="text-red-500">*</span></label>
+                  <div ref={dstRef} className="relative">
+                    <button type="button" disabled={!formData.warehouseId}
+                      onClick={() => { if (formData.warehouseId) { setDstOpen(o => !o); setDstSearch(''); } }}
+                      className={`w-full flex items-center justify-between border border-neutral-200 dark:border-neutral-700 rounded-lg px-3.5 py-2.5 bg-white dark:bg-neutral-800 text-sm text-left text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-colors ${!formData.warehouseId ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      <span className={formData.destinationLocationId ? '' : 'text-neutral-400'}>
+                        {formData.destinationLocationId
+                          ? (() => { const l = filteredLocations.find(l => l.id === formData.destinationLocationId); return l ? (l.name ? `${l.name} — ${l.code}` : l.code) : t('movements.searchLocation'); })()
+                          : t('movements.selectDestinationLocation', { label: currentConfig.destinationLabel || t('common.location') })}
+                      </span>
+                      <ChevronDown size={15} className={`ml-2 shrink-0 text-neutral-400 transition-transform ${dstOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {dstOpen && (
+                      <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg">
+                        <div className="p-2 border-b border-neutral-100 dark:border-neutral-700">
+                          <div className="relative">
+                            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                            <input autoFocus type="text" value={dstSearch} onChange={e => setDstSearch(e.target.value)} placeholder={t('movements.searchLocation')}
+                              className="w-full pl-7 pr-3 py-1.5 text-sm rounded-md border border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40" />
+                          </div>
+                        </div>
+                        <ul className="max-h-52 overflow-y-auto py-1">
+                          {filteredLocations.filter(l => `${l.name} ${l.code}`.toLowerCase().includes(dstSearch.toLowerCase())).map(loc => (
+                            <li key={loc.id} onClick={() => { setFormData(prev => ({ ...prev, destinationLocationId: loc.id })); setDstOpen(false); }}
+                              className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors ${formData.destinationLocationId === loc.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 font-medium' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                              {loc.name ? <>{loc.name} <span className="text-neutral-400">— {loc.code}</span></> : loc.code}
+                            </li>
+                          ))}
+                          {filteredLocations.filter(l => `${l.name} ${l.code}`.toLowerCase().includes(dstSearch.toLowerCase())).length === 0 && (
+                            <li className="px-3 py-2 text-sm text-neutral-400 text-center">{t('movements.noResults')}</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  {!formData.warehouseId && <p className="text-xs text-neutral-400 mt-1">Select a warehouse first</p>}
                 </div>
               )}
 
@@ -677,27 +764,32 @@ const CreateMovementPage = () => {
               {/* Location summary */}
               <div className="rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 p-4">
                 <div className="flex items-center gap-3 text-sm flex-wrap">
-                  <div>
-                    <span className="text-xs font-medium uppercase tracking-wide text-neutral-400 mr-1.5">
-                      From
-                    </span>
-                    <span className="font-medium text-neutral-800 dark:text-neutral-200">
-                      {formData.sourceLocationId
-                        ? locations.find(l => l.id === formData.sourceLocationId)?.name ?? 'Selected'
-                        : 'Not required'}
-                    </span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-neutral-300 dark:text-neutral-600 shrink-0" />
-                  <div>
-                    <span className="text-xs font-medium uppercase tracking-wide text-neutral-400 mr-1.5">
-                      To
-                    </span>
-                    <span className="font-medium text-neutral-800 dark:text-neutral-200">
-                      {formData.destinationLocationId
-                        ? locations.find(l => l.id === formData.destinationLocationId)?.name ?? 'Selected'
-                        : 'Not required'}
-                    </span>
-                  </div>
+                  {requiresSource(formData.type) && (
+                    <div>
+                      <span className="text-xs font-medium uppercase tracking-wide text-neutral-400 mr-1.5">From</span>
+                      <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                        {formData.sourceLocationId
+                          ? (() => { const l = locations.find(l => l.id === formData.sourceLocationId); return l ? (l.name ? `${l.name} — ${l.code}` : l.code) : formData.sourceLocationId.slice(0, 8); })()
+                          : <span className="text-neutral-400 italic">Not selected</span>}
+                      </span>
+                    </div>
+                  )}
+                  {requiresSource(formData.type) && requiresDestination(formData.type) && (
+                    <ChevronRight className="w-4 h-4 text-neutral-300 dark:text-neutral-600 shrink-0" />
+                  )}
+                  {requiresDestination(formData.type) && (
+                    <div>
+                      <span className="text-xs font-medium uppercase tracking-wide text-neutral-400 mr-1.5">To</span>
+                      <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                        {formData.destinationLocationId
+                          ? (() => { const l = locations.find(l => l.id === formData.destinationLocationId); return l ? (l.name ? `${l.name} — ${l.code}` : l.code) : formData.destinationLocationId.slice(0, 8); })()
+                          : <span className="text-neutral-400 italic">Not selected</span>}
+                      </span>
+                    </div>
+                  )}
+                  {!requiresSource(formData.type) && !requiresDestination(formData.type) && (
+                    <span className="text-neutral-400 text-xs italic">No location required for this movement type</span>
+                  )}
                 </div>
               </div>
 
@@ -710,19 +802,65 @@ const CreateMovementPage = () => {
                   <div className="col-span-2 sm:col-span-1">
                     <label className={labelCls}>
                       Item <span className="text-red-500">*</span>
+                      {locationItemIds !== null && (
+                        <span className="ml-1.5 text-xs font-normal text-indigo-500 dark:text-indigo-400">
+                          ({locationItemIds.size} in stock at location)
+                        </span>
+                      )}
                     </label>
-                    <select
-                      value={newLine.itemId}
-                      onChange={e => handleItemChange(e.target.value)}
-                      className={inputCls}
-                    >
-                      <option value="">Select item</option>
-                      {items.map(item => (
-                        <option key={item.id} value={item.id}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div ref={itemRef} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => { setItemOpen(o => !o); setItemSearch(''); }}
+                        className={`w-full flex items-center justify-between border border-neutral-200 dark:border-neutral-700 rounded-lg px-3.5 py-2.5 bg-white dark:bg-neutral-800 text-sm text-left text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-colors`}
+                      >
+                        <span className={newLine.itemId ? '' : 'text-neutral-400'}>
+                          {newLine.itemId
+                            ? items.find(i => i.id === newLine.itemId)?.name ?? 'Selected'
+                            : 'Select item'}
+                        </span>
+                        <ChevronDown size={15} className={`ml-2 shrink-0 text-neutral-400 transition-transform ${itemOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      {itemOpen && (
+                        <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg">
+                          <div className="p-2 border-b border-neutral-100 dark:border-neutral-700">
+                            <div className="relative">
+                              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                              <input
+                                autoFocus
+                                type="text"
+                                value={itemSearch}
+                                onChange={e => setItemSearch(e.target.value)}
+                                placeholder="Search item..."
+                                className="w-full pl-7 pr-3 py-1.5 text-sm rounded-md border border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                              />
+                            </div>
+                          </div>
+                          <ul className="max-h-52 overflow-y-auto py-1">
+                            {dropdownItems.map(item => (
+                              <li
+                                key={item.id}
+                                onClick={() => { handleItemChange(item.id); setItemOpen(false); setItemSearch(''); }}
+                                className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-colors ${newLine.itemId === item.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 font-medium' : 'text-neutral-700 dark:text-neutral-300'}`}
+                              >
+                                {item.name}
+                                {item.sku && <span className="ml-1.5 text-neutral-400 text-xs">{item.sku}</span>}
+                              </li>
+                            ))}
+                            {dropdownItems.length === 0 && (
+                              <li className="px-3 py-3 text-sm text-neutral-400 text-center">
+                                {locationItemIds !== null && locationItemIds.size === 0
+                                  ? 'No items in stock at this location'
+                                  : t('movements.noResults')}
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    {locationItemIds !== null && locationItemIds.size === 0 && !itemSearch && (
+                      <p className="text-xs text-amber-500 mt-1">No stock available at this location</p>
+                    )}
                   </div>
 
                   <div className="col-span-2 sm:col-span-1">
@@ -813,15 +951,14 @@ const CreateMovementPage = () => {
                         inventoryInfo.available < newLine.requestedQuantity && (
                           <div className="mt-3 flex items-center gap-1.5 text-red-600 dark:text-red-400 text-xs font-medium">
                             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                            Insufficient stock — only {inventoryInfo.available} units available
+                            {t('movements.insufficientStockInline', { available: inventoryInfo.available })}
                           </div>
                         )}
                       {newLine.requestedQuantity > 0 &&
                         inventoryInfo.available >= newLine.requestedQuantity && (
                           <div className="mt-3 flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
                             <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                            Stock available —{' '}
-                            {inventoryInfo.available - newLine.requestedQuantity} units will remain
+                            {t('movements.stockAvailable', { remaining: inventoryInfo.available - newLine.requestedQuantity })}
                           </div>
                         )}
                     </div>
@@ -985,7 +1122,7 @@ const CreateMovementPage = () => {
                             <option value="">Select location</option>
                             {filteredLocations.map(loc => (
                               <option key={loc.id} value={loc.id}>
-                                {loc.name} — {loc.code}
+                                {loc.name ? `${loc.name} — ${loc.code}` : loc.code}
                               </option>
                             ))}
                           </select>

@@ -1,5 +1,6 @@
 // frontend/src/pages/inventory/InventoryPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Pagination } from '@/components/ui/Pagination';
 import { motion } from 'framer-motion';
 import {
   Search,
@@ -17,10 +18,12 @@ import {
   CheckCircle,
   TrendingDown,
   PackageX,
+  ChevronDown,
 } from 'lucide-react';
 import { inventoryService } from '@/services/inventory.service';
 import { productService } from '@/services/product.service';
 import { locationService } from '@/services/location.service';
+import { useSettings } from '@/contexts/SettingsContext';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
@@ -72,14 +75,17 @@ interface EnrichedInventory extends Inventory {
 
 export const InventoryPage: React.FC = () => {
   const { t } = useTranslation();
+  const { settings } = useSettings();
   const [inventories, setInventories] = useState<EnrichedInventory[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [filterStockLevel, setFilterStockLevel] = useState(''); // NEW: Filter by stock level
+  const [filterStockLevel, setFilterStockLevel] = useState('');
   const [selectedInventory, setSelectedInventory] = useState<EnrichedInventory | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [, setTick] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(settings.defaultPageSize);
 
   // Reference data
   const [items, setItems] = useState<Map<string, any>>(new Map());
@@ -318,6 +324,8 @@ export const InventoryPage: React.FC = () => {
   // ============================================================================
   // FILTERING
   // ============================================================================
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterStatus, filterStockLevel]);
 
   const filteredInventories = inventories.filter((inventory) => {
     const matchesSearch =
@@ -633,7 +641,7 @@ export const InventoryPage: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredInventories.map((inventory, index) => {
+                  filteredInventories.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((inventory, index) => {
                     const stockLevel = getStockLevel(inventory);
                     return (
                       <motion.tr
@@ -718,6 +726,14 @@ export const InventoryPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredInventories.length / pageSize)}
+            totalItems={filteredInventories.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+          />
         )}
       </motion.div>
 
@@ -957,6 +973,43 @@ const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
   const [locations, setLocations] = useState<any[]>([]);
   const [lots, setLots] = useState<any[]>([]);
   const [serials, setSerials] = useState<any[]>([]);
+  const [itemSearch, setItemSearch] = useState('');
+  const [itemDropdownOpen, setItemDropdownOpen] = useState(false);
+  const itemDropdownRef = useRef<HTMLDivElement>(null);
+  const [warehouseSearch, setWarehouseSearch] = useState('');
+  const [warehouseDropdownOpen, setWarehouseDropdownOpen] = useState(false);
+  const warehouseDropdownRef = useRef<HTMLDivElement>(null);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
+  const locationDropdownRef = useRef<HTMLDivElement>(null);
+  const [lotSearch, setLotSearch] = useState('');
+  const [lotDropdownOpen, setLotDropdownOpen] = useState(false);
+  const lotDropdownRef = useRef<HTMLDivElement>(null);
+  const [serialSearch, setSerialSearch] = useState('');
+  const [serialDropdownOpen, setSerialDropdownOpen] = useState(false);
+  const serialDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (itemDropdownRef.current && !itemDropdownRef.current.contains(e.target as Node)) {
+        setItemDropdownOpen(false);
+      }
+      if (warehouseDropdownRef.current && !warehouseDropdownRef.current.contains(e.target as Node)) {
+        setWarehouseDropdownOpen(false);
+      }
+      if (locationDropdownRef.current && !locationDropdownRef.current.contains(e.target as Node)) {
+        setLocationDropdownOpen(false);
+      }
+      if (lotDropdownRef.current && !lotDropdownRef.current.contains(e.target as Node)) {
+        setLotDropdownOpen(false);
+      }
+      if (serialDropdownRef.current && !serialDropdownRef.current.contains(e.target as Node)) {
+        setSerialDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const [formData, setFormData] = useState({
     itemId: '',
@@ -1028,7 +1081,7 @@ const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
   const fetchItems = async () => {
     try {
       const response = await productService.getItems();
-      setItems(Array.isArray(response) ? response : []);
+      setItems(Array.isArray(response) ? response : (response?.content || []));
     } catch (error) {
       console.error('Error fetching items:', error);
     }
@@ -1037,7 +1090,7 @@ const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
   const fetchWarehouses = async () => {
     try {
       const response = await locationService.getWarehouses();
-      setWarehouses(Array.isArray(response) ? response : []);
+      setWarehouses(Array.isArray(response) ? response : (response?.content || []));
     } catch (error) {
       console.error('Error fetching warehouses:', error);
     }
@@ -1138,19 +1191,56 @@ const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t('inventory.form.item')} <span className="text-red-500">*</span>
               </label>
-              <Select
-                value={formData.itemId}
-                onChange={(e) => setFormData({ ...formData, itemId: e.target.value })}
-                required
-                className="dark:bg-neutral-700 dark:border-neutral-600"
-              >
-                <option value="">{t('inventory.form.selectItem')}</option>
-                {items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name} ({item.sku})
-                  </option>
-                ))}
-              </Select>
+              <div ref={itemDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setItemDropdownOpen(o => !o); setItemSearch(''); }}
+                  className="w-full flex items-center justify-between border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-2 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors text-sm text-left"
+                >
+                  <span className={formData.itemId ? '' : 'text-gray-400 dark:text-gray-500'}>
+                    {formData.itemId
+                      ? (() => { const i = items.find(x => x.id === formData.itemId); return i ? `${i.name} (${i.sku})` : t('inventory.form.selectItem'); })()
+                      : t('inventory.form.selectItem')}
+                  </span>
+                  <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${itemDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {itemDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg">
+                    <div className="p-2 border-b border-gray-100 dark:border-neutral-700">
+                      <div className="relative">
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          autoFocus
+                          type="text"
+                          value={itemSearch}
+                          onChange={e => setItemSearch(e.target.value)}
+                          placeholder={`${t('common.search')}...`}
+                          className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                        />
+                      </div>
+                    </div>
+                    <ul className="max-h-48 overflow-y-auto py-1">
+                      {items
+                        .filter(i => `${i.name} ${i.sku}`.toLowerCase().includes(itemSearch.toLowerCase()))
+                        .map(item => (
+                          <li
+                            key={item.id}
+                            onClick={() => { setFormData(f => ({ ...f, itemId: item.id })); setItemDropdownOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                              formData.itemId === item.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                            }`}
+                          >
+                            {item.name} <span className="text-gray-400 dark:text-gray-500">({item.sku})</span>
+                          </li>
+                        ))}
+                      {items.filter(i => `${i.name} ${i.sku}`.toLowerCase().includes(itemSearch.toLowerCase())).length === 0 && (
+                        <li className="px-3 py-2 text-sm text-gray-400 text-center">{t('common.noResults') ?? 'No results'}</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Warehouse */}
@@ -1158,19 +1248,55 @@ const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t('inventory.form.warehouse')} <span className="text-red-500">*</span>
               </label>
-              <Select
-                value={formData.warehouseId}
-                onChange={(e) => handleWarehouseChange(e.target.value)}
-                required
-                className="dark:bg-neutral-700 dark:border-neutral-600"
-              >
-                <option value="">{t('inventory.form.selectWarehouse')}</option>
-                {warehouses.map((wh) => (
-                  <option key={wh.id} value={wh.id}>
-                    {wh.name}
-                  </option>
-                ))}
-              </Select>
+              <div ref={warehouseDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setWarehouseDropdownOpen(o => !o); setWarehouseSearch(''); }}
+                  className="w-full flex items-center justify-between border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-2 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors text-sm text-left"
+                >
+                  <span className={formData.warehouseId ? '' : 'text-gray-400 dark:text-gray-500'}>
+                    {formData.warehouseId
+                      ? warehouses.find(w => w.id === formData.warehouseId)?.name ?? t('inventory.form.selectWarehouse')
+                      : t('inventory.form.selectWarehouse')}
+                  </span>
+                  <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${warehouseDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {warehouseDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg">
+                    <div className="p-2 border-b border-gray-100 dark:border-neutral-700">
+                      <div className="relative">
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          autoFocus
+                          type="text"
+                          value={warehouseSearch}
+                          onChange={e => setWarehouseSearch(e.target.value)}
+                          placeholder={`${t('common.search')}...`}
+                          className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                        />
+                      </div>
+                    </div>
+                    <ul className="max-h-48 overflow-y-auto py-1">
+                      {warehouses
+                        .filter(w => w.name.toLowerCase().includes(warehouseSearch.toLowerCase()))
+                        .map(wh => (
+                          <li
+                            key={wh.id}
+                            onClick={() => { handleWarehouseChange(wh.id); setWarehouseDropdownOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                              formData.warehouseId === wh.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                            }`}
+                          >
+                            {wh.name}
+                          </li>
+                        ))}
+                      {warehouses.filter(w => w.name.toLowerCase().includes(warehouseSearch.toLowerCase())).length === 0 && (
+                        <li className="px-3 py-2 text-sm text-gray-400 text-center">{t('common.noResults') ?? 'No results'}</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Location */}
@@ -1178,50 +1304,176 @@ const InventoryFormModal: React.FC<InventoryFormModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t('inventory.form.location')} <span className="text-red-500">*</span>
               </label>
-              <Select
-                value={formData.locationId}
-                onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
-                required
-                disabled={!formData.warehouseId}
-                className="dark:bg-neutral-700 dark:border-neutral-600"
-              >
-                <option value="">{t('inventory.form.selectLocation')}</option>
-                {locations.map((loc) => (
-                  <option key={loc.id} value={loc.id}>
-                    {loc.code}
-                  </option>
-                ))}
-              </Select>
+              <div ref={locationDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => { if (formData.warehouseId) { setLocationDropdownOpen(o => !o); setLocationSearch(''); } }}
+                  disabled={!formData.warehouseId}
+                  className={`w-full flex items-center justify-between border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-2 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors text-sm text-left ${!formData.warehouseId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <span className={formData.locationId ? '' : 'text-gray-400 dark:text-gray-500'}>
+                    {formData.locationId
+                      ? locations.find(l => l.id === formData.locationId)?.code ?? t('inventory.form.selectLocation')
+                      : t('inventory.form.selectLocation')}
+                  </span>
+                  <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${locationDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {locationDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg">
+                    <div className="p-2 border-b border-gray-100 dark:border-neutral-700">
+                      <div className="relative">
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          autoFocus
+                          type="text"
+                          value={locationSearch}
+                          onChange={e => setLocationSearch(e.target.value)}
+                          placeholder={`${t('common.search')}...`}
+                          className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                        />
+                      </div>
+                    </div>
+                    <ul className="max-h-48 overflow-y-auto py-1">
+                      {locations
+                        .filter(l => l.code.toLowerCase().includes(locationSearch.toLowerCase()))
+                        .map(loc => (
+                          <li
+                            key={loc.id}
+                            onClick={() => { setFormData(f => ({ ...f, locationId: loc.id })); setLocationDropdownOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                              formData.locationId === loc.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                            }`}
+                          >
+                            {loc.code}
+                          </li>
+                        ))}
+                      {locations.filter(l => l.code.toLowerCase().includes(locationSearch.toLowerCase())).length === 0 && (
+                        <li className="px-3 py-2 text-sm text-gray-400 text-center">{t('common.noResults') ?? 'No results'}</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Lot (Optional) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('inventory.form.lot')}</label>
-              <Select value={formData.lotId} onChange={(e) => setFormData({ ...formData, lotId: e.target.value })} className="dark:bg-neutral-700 dark:border-neutral-600">
-                <option value="">{t('inventory.form.noLot')}</option>
-                {lots.map((lot) => (
-                  <option key={lot.id} value={lot.id}>
-                    {lot.lotNumber}
-                  </option>
-                ))}
-              </Select>
+              <div ref={lotDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setLotDropdownOpen(o => !o); setLotSearch(''); }}
+                  className="w-full flex items-center justify-between border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-2 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors text-sm text-left"
+                >
+                  <span className={formData.lotId ? '' : 'text-gray-400 dark:text-gray-500'}>
+                    {formData.lotId
+                      ? lots.find(l => l.id === formData.lotId)?.lotNumber ?? t('inventory.form.noLot')
+                      : t('inventory.form.noLot')}
+                  </span>
+                  <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${lotDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {lotDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg">
+                    <div className="p-2 border-b border-gray-100 dark:border-neutral-700">
+                      <div className="relative">
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          autoFocus
+                          type="text"
+                          value={lotSearch}
+                          onChange={e => setLotSearch(e.target.value)}
+                          placeholder={`${t('common.search')}...`}
+                          className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                        />
+                      </div>
+                    </div>
+                    <ul className="max-h-48 overflow-y-auto py-1">
+                      <li
+                        onClick={() => { setFormData(f => ({ ...f, lotId: '' })); setLotDropdownOpen(false); }}
+                        className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors ${!formData.lotId ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-400 dark:text-gray-500'}`}
+                      >
+                        {t('inventory.form.noLot')}
+                      </li>
+                      {lots
+                        .filter(l => l.lotNumber.toLowerCase().includes(lotSearch.toLowerCase()))
+                        .map(lot => (
+                          <li
+                            key={lot.id}
+                            onClick={() => { setFormData(f => ({ ...f, lotId: lot.id })); setLotDropdownOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                              formData.lotId === lot.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                            }`}
+                          >
+                            {lot.lotNumber}
+                          </li>
+                        ))}
+                      {lots.filter(l => l.lotNumber.toLowerCase().includes(lotSearch.toLowerCase())).length === 0 && (
+                        <li className="px-3 py-2 text-sm text-gray-400 text-center">{t('common.noResults') ?? 'No results'}</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Serial (Optional) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('inventory.form.serial')}</label>
-              <Select
-                value={formData.serialId}
-                onChange={(e) => setFormData({ ...formData, serialId: e.target.value })}
-                className="dark:bg-neutral-700 dark:border-neutral-600"
-              >
-                <option value="">{t('inventory.form.noSerial')}</option>
-                {serials.map((serial) => (
-                  <option key={serial.id} value={serial.id}>
-                    {serial.serialNumber}
-                  </option>
-                ))}
-              </Select>
+              <div ref={serialDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setSerialDropdownOpen(o => !o); setSerialSearch(''); }}
+                  className="w-full flex items-center justify-between border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-2 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors text-sm text-left"
+                >
+                  <span className={formData.serialId ? '' : 'text-gray-400 dark:text-gray-500'}>
+                    {formData.serialId
+                      ? serials.find(s => s.id === formData.serialId)?.serialNumber ?? t('inventory.form.noSerial')
+                      : t('inventory.form.noSerial')}
+                  </span>
+                  <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${serialDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {serialDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg">
+                    <div className="p-2 border-b border-gray-100 dark:border-neutral-700">
+                      <div className="relative">
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          autoFocus
+                          type="text"
+                          value={serialSearch}
+                          onChange={e => setSerialSearch(e.target.value)}
+                          placeholder={`${t('common.search')}...`}
+                          className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                        />
+                      </div>
+                    </div>
+                    <ul className="max-h-48 overflow-y-auto py-1">
+                      <li
+                        onClick={() => { setFormData(f => ({ ...f, serialId: '' })); setSerialDropdownOpen(false); }}
+                        className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors ${!formData.serialId ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-400 dark:text-gray-500'}`}
+                      >
+                        {t('inventory.form.noSerial')}
+                      </li>
+                      {serials
+                        .filter(s => s.serialNumber.toLowerCase().includes(serialSearch.toLowerCase()))
+                        .map(serial => (
+                          <li
+                            key={serial.id}
+                            onClick={() => { setFormData(f => ({ ...f, serialId: serial.id })); setSerialDropdownOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                              formData.serialId === serial.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                            }`}
+                          >
+                            {serial.serialNumber}
+                          </li>
+                        ))}
+                      {serials.filter(s => s.serialNumber.toLowerCase().includes(serialSearch.toLowerCase())).length === 0 && (
+                        <li className="px-3 py-2 text-sm text-gray-400 text-center">{t('common.noResults') ?? 'No results'}</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Quantity On Hand */}

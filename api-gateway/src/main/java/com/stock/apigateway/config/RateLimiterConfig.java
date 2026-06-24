@@ -1,18 +1,47 @@
 package com.stock.apigateway.config;
 
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import reactor.core.publisher.Mono;
 
 @Configuration
 public class RateLimiterConfig {
 
+    // Use client IP as the rate limit key.
+    // Respects X-Forwarded-For when the gateway is behind a reverse proxy.
     @Bean
-    public KeyResolver userKeyResolver() {
+    public KeyResolver ipKeyResolver() {
         return exchange -> {
-            String userId = exchange.getRequest().getHeaders().getFirst("X-User-Id");
-            return Mono.just(userId != null ? userId : "anonymous");
+            String forwarded = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isBlank()) {
+                return Mono.just(forwarded.split(",")[0].trim());
+            }
+            return Mono.just(
+                exchange.getRequest().getRemoteAddress() != null
+                    ? exchange.getRequest().getRemoteAddress().getAddress().getHostAddress()
+                    : "unknown"
+            );
         };
+    }
+
+    // Strict limiter for public auth endpoints (login, register).
+    // 5 requests/second per IP, burst up to 10.
+    @Bean
+    public RedisRateLimiter authRateLimiter() {
+        return new RedisRateLimiter(5, 10, 1);
+    }
+
+    // Standard limiter for all authenticated API endpoints.
+    // 30 requests/second per IP, burst up to 60.
+    // @Primary so Spring Cloud Gateway's auto-configured RequestRateLimiter factory
+    // has a single default RateLimiter to inject (two RedisRateLimiter beans exist).
+    // Routes still pick their limiter explicitly via @Qualifier in GatewayConfig.
+    @Bean
+    @Primary
+    public RedisRateLimiter apiRateLimiter() {
+        return new RedisRateLimiter(30, 60, 1);
     }
 }

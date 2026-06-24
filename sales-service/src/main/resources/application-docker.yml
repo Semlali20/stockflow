@@ -13,6 +13,9 @@ spring:
       minimum-idle: 10
       connection-timeout: 30000
 
+  flyway:
+    enabled: false
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -29,6 +32,10 @@ server:
   error:
     include-message: always
     include-binding-errors: always
+
+audit:
+  service:
+    url: http://auth-service:8083
 
 services:
   inventory-service:

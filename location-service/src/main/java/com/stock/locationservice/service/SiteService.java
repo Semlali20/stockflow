@@ -4,8 +4,8 @@ package com.stock.locationservice.service;
 import com.stock.locationservice.dto.SiteCreateRequest;
 import com.stock.locationservice.dto.SiteDTO;
 import com.stock.locationservice.entity.SiteType;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface SiteService {
 
@@ -13,11 +13,7 @@ public interface SiteService {
 
     SiteDTO getSiteById(String id);
 
-    List<SiteDTO> getAllSites();
-
-    List<SiteDTO> getSitesByType(SiteType type);
-
-    List<SiteDTO> getActiveSites();
+    Page<SiteDTO> getAllSites(SiteType type, Boolean active, Pageable pageable);
 
     SiteDTO updateSite(String id, SiteCreateRequest request);
 

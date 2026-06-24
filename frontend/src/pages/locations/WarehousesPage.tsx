@@ -17,6 +17,7 @@ import { Select } from '@/components/ui/Select';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { WarehouseFormModal } from '@/components/warehouses/WarehouseFormModal';
 import { Warehouse as WarehouseType, Site } from '@/types';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const WarehousesPage: React.FC = () => {
   const { t } = useTranslation();
@@ -32,6 +33,8 @@ export const WarehousesPage: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchInitialData();
@@ -88,6 +91,8 @@ export const WarehousesPage: React.FC = () => {
       toast.error(t('locations.warehouses.messages.deleteError'));
     }
   };
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterSite, filterStatus]);
 
   const filteredWarehouses = warehouses.filter(wh => {
     if (!wh) return false;
@@ -230,7 +235,7 @@ export const WarehousesPage: React.FC = () => {
               ) : filteredWarehouses.length === 0 ? (
                 <tr><td colSpan={6} className="px-6 py-10 text-center text-neutral-500">{t('locations.warehouses.messages.noWarehouses')}</td></tr>
               ) : (
-                filteredWarehouses.map((wh) => (
+                filteredWarehouses.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((wh) => (
                   <tr key={wh.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors">
                     <td className="px-6 py-4 text-sm font-mono text-neutral-600 dark:text-neutral-400">{wh.code}</td>
                     <td className="px-6 py-4 text-sm font-medium dark:text-white">{wh.name}</td>
@@ -242,10 +247,10 @@ export const WarehousesPage: React.FC = () => {
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         {hasPermission(PERMISSIONS.LOCATIONS_EDIT) && (
-                          <button onClick={() => handleEditClick(wh)} className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
+                          <button onClick={() => handleEditClick(wh)} className="p-2 text-yellow-600 hover:text-yellow-900 transition-colors"><Edit size={18} /></button>
                         )}
                         {hasPermission(PERMISSIONS.LOCATIONS_DELETE) && (
-                          <button onClick={() => handleDeleteClick(wh)} className="p-2 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                          <button onClick={() => handleDeleteClick(wh)} className="p-2 text-red-600 hover:text-red-900 transition-colors"><Trash2 size={18} /></button>
                         )}
                       </div>
                     </td>
@@ -255,6 +260,14 @@ export const WarehousesPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(filteredWarehouses.length / pageSize)}
+          totalItems={filteredWarehouses.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        />
       </div>
 
       <DeleteConfirmDialog

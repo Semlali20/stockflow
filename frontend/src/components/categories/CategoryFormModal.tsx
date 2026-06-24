@@ -30,8 +30,7 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
-  
-  // Form data
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -39,15 +38,13 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
     displayOrder: 0,
   });
 
-  // Attribute schemas as array (easier to work with)
   const [attributeSchemas, setAttributeSchemas] = useState<AttributeSchema[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       fetchCategories();
-      
+
       if (mode === 'edit' && category) {
-        // EDIT MODE - Populate form with category data
         setFormData({
           name: category.name || '',
           description: category.description || '',
@@ -55,18 +52,16 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
           displayOrder: category.displayOrder || 0,
         });
 
-        // Parse existing attribute schemas
         try {
           if (category.attributeSchemas) {
             const parsed = typeof category.attributeSchemas === 'string'
               ? JSON.parse(category.attributeSchemas)
               : category.attributeSchemas;
-            
-            if (parsed.attributeSchemas && Array.isArray(parsed.attributeSchemas)) {
-              setAttributeSchemas(parsed.attributeSchemas);
-            } else {
-              setAttributeSchemas([]);
-            }
+            setAttributeSchemas(
+              parsed.attributeSchemas && Array.isArray(parsed.attributeSchemas)
+                ? parsed.attributeSchemas
+                : []
+            );
           } else {
             setAttributeSchemas([]);
           }
@@ -75,13 +70,7 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
           setAttributeSchemas([]);
         }
       } else {
-        // CREATE MODE - Reset form
-        setFormData({
-          name: '',
-          description: '',
-          parentCategoryId: '',
-          displayOrder: 0,
-        });
+        setFormData({ name: '', description: '', parentCategoryId: '', displayOrder: 0 });
         setAttributeSchemas([]);
       }
     }
@@ -91,12 +80,9 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
     try {
       const response = await productService.getCategories();
       const data = Array.isArray(response) ? response : response?.content || [];
-      
-      // Filter out current category when editing to prevent self-reference
-      const filtered = mode === 'edit' && category 
+      const filtered = mode === 'edit' && category
         ? data.filter((cat: any) => cat.id !== category.id)
         : data;
-      
       setCategories(filtered);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -104,20 +90,12 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
     }
   };
 
-  // Add new attribute schema
-  const addAttributeSchema = () => {
-    setAttributeSchemas([
-      ...attributeSchemas,
-      { name: '', type: 'string', required: false }
-    ]);
-  };
+  const addAttributeSchema = () =>
+    setAttributeSchemas([...attributeSchemas, { name: '', type: 'string', required: false }]);
 
-  // Remove attribute schema
-  const removeAttributeSchema = (index: number) => {
+  const removeAttributeSchema = (index: number) =>
     setAttributeSchemas(attributeSchemas.filter((_, i) => i !== index));
-  };
 
-  // Update attribute schema
   const updateAttributeSchema = (index: number, field: keyof AttributeSchema, value: any) => {
     const updated = [...attributeSchemas];
     updated[index] = { ...updated[index], [field]: value };
@@ -127,9 +105,7 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      // Convert attribute schemas array to JSON string
       const attributeSchemasJson = attributeSchemas.length > 0
         ? JSON.stringify({ attributeSchemas })
         : undefined;
@@ -149,12 +125,11 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
         await productService.createCategory(requestData);
         toast.success(t('products.categories.form.messages.createSuccess'));
       }
-      
+
       onSuccess();
       onClose();
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Operation failed';
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || error.message || 'Operation failed');
       console.error('Error:', error);
     } finally {
       setLoading(false);
@@ -163,29 +138,35 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
 
   if (!isOpen) return null;
 
+  const inputCls = 'w-full border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-2 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors';
+  const labelCls = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2';
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-900">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-neutral-700">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-neutral-700">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             {mode === 'edit' ? t('products.categories.form.editTitle') : t('products.categories.form.createTitle')}
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button
+            onClick={onClose}
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          >
             <X size={24} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Basic Information */}
+          {/* Name + Parent */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Name - REQUIRED */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={labelCls}>
                 {t('products.categories.form.name')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={inputCls}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
@@ -194,21 +175,16 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
               />
             </div>
 
-            {/* Parent Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('products.categories.form.parentCategory')}
-              </label>
+              <label className={labelCls}>{t('products.categories.form.parentCategory')}</label>
               <select
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={inputCls}
                 value={formData.parentCategoryId}
                 onChange={(e) => setFormData({ ...formData, parentCategoryId: e.target.value })}
               >
                 <option value="">{t('products.categories.form.noneRoot')}</option>
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
             </div>
@@ -216,11 +192,9 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('products.categories.form.description')}
-            </label>
+            <label className={labelCls}>{t('products.categories.form.description')}</label>
             <textarea
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputCls}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
@@ -231,12 +205,10 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
 
           {/* Display Order */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('products.categories.form.displayOrder')}
-            </label>
+            <label className={labelCls}>{t('products.categories.form.displayOrder')}</label>
             <input
               type="number"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputCls}
               value={formData.displayOrder}
               onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })}
               min={0}
@@ -244,16 +216,14 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
             />
           </div>
 
-          {/* Attribute Schemas Builder */}
+          {/* Attribute Schemas */}
           <div>
             <div className="flex justify-between items-center mb-3">
-              <label className="block text-sm font-medium text-gray-700">
-                {t('products.categories.form.attributeSchemas')}
-              </label>
+              <label className={labelCls + ' mb-0'}>{t('products.categories.form.attributeSchemas')}</label>
               <button
                 type="button"
                 onClick={addAttributeSchema}
-                className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
               >
                 <Plus size={16} />
                 {t('products.categories.form.addAttribute')}
@@ -262,22 +232,24 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
 
             <div className="space-y-3">
               {attributeSchemas.length === 0 ? (
-                <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                  <p className="text-gray-500 text-sm">
+                <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-lg">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">
                     {t('products.categories.form.noAttributes')}
                   </p>
                 </div>
               ) : (
                 attributeSchemas.map((schema, index) => (
-                  <div key={index} className="flex gap-3 items-start p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    {/* Attribute Name */}
+                  <div
+                    key={index}
+                    className="flex gap-3 items-start p-4 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700"
+                  >
                     <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                         {t('products.categories.form.attrName')}
                       </label>
                       <input
                         type="text"
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full border border-gray-300 dark:border-neutral-600 rounded px-3 py-2 text-sm bg-white dark:bg-neutral-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
                         value={schema.name}
                         onChange={(e) => updateAttributeSchema(index, 'name', e.target.value)}
                         placeholder={t('products.categories.form.attrNamePlaceholder')}
@@ -285,13 +257,12 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
                       />
                     </div>
 
-                    {/* Attribute Type */}
                     <div className="w-40">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                         {t('products.categories.form.type')}
                       </label>
                       <select
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full border border-gray-300 dark:border-neutral-600 rounded px-3 py-2 text-sm bg-white dark:bg-neutral-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
                         value={schema.type}
                         onChange={(e) => updateAttributeSchema(index, 'type', e.target.value)}
                       >
@@ -302,24 +273,24 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
                       </select>
                     </div>
 
-                    {/* Required Checkbox */}
                     <div className="flex items-end pb-2">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-blue-600 accent-blue-600 rounded"
                           checked={schema.required}
                           onChange={(e) => updateAttributeSchema(index, 'required', e.target.checked)}
                         />
-                        <span className="text-xs text-gray-600">{t('products.categories.form.required')}</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                          {t('products.categories.form.required')}
+                        </span>
                       </label>
                     </div>
 
-                    {/* Remove Button */}
                     <button
                       type="button"
                       onClick={() => removeAttributeSchema(index)}
-                      className="flex items-center justify-center w-8 h-8 text-red-600 hover:bg-red-50 rounded mt-5"
+                      className="flex items-center justify-center w-8 h-8 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded mt-5 transition-colors"
                       title={t('common.remove')}
                     >
                       <Trash2 size={16} />
@@ -328,34 +299,28 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
                 ))
               )}
             </div>
-
-            {/* Preview */}
-            {attributeSchemas.length > 0 && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs font-medium text-blue-800 mb-2">{t('products.categories.form.jsonPreview')}</p>
-                <pre className="text-xs text-blue-700 overflow-x-auto">
-                  {JSON.stringify({ attributeSchemas }, null, 2)}
-                </pre>
-              </div>
-            )}
           </div>
 
-          {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-neutral-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-6 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
               disabled={loading}
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
-              {loading ? t('products.categories.form.saving') : (mode === 'edit' ? t('products.categories.form.update') : t('products.categories.form.create'))}
+              {loading
+                ? t('products.categories.form.saving')
+                : mode === 'edit'
+                ? t('products.categories.form.update')
+                : t('products.categories.form.create')}
             </button>
           </div>
         </form>

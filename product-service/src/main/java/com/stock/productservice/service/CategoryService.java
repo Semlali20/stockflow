@@ -3,8 +3,8 @@ package com.stock.productservice.service;
 import com.stock.productservice.dto.CategoryCreateRequest;
 import com.stock.productservice.dto.CategoryDTO;
 import com.stock.productservice.dto.CategoryUpdateRequest;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CategoryService {
 
@@ -14,13 +14,7 @@ public interface CategoryService {
 
     CategoryDTO getCategoryByName(String name);
 
-    List<CategoryDTO> getAllCategories();
-
-    List<CategoryDTO> getCategoriesByParentId(String parentId);
-
-    List<CategoryDTO> getRootCategories();
-
-    List<CategoryDTO> getActiveCategories();
+    Page<CategoryDTO> getAllCategories(String parentId, Boolean active, Boolean rootOnly, Pageable pageable);
 
     CategoryDTO updateCategory(String id, CategoryUpdateRequest request);
 

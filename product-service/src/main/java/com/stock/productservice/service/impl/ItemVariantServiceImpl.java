@@ -14,12 +14,12 @@ import com.stock.productservice.repository.ItemVariantRepository;
 import com.stock.productservice.service.ItemVariantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -99,41 +99,33 @@ public class ItemVariantServiceImpl implements ItemVariantService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ItemVariantDTO> getAllItemVariants() {
-        log.info("Fetching all item variants");
+    public Page<ItemVariantDTO> getAllItemVariants(Boolean active, Pageable pageable) {
+        log.info("Fetching item variants - active: {}", active);
 
-        return itemVariantRepository.findAll().stream()
-                .map(variant -> {
-                    Item parentItem = getParentItem(variant.getParentItemId());
-                    return mapToDTO(variant, parentItem.getName(), parentItem.getSku());
-                })
-                .collect(Collectors.toList());
+        Page<ItemVariant> page;
+        if (active != null && active) {
+            page = itemVariantRepository.findActiveItemVariants(pageable);
+        } else if (active != null) {
+            page = itemVariantRepository.findByIsActive(active, pageable);
+        } else {
+            page = itemVariantRepository.findAll(pageable);
+        }
+
+        return page.map(variant -> {
+            Item parentItem = getParentItem(variant.getParentItemId());
+            return mapToDTO(variant, parentItem.getName(), parentItem.getSku());
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ItemVariantDTO> getActiveItemVariants() {
-        log.info("Fetching active item variants");
-
-        return itemVariantRepository.findActiveItemVariants().stream()
-                .map(variant -> {
-                    Item parentItem = getParentItem(variant.getParentItemId());
-                    return mapToDTO(variant, parentItem.getName(), parentItem.getSku());
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ItemVariantDTO> searchItemVariants(String keyword) {
+    public Page<ItemVariantDTO> searchItemVariants(String keyword, Pageable pageable) {
         log.info("Searching item variants with keyword: {}", keyword);
 
-        return itemVariantRepository.searchItemVariants(keyword).stream()
-                .map(variant -> {
-                    Item parentItem = getParentItem(variant.getParentItemId());
-                    return mapToDTO(variant, parentItem.getName(), parentItem.getSku());
-                })
-                .collect(Collectors.toList());
+        return itemVariantRepository.searchItemVariants(keyword, pageable).map(variant -> {
+            Item parentItem = getParentItem(variant.getParentItemId());
+            return mapToDTO(variant, parentItem.getName(), parentItem.getSku());
+        });
     }
 
     @Override

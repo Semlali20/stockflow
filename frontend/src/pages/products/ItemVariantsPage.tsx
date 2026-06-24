@@ -12,6 +12,7 @@ import { ItemVariantDetailModal } from '@/components/item-variants/ItemVariantDe
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const ItemVariantsPage = () => {
   const { t } = useTranslation();
@@ -22,6 +23,8 @@ export const ItemVariantsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterItem, setFilterItem] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -91,6 +94,7 @@ export const ItemVariantsPage = () => {
     }
 
     setFilteredVariants(filtered);
+    setCurrentPage(1);
   }, [searchTerm, filterItem, filterStatus, variants]);
 
   // Handlers
@@ -194,6 +198,7 @@ export const ItemVariantsPage = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -226,7 +231,7 @@ export const ItemVariantsPage = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredVariants.map((variant) => (
+                  filteredVariants.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((variant) => (
                     <tr key={variant.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{variant.name || '-'}</div>
@@ -290,6 +295,15 @@ export const ItemVariantsPage = () => {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredVariants.length / pageSize)}
+            totalItems={filteredVariants.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+          />
+          </>
         )}
       </div>
 

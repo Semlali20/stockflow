@@ -1,6 +1,13 @@
 spring:
   application:
     name: location-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8083/.well-known/jwks.json
+  flyway:
+    enabled: false
   datasource:
     url: jdbc:postgresql://localhost:5435/location_db
     username: location_user
@@ -23,3 +30,8 @@ server:
   error:
     include-message: always
     include-binding-errors: always
+
+# Audit logging
+audit:
+  service:
+    url: http://localhost:8083

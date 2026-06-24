@@ -7,6 +7,7 @@ import com.opencsv.bean.CsvToBeanBuilder;
 import com.stock.productservice.dto.ItemCreateRequest;
 import com.stock.productservice.dto.ItemDTO;
 import com.stock.productservice.dto.csv.ItemCsvRecord;
+import com.stock.productservice.service.CategoryService;
 import com.stock.productservice.service.ItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -35,6 +37,7 @@ import java.util.*;
 public class ItemCsvController {
 
     private final ItemService itemService;
+    private final CategoryService categoryService;
 
     @GetMapping("/export/csv")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MANAGER','ROLE_WAREHOUSE_MANAGER','ROLE_AUDITOR','ROLE_PROCUREMENT')")
@@ -60,7 +63,7 @@ public class ItemCsvController {
                 });
 
                 // Data
-                List<ItemDTO> items = itemService.getAllItems();
+                List<ItemDTO> items = itemService.getAllItems(null, null, Pageable.unpaged()).getContent();
                 for (ItemDTO item : items) {
                     csvWriter.writeNext(new String[]{
                             nullSafe(item.getId()),
@@ -124,10 +127,22 @@ public class ItemCsvController {
                         continue;
                     }
 
+                    String categoryId = record.getCategoryId().trim();
+                    // If categoryId is not a UUID, treat it as a category name and look it up
+                    if (!categoryId.matches("[0-9a-fA-F\\-]{36}")) {
+                        try {
+                            categoryId = categoryService.getCategoryByName(categoryId).getId();
+                        } catch (Exception e) {
+                            errors.add(Map.of("row", rowNumber, "message",
+                                    "Category not found: " + categoryId));
+                            continue;
+                        }
+                    }
+
                     ItemCreateRequest request = ItemCreateRequest.builder()
                             .sku(record.getSku().trim())
                             .name(record.getName().trim())
-                            .categoryId(record.getCategoryId().trim())
+                            .categoryId(categoryId)
                             .description(isBlank(record.getDescription()) ? null : record.getDescription().trim())
                             .tags(isBlank(record.getTags()) ? null : record.getTags().trim())
                             .isSerialized(parseBool(record.getIsSerialized()))

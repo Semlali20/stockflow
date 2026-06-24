@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.gitignore
+.vscode
+*.log
+ts_errors.txt
+tsc_output.txt
+tsc_output_restoration.txt
+Dockerfile
+.dockerignore

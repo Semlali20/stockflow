@@ -25,9 +25,7 @@ spring:
     open-in-view: false
 
   flyway:
-    enabled: true
-    baseline-on-migrate: true
-    locations: classpath:db/migration
+    enabled: false
 
   kafka:
     bootstrap-servers: kafka:29092
@@ -65,6 +63,10 @@ services:
     url: http://location-service:8085
   alert-service:
     url: http://alert-service:8088
+
+audit:
+  service:
+    url: http://auth-service:8083
 
 server:
   port: 8086

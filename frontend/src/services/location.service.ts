@@ -35,8 +35,8 @@ export const locationService = {
     return response.data;
   },
   // Sites
-  getSites: async (params?: PaginationParams): Promise<any> => {
-    const response = await apiClient.get<any>(API_ENDPOINTS.LOCATIONS.SITES, { params });
+  getSites: async (params?: PaginationParams): Promise<PaginatedResponse<Site>> => {
+    const response = await apiClient.get<PaginatedResponse<Site>>(API_ENDPOINTS.LOCATIONS.SITES, { params });
     return response.data;
   },
 
@@ -61,8 +61,8 @@ export const locationService = {
   },
 
   // Warehouses
-  getWarehouses: async (params?: PaginationParams): Promise<any> => {
-    const response = await apiClient.get<any>(API_ENDPOINTS.LOCATIONS.WAREHOUSES, { params });
+  getWarehouses: async (params?: PaginationParams): Promise<PaginatedResponse<Warehouse>> => {
+    const response = await apiClient.get<PaginatedResponse<Warehouse>>(API_ENDPOINTS.LOCATIONS.WAREHOUSES, { params });
     return response.data;
   },
 

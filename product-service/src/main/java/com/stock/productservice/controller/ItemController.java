@@ -9,11 +9,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/items")
@@ -49,31 +51,22 @@ public class ItemController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all items", description = "Get all items with optional filters")
-    public ResponseEntity<List<ItemDTO>> getAllItems(
+    @Operation(summary = "Get all items", description = "Get all items with optional filters and pagination")
+    public ResponseEntity<Page<ItemDTO>> getAllItems(
             @RequestParam(required = false) String categoryId,
-            @RequestParam(required = false) Boolean active) {
+            @RequestParam(required = false) Boolean active,
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         log.info("REST request to get all items - categoryId: {}, active: {}", categoryId, active);
-
-        List<ItemDTO> items;
-
-        if (categoryId != null) {
-            items = itemService.getItemsByCategory(categoryId);
-        } else if (active != null && active) {
-            items = itemService.getActiveItems();
-        } else {
-            items = itemService.getAllItems();
-        }
-
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(itemService.getAllItems(categoryId, active, pageable));
     }
 
     @GetMapping("/search")
     @Operation(summary = "Search items", description = "Search items by keyword")
-    public ResponseEntity<List<ItemDTO>> searchItems(@RequestParam String keyword) {
+    public ResponseEntity<Page<ItemDTO>> searchItems(
+            @RequestParam String keyword,
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         log.info("REST request to search items with keyword: {}", keyword);
-        List<ItemDTO> items = itemService.searchItems(keyword);
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(itemService.searchItems(keyword, pageable));
     }
 
     @PutMapping("/{id}")

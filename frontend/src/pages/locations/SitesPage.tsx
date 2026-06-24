@@ -16,6 +16,7 @@ import { Select } from '@/components/ui/Select';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { SiteFormModal } from '@/components/sites/SiteFormModal';
 import { Site } from '@/types';
+import { Pagination } from '@/components/ui/Pagination';
 
 export const SitesPage: React.FC = () => {
   const { t } = useTranslation();
@@ -30,6 +31,8 @@ export const SitesPage: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchSites();
@@ -80,33 +83,36 @@ export const SitesPage: React.FC = () => {
     }
   };
 
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterType, filterStatus]);
+
   const filteredSites = sites.filter(site => {
     if (!site) return false;
     const matchesSearch = !searchTerm || 
       (site.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (site.code?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesType = !filterType || site.type === filterType;
-    const matchesStatus = !filterStatus || site.status === filterStatus;
+    const siteActive = site.isActive !== false;
+    const matchesStatus = !filterStatus ||
+      (filterStatus === 'ACTIVE' ? siteActive : !siteActive);
     return matchesSearch && matchesType && matchesStatus;
   });
 
   const stats = {
     total: sites.length,
-    active: sites.filter(s => s?.status === 'ACTIVE').length,
+    active: sites.filter(s => s?.isActive !== false).length,
     warehouses: sites.filter(s => s?.type === 'WAREHOUSE').length,
     offices: sites.filter(s => s?.type === 'OFFICE').length,
   };
 
-  const getStatusBadge = (status: string) => {
-    const s = status || 'UNKNOWN';
-    const isActive = s === 'ACTIVE';
+  const getStatusBadge = (isActive: boolean | undefined) => {
+    const active = isActive !== false;
     return (
       <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg ${
-        isActive 
-          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
+        active
+          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
           : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
       }`}>
-        {t(`locations.sites.status.${s.toLowerCase()}`, { defaultValue: s })}
+        {active ? t('locations.sites.status.active') : t('locations.sites.status.inactive')}
       </span>
     );
   };
@@ -133,7 +139,7 @@ export const SitesPage: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-neutral-800 p-5 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center justify-between mb-2">
             <Globe className="text-blue-500" size={24} />
@@ -142,13 +148,6 @@ export const SitesPage: React.FC = () => {
           <p className="text-sm text-neutral-600 dark:text-neutral-400">{t('locations.sites.stats.totalSites')}</p>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-neutral-800 p-5 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-700">
-          <div className="flex items-center justify-between mb-2">
-            <CheckCircle className="text-green-500" size={24} />
-            <span className="text-2xl font-bold dark:text-white">{stats.active}</span>
-          </div>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">{t('locations.sites.stats.active')}</p>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white dark:bg-neutral-800 p-5 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center justify-between mb-2">
             <Building2 className="text-purple-500" size={24} />
             <span className="text-2xl font-bold dark:text-white">{stats.warehouses}</span>
@@ -213,17 +212,16 @@ export const SitesPage: React.FC = () => {
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.sites.table.name')}</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.sites.table.type')}</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.sites.table.address')}</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500">{t('locations.sites.table.status')}</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase text-neutral-500 text-right">{t('locations.sites.table.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
               {loading ? (
-                <tr><td colSpan={5} className="px-6 py-10 text-center text-neutral-500">{t('common.loading')}</td></tr>
+                <tr><td colSpan={4} className="px-6 py-10 text-center text-neutral-500">{t('common.loading')}</td></tr>
               ) : filteredSites.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-10 text-center text-neutral-500">{t('locations.sites.messages.noSites')}</td></tr>
+                <tr><td colSpan={4} className="px-6 py-10 text-center text-neutral-500">{t('locations.sites.messages.noSites')}</td></tr>
               ) : (
-                filteredSites.map((site) => (
+                filteredSites.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((site) => (
                   <tr key={site.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors">
                     <td className="px-6 py-4 text-sm font-medium dark:text-white">{site.name}</td>
                     <td className="px-6 py-4 text-sm">
@@ -232,14 +230,13 @@ export const SitesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400 truncate max-w-[200px]">{site.address}</td>
-                    <td className="px-6 py-4">{getStatusBadge(site.status)}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         {hasPermission(PERMISSIONS.LOCATIONS_EDIT) && (
-                          <button onClick={() => handleEditClick(site)} className="p-2 text-neutral-400 hover:text-blue-500 transition-colors"><Edit size={18} /></button>
+                          <button onClick={() => handleEditClick(site)} className="p-2 text-yellow-600 hover:text-yellow-900 transition-colors"><Edit size={18} /></button>
                         )}
                         {hasPermission(PERMISSIONS.LOCATIONS_DELETE) && (
-                          <button onClick={() => handleDeleteClick(site)} className="p-2 text-neutral-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                          <button onClick={() => handleDeleteClick(site)} className="p-2 text-red-600 hover:text-red-900 transition-colors"><Trash2 size={18} /></button>
                         )}
                       </div>
                     </td>
@@ -249,6 +246,14 @@ export const SitesPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(filteredSites.length / pageSize)}
+          totalItems={filteredSites.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+        />
       </div>
 
       <DeleteConfirmDialog

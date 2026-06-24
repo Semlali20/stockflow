@@ -4,9 +4,10 @@
     {
       "name": "frontend",
       "runtimeExecutable": "C:/Program Files/nodejs/node.exe",
-      "runtimeArgs": ["C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js", "run", "dev", "--", "--port", "5174", "--strictPort"],
+      "runtimeArgs": ["C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js", "run", "dev"],
       "cwd": "frontend",
-      "port": 5174
+      "port": 5174,
+      "autoPort": true
     }
   ]
 }

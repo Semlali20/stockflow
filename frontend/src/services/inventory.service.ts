@@ -106,6 +106,11 @@ export const inventoryService = {
     return response.data;
   },
 
+  getInventoryByItemAndLocation: async (itemId: string, locationId: string): Promise<any> => {
+    const response = await apiClient.get(`${API_ENDPOINTS.INVENTORY.INVENTORY}/item/${itemId}/location/${locationId}`);
+    return response.data;
+  },
+
   getInventoriesByWarehouse: async (warehouseId: string): Promise<any> => {
     const response = await apiClient.get(`${API_ENDPOINTS.INVENTORY.INVENTORY}/warehouse/${warehouseId}`);
     return response.data;

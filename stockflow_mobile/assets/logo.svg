@@ -1,0 +1,46 @@
+<svg width="480" height="160" viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="55%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="gBox" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="gText" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(80, 80)">
+    <polygon points="0,-62 54,-31 54,31 0,62 -54,31 -54,-31"
+      fill="none" stroke="url(#gMain)" stroke-width="5" stroke-linejoin="round"/>
+    <line x1="-54" y1="-31" x2="-74" y2="-46" stroke="url(#gMain)" stroke-width="4" stroke-linecap="round"/>
+    <polyline points="-84,-38 -74,-46 -64,-46" fill="none" stroke="url(#gMain)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="54" y1="31" x2="74" y2="46" stroke="url(#gMain)" stroke-width="4" stroke-linecap="round"/>
+    <polyline points="64,46 74,46 74,36" fill="none" stroke="url(#gMain)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <polygon points="-2,-26 -22,-15 -22,9 -2,20" fill="#312E81" opacity="0.75"/>
+    <polygon points="-2,-26 18,-15 18,9 -2,20" fill="#1E40AF" opacity="0.55"/>
+    <polygon points="-2,-26 -22,-15 -2,-4 18,-15" fill="url(#gBox)" opacity="0.95"/>
+    <polygon points="-2,20 -18,11 -18,32 -2,41" fill="#312E81" opacity="0.75"/>
+    <polygon points="-2,20 14,11 14,32 -2,41" fill="#1E40AF" opacity="0.55"/>
+    <polygon points="-2,20 -18,11 -2,2 14,11" fill="url(#gBox)" opacity="0.95"/>
+  </g>
+
+  <text x="158" y="72"
+    font-family="system-ui,-apple-system,Helvetica,Arial,sans-serif"
+    font-size="38" font-weight="700" letter-spacing="-0.5"
+    fill="url(#gText)">Stock</text>
+  <text x="158" y="112"
+    font-family="system-ui,-apple-system,Helvetica,Arial,sans-serif"
+    font-size="38" font-weight="300" letter-spacing="2"
+    fill="url(#gText)">Flow</text>
+  <rect x="158" y="118" width="158" height="2" rx="1" fill="url(#gMain)"/>
+  <text x="158" y="138"
+    font-family="system-ui,-apple-system,Helvetica,Arial,sans-serif"
+    font-size="9" font-weight="400" letter-spacing="2.5"
+    fill="#6B7280">INVENTORY · LOGISTICS · ANALYTICS</text>
+</svg>

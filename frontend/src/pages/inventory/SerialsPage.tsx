@@ -1,6 +1,6 @@
 // frontend/src/pages/inventory/SerialsPage.tsx - CORRECTED VERSION
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Hash } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Plus, Edit, Trash2, Hash, ChevronDown } from 'lucide-react';
 import { inventoryService } from '@/services/inventory.service';
 import { productService } from '@/services/product.service';
 import { locationService } from '@/services/location.service';
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
+import { Pagination } from '@/components/ui/Pagination';
 
 interface Serial {
   id: string;
@@ -32,6 +33,8 @@ export const SerialsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [selectedSerial, setSelectedSerial] = useState<Serial | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Lookup maps
   const [itemNames, setItemNames] = useState<Map<string, string>>(new Map());
@@ -121,6 +124,8 @@ export const SerialsPage: React.FC = () => {
     setIsEditModalOpen(false);
     setSelectedSerial(null);
   };
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterStatus]);
 
   const filteredSerials = serials.filter((serial) => {
     const matchesSearch =
@@ -227,6 +232,7 @@ export const SerialsPage: React.FC = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -247,7 +253,7 @@ export const SerialsPage: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredSerials.map((serial) => (
+                  filteredSerials.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((serial) => (
                     <tr key={serial.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{serial.code}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-mono">
@@ -306,6 +312,15 @@ export const SerialsPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredSerials.length / pageSize)}
+            totalItems={filteredSerials.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
+          />
+          </>
         )}
       </div>
 
@@ -364,6 +379,12 @@ const SerialFormModal: React.FC<SerialFormModalProps> = ({ isOpen, onClose, onSu
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
+  const [itemSearch, setItemSearch] = useState('');
+  const [itemDropdownOpen, setItemDropdownOpen] = useState(false);
+  const itemDropdownRef = useRef<HTMLDivElement>(null);
+  const [locSearch, setLocSearch] = useState('');
+  const [locDropdownOpen, setLocDropdownOpen] = useState(false);
+  const locDropdownRef = useRef<HTMLDivElement>(null);
 
   // Form data matching backend DTOs
   const [formData, setFormData] = useState({
@@ -373,6 +394,19 @@ const SerialFormModal: React.FC<SerialFormModalProps> = ({ isOpen, onClose, onSu
     status: 'IN_STOCK',
     locationId: '',
   });
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (itemDropdownRef.current && !itemDropdownRef.current.contains(e.target as Node)) {
+        setItemDropdownOpen(false);
+      }
+      if (locDropdownRef.current && !locDropdownRef.current.contains(e.target as Node)) {
+        setLocDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -484,19 +518,56 @@ const SerialFormModal: React.FC<SerialFormModalProps> = ({ isOpen, onClose, onSu
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('inventory.serials.table.itemId')} <span className="text-red-500">*</span>
               </label>
-              <Select
-                value={formData.itemId}
-                onChange={(e) => setFormData({ ...formData, itemId: e.target.value })}
-                required
-                disabled={mode === 'edit'}
-              >
-                <option value="">{t('common.selectItem')}</option>
-                {items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name} ({item.sku})
-                  </option>
-                ))}
-              </Select>
+              <div ref={itemDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => { if (mode !== 'edit') { setItemDropdownOpen(o => !o); setItemSearch(''); } }}
+                  disabled={mode === 'edit'}
+                  className={`w-full flex items-center justify-between border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-900 text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${mode === 'edit' ? 'opacity-60 cursor-not-allowed' : ''}`}
+                >
+                  <span className={formData.itemId ? '' : 'text-gray-400'}>
+                    {formData.itemId
+                      ? (() => { const i = items.find(x => x.id === formData.itemId); return i ? `${i.name} (${i.sku})` : t('common.selectItem'); })()
+                      : t('common.selectItem')}
+                  </span>
+                  <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${itemDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {itemDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg">
+                    <div className="p-2 border-b border-gray-100">
+                      <div className="relative">
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          autoFocus
+                          type="text"
+                          value={itemSearch}
+                          onChange={e => setItemSearch(e.target.value)}
+                          placeholder={`${t('common.search')}...`}
+                          className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                        />
+                      </div>
+                    </div>
+                    <ul className="max-h-52 overflow-y-auto py-1">
+                      {items
+                        .filter(i => `${i.name} ${i.sku}`.toLowerCase().includes(itemSearch.toLowerCase()))
+                        .map(item => (
+                          <li
+                            key={item.id}
+                            onClick={() => { setFormData({ ...formData, itemId: item.id }); setItemDropdownOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
+                              formData.itemId === item.id ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-gray-700'
+                            }`}
+                          >
+                            {item.name} <span className="text-gray-400">({item.sku})</span>
+                          </li>
+                        ))}
+                      {items.filter(i => `${i.name} ${i.sku}`.toLowerCase().includes(itemSearch.toLowerCase())).length === 0 && (
+                        <li className="px-3 py-2 text-sm text-gray-400 text-center">No results</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Code - Required */}
@@ -551,17 +622,55 @@ const SerialFormModal: React.FC<SerialFormModalProps> = ({ isOpen, onClose, onSu
             {/* Location - Optional */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">{t('inventory.serials.table.location')}</label>
-              <Select
-                value={formData.locationId}
-                onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
-              >
-                <option value="">{t('common.noLocation')}</option>
-                {locations.filter(loc => loc?.id).map((loc) => (
-                  <option key={loc.id} value={loc.id}>
-                    {loc.code || loc.name || loc.id}
-                  </option>
-                ))}
-              </Select>
+              <div ref={locDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setLocDropdownOpen(o => !o); setLocSearch(''); }}
+                  className="w-full flex items-center justify-between border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-900 text-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                >
+                  <span className={formData.locationId ? '' : 'text-gray-400'}>
+                    {formData.locationId
+                      ? (() => { const l = locations.find(x => x.id === formData.locationId); return l ? (l.code || l.name || l.id) : t('common.selectLocation', 'Select Location'); })()
+                      : t('common.selectLocation', 'Select Location')}
+                  </span>
+                  <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${locDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {locDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg">
+                    <div className="p-2 border-b border-gray-100">
+                      <div className="relative">
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          autoFocus
+                          type="text"
+                          value={locSearch}
+                          onChange={e => setLocSearch(e.target.value)}
+                          placeholder={`${t('common.search')}...`}
+                          className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                        />
+                      </div>
+                    </div>
+                    <ul className="max-h-52 overflow-y-auto py-1">
+                      {locations
+                        .filter(loc => loc?.id && `${loc.code || ''} ${loc.name || ''}`.toLowerCase().includes(locSearch.toLowerCase()))
+                        .map(loc => (
+                          <li
+                            key={loc.id}
+                            onClick={() => { setFormData({ ...formData, locationId: loc.id }); setLocDropdownOpen(false); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
+                              formData.locationId === loc.id ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-gray-700'
+                            }`}
+                          >
+                            {loc.code || loc.name || loc.id}
+                          </li>
+                        ))}
+                      {locations.filter(loc => loc?.id && `${loc.code || ''} ${loc.name || ''}`.toLowerCase().includes(locSearch.toLowerCase())).length === 0 && (
+                        <li className="px-3 py-2 text-sm text-gray-400 text-center">No results</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

@@ -9,11 +9,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -49,27 +51,15 @@ public class CategoryController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all categories", description = "Get all categories with optional filters")
-    public ResponseEntity<List<CategoryDTO>> getAllCategories(
+    @Operation(summary = "Get all categories", description = "Get all categories with optional filters and pagination")
+    public ResponseEntity<Page<CategoryDTO>> getAllCategories(
             @RequestParam(required = false) String parentId,
             @RequestParam(required = false) Boolean active,
-            @RequestParam(required = false) Boolean rootOnly) {
+            @RequestParam(required = false) Boolean rootOnly,
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         log.info("REST request to get all categories - parentId: {}, active: {}, rootOnly: {}",
                 parentId, active, rootOnly);
-
-        List<CategoryDTO> categories;
-
-        if (rootOnly != null && rootOnly) {
-            categories = categoryService.getRootCategories();
-        } else if (parentId != null) {
-            categories = categoryService.getCategoriesByParentId(parentId);
-        } else if (active != null && active) {
-            categories = categoryService.getActiveCategories();
-        } else {
-            categories = categoryService.getAllCategories();
-        }
-
-        return ResponseEntity.ok(categories);
+        return ResponseEntity.ok(categoryService.getAllCategories(parentId, active, rootOnly, pageable));
     }
 
     @PutMapping("/{id}")

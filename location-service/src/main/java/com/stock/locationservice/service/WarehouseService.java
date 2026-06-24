@@ -3,8 +3,8 @@ package com.stock.locationservice.service;
 
 import com.stock.locationservice.dto.WarehouseCreateRequest;
 import com.stock.locationservice.dto.WarehouseDTO;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface WarehouseService {
 
@@ -14,11 +14,7 @@ public interface WarehouseService {
 
     WarehouseDTO getWarehouseByCode(String code);
 
-    List<WarehouseDTO> getAllWarehouses();
-
-    List<WarehouseDTO> getWarehousesBySiteId(String siteId);
-
-    List<WarehouseDTO> getActiveWarehouses();
+    Page<WarehouseDTO> getAllWarehouses(String siteId, Boolean active, Pageable pageable);
 
     WarehouseDTO updateWarehouse(String id, WarehouseCreateRequest request);
 

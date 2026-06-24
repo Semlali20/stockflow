@@ -12,12 +12,12 @@ import com.stock.productservice.repository.CategoryRepository;
 import com.stock.productservice.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -95,42 +95,23 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryDTO> getAllCategories() {
-        log.info("Fetching all categories");
+    public Page<CategoryDTO> getAllCategories(String parentId, Boolean active, Boolean rootOnly, Pageable pageable) {
+        log.info("Fetching categories - parentId: {}, active: {}, rootOnly: {}", parentId, active, rootOnly);
 
-        return categoryRepository.findAll().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
+        Page<Category> page;
+        if (rootOnly != null && rootOnly) {
+            page = categoryRepository.findRootCategories(pageable);
+        } else if (parentId != null) {
+            page = categoryRepository.findByParentCategoryId(parentId, pageable);
+        } else if (active != null && active) {
+            page = categoryRepository.findActiveCategories(pageable);
+        } else if (active != null) {
+            page = categoryRepository.findByIsActive(active, pageable);
+        } else {
+            page = categoryRepository.findAll(pageable);
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<CategoryDTO> getCategoriesByParentId(String parentId) {
-        log.info("Fetching categories for parent ID: {}", parentId);
-
-        return categoryRepository.findByParentCategoryId(parentId).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CategoryDTO> getRootCategories() {
-        log.info("Fetching root categories");
-
-        return categoryRepository.findRootCategories().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CategoryDTO> getActiveCategories() {
-        log.info("Fetching active categories");
-
-        return categoryRepository.findActiveCategories().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return page.map(this::mapToDTO);
     }
 
     @Override

@@ -2,6 +2,13 @@
 spring:
   application:
     name: product-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8083/.well-known/jwks.json
+  flyway:
+    enabled: false
   servlet:
     multipart:
       max-file-size: 50MB
@@ -28,3 +35,8 @@ server:
   error:
     include-message: always
     include-binding-errors: always
+
+# Audit logging
+audit:
+  service:
+    url: http://localhost:8083

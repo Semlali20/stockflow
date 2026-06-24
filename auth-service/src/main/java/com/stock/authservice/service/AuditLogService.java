@@ -1,10 +1,13 @@
 package com.stock.authservice.service;
 
+import com.stock.authservice.dto.request.AuditEventRequest;
 import com.stock.authservice.dto.response.AuditLogResponse;
 import com.stock.authservice.dto.response.PageResponse;
 import com.stock.authservice.entity.AuditLog;
+import com.stock.authservice.entity.User;
 import com.stock.authservice.exception.ResourceNotFoundException;
 import com.stock.authservice.repository.AuditLogRepository;
+import com.stock.authservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +28,7 @@ import java.util.stream.Collectors;
 public class AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
+    private final UserRepository userRepository;
 
     // ==================== LOG ACTIONS ====================
 
@@ -60,6 +65,45 @@ public class AuditLogService {
         AuditLog auditLog = AuditLog.success(userId, username, action, ipAddress);
         auditLogRepository.save(auditLog);
         log.debug("Logged action {} for user: {}", action, username);
+    }
+
+    @Transactional
+    public void logAction(String userId, String username, String action, String ipAddress,
+                          String resourceType, String resourceId, String details) {
+        AuditLog auditLog = AuditLog.builder()
+                .userId(userId)
+                .username(username)
+                .action(action)
+                .ipAddress(ipAddress)
+                .status("SUCCESS")
+                .resourceType(resourceType)
+                .resourceId(resourceId)
+                .details(details)
+                .build();
+        auditLogRepository.save(auditLog);
+        log.debug("Logged action {} on {} by user: {}", action, resourceType, username);
+    }
+
+    /**
+     * Receives audit events from other microservices via POST /internal/audit/log.
+     * Covers all CRUD operations across the system.
+     */
+    @Transactional
+    public void logExternalEvent(AuditEventRequest req) {
+        AuditLog auditLog = AuditLog.builder()
+                .userId(req.getUserId())
+                .username(req.getUsername())
+                .action(req.getAction())
+                .resourceType(req.getResourceType())
+                .resourceId(req.getResourceId())
+                .ipAddress(req.getIpAddress())
+                .userAgent(req.getUserAgent())
+                .status(req.getStatus() != null ? req.getStatus() : "SUCCESS")
+                .errorMessage(req.getErrorMessage())
+                .details(req.getDescription())
+                .build();
+        auditLogRepository.save(auditLog);
+        log.debug("Logged external event: {} {} by {}", req.getAction(), req.getResourceType(), req.getUsername());
     }
 
     // ==================== GET AUDIT LOGS ====================
@@ -136,8 +180,9 @@ public class AuditLogService {
     @Transactional(readOnly = true)
     public PageResponse<AuditLogResponse> getSecurityEvents(int page, int size) {
         List<String> securityActions = List.of(
-                "ACCOUNT_LOCKED", "ACCOUNT_UNLOCKED", "PASSWORD_CHANGE",
-                "PASSWORD_RESET", "MFA_ENABLED", "MFA_DISABLED"
+                "ACCOUNT_LOCKED", "ACCOUNT_UNLOCKED",
+                "ACCOUNT_ACTIVATED", "ACCOUNT_DEACTIVATED",
+                "PASSWORD_CHANGE", "PASSWORD_RESET"
         );
 
         List<AuditLog> auditLogs = auditLogRepository.findAll().stream()
@@ -169,10 +214,23 @@ public class AuditLogService {
     // ==================== HELPER METHODS ====================
 
     private AuditLogResponse mapToResponse(AuditLog auditLog) {
+        // Try to resolve first/last name from the users table
+        String firstName = null;
+        String lastName  = null;
+        if (auditLog.getUsername() != null) {
+            Optional<User> userOpt = userRepository.findByUsername(auditLog.getUsername());
+            if (userOpt.isPresent()) {
+                firstName = userOpt.get().getFirstName();
+                lastName  = userOpt.get().getLastName();
+            }
+        }
+
         return AuditLogResponse.builder()
                 .id(auditLog.getId())
                 .userId(auditLog.getUserId())
                 .username(auditLog.getUsername())
+                .firstName(firstName)
+                .lastName(lastName)
                 .action(auditLog.getAction())
                 .resourceType(auditLog.getResourceType())
                 .resourceId(auditLog.getResourceId())
@@ -180,7 +238,9 @@ public class AuditLogService {
                 .userAgent(auditLog.getUserAgent())
                 .status(auditLog.getStatus())
                 .errorMessage(auditLog.getErrorMessage())
-                .details(auditLog.getDetails())
+                .details(auditLog.getDetails() != null
+                        ? auditLog.getDetails()
+                        : auditLog.getErrorMessage())
                 .timestamp(auditLog.getTimestamp())
                 .build();
     }

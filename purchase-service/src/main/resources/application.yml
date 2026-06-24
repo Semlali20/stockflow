@@ -43,3 +43,8 @@ management:
 logging:
   level:
     com.stock.purchaseservice: DEBUG
+
+# Audit logging
+audit:
+  service:
+    url: http://localhost:8083

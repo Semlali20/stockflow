@@ -16,6 +16,7 @@ import {
 import { alertService, Alert as AlertType } from '@/services/alert.service';
 import { productService } from '@/services/product.service';
 import { locationService } from '@/services/location.service';
+import { useSettings } from '@/contexts/SettingsContext';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -27,6 +28,7 @@ import { Select } from '@/components/ui/Select';
 
 export const AlertsPage: React.FC = () => {
   const { t } = useTranslation();
+  const { settings } = useSettings();
   const [alerts, setAlerts] = useState<AlertType[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,7 +37,7 @@ export const AlertsPage: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [pagination, setPagination] = useState({
     page: 0,
-    size: 20,
+    size: settings.defaultPageSize,
     totalElements: 0,
     totalPages: 0,
   });

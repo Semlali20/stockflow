@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import org.springframework.data.domain.Pageable;
+
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -58,7 +60,7 @@ public class CategoryCsvController {
                 });
 
                 // Data
-                List<CategoryDTO> categories = categoryService.getAllCategories();
+                List<CategoryDTO> categories = categoryService.getAllCategories(null, null, null, Pageable.unpaged()).getContent();
                 for (CategoryDTO cat : categories) {
                     csvWriter.writeNext(new String[]{
                             nullSafe(cat.getId()),

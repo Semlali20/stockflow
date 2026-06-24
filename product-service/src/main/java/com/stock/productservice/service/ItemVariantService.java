@@ -3,8 +3,8 @@ package com.stock.productservice.service;
 import com.stock.productservice.dto.ItemVariantCreateRequest;
 import com.stock.productservice.dto.ItemVariantDTO;
 import com.stock.productservice.dto.ItemVariantUpdateRequest;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ItemVariantService {
 
@@ -14,11 +14,9 @@ public interface ItemVariantService {
 
     ItemVariantDTO getItemVariantByCode(String code);
 
-    List<ItemVariantDTO> getAllItemVariants();
+    Page<ItemVariantDTO> getAllItemVariants(Boolean active, Pageable pageable);
 
-    List<ItemVariantDTO> getActiveItemVariants();
-
-    List<ItemVariantDTO> searchItemVariants(String keyword);
+    Page<ItemVariantDTO> searchItemVariants(String keyword, Pageable pageable);
 
     ItemVariantDTO updateItemVariant(String id, ItemVariantUpdateRequest request);
 

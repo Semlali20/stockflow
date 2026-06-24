@@ -31,6 +31,7 @@ interface ProfileDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
     onLogout: () => void;
     onProfileClick: () => void;
     onSettingsClick: () => void;
+    showAvatar?: boolean;
     translations: {
         profile: string;
         settings: string;
@@ -43,6 +44,7 @@ export function ProfileDropdown({
     onLogout,
     onProfileClick,
     onSettingsClick,
+    showAvatar = true,
     translations,
     className,
     ...props
@@ -92,25 +94,27 @@ export function ProfileDropdown({
                                     {user.email}
                                 </div>
                             </div>
-                            <div className="relative">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 via-purple-500 to-accent-teal p-0.5 shadow-lg shadow-primary-500/20 group-hover/trigger:scale-105 transition-transform duration-300">
-                                    <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-neutral-900 border-2 border-white dark:border-neutral-900">
-                                        {user.profileImageUrl ? (
-                                            <img
-                                                src={user.profileImageUrl}
-                                                alt={fullName}
-                                                className="w-full h-full object-cover rounded-full"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-bold text-sm">
-                                                {getUserInitials()}
-                                            </div>
-                                        )}
+                            {showAvatar && (
+                                <div className="relative">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 via-purple-500 to-accent-teal p-0.5 shadow-lg shadow-primary-500/20 group-hover/trigger:scale-105 transition-transform duration-300">
+                                        <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-neutral-900 border-2 border-white dark:border-neutral-900">
+                                            {user.profileImageUrl ? (
+                                                <img
+                                                    src={user.profileImageUrl}
+                                                    alt={fullName}
+                                                    className="w-full h-full object-cover rounded-full"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-bold text-sm">
+                                                    {getUserInitials()}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
+                                    {/* Online Status Dot */}
+                                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-neutral-900 rounded-full shadow-sm" />
                                 </div>
-                                {/* Online Status Dot */}
-                                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-neutral-900 rounded-full shadow-sm" />
-                            </div>
+                            )}
                         </button>
                     </DropdownMenuTrigger>
 

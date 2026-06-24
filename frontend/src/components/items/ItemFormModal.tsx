@@ -1,6 +1,7 @@
 // src/components/items/ItemFormModal.tsx
-import React, { useState, useEffect } from 'react';
-import { X, ImageIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
+import { X, ImageIcon, Search, ChevronDown } from 'lucide-react';
 import { productService } from '@/services/product.service';
 import { Item } from '@/types';
 import { toast } from 'react-hot-toast';
@@ -39,8 +40,10 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
-  
-  // Form data
+  const [categorySearch, setCategorySearch] = useState('');
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+
   const [formData, setFormData] = useState({
     categoryId: '',
     sku: '',
@@ -53,18 +56,24 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
     hazardousMaterial: false,
   });
 
-  // Dynamic attributes based on category schema
   const [dynamicAttributes, setDynamicAttributes] = useState<DynamicAttribute[]>([]);
-  
-  // Temperature controls
   const [temperatureControls, setTemperatureControls] = useState<string[]>([]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target as Node)) {
+        setCategoryDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       fetchCategories();
-      
+
       if (mode === 'edit' && item) {
-        // EDIT MODE - Populate form with item data
         setFormData({
           categoryId: item.categoryId || '',
           sku: item.sku || '',
@@ -77,14 +86,11 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
           hazardousMaterial: item.hazardousMaterial || false,
         });
 
-        // Parse existing attributes
         try {
           if (item.attributes) {
-            const parsed = typeof item.attributes === 'string' 
-              ? JSON.parse(item.attributes) 
+            const parsed = typeof item.attributes === 'string'
+              ? JSON.parse(item.attributes)
               : item.attributes;
-            
-            // Will be populated after category is loaded
             if (item.categoryId) {
               loadCategoryAndAttributes(item.categoryId, parsed);
             }
@@ -93,13 +99,11 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
           console.error('Error parsing attributes:', error);
         }
 
-        // Parse temperature controls
         try {
           if (item.temperatureControl) {
             const parsed = typeof item.temperatureControl === 'string'
               ? JSON.parse(item.temperatureControl)
               : item.temperatureControl;
-            
             if (Array.isArray(parsed)) {
               setTemperatureControls(parsed);
             }
@@ -108,12 +112,10 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
           console.error('Error parsing temperature controls:', error);
         }
 
-        // Set image preview
         if (item.imageUrl) {
           setImagePreview(item.imageUrl);
         }
       } else {
-        // CREATE MODE - Reset form
         resetForm();
       }
     }
@@ -152,14 +154,13 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
     try {
       const category = await productService.getCategoryById(categoryId);
       setSelectedCategory(category);
-      
-      // Parse attribute schemas from category
+
       if (category.attributeSchemas) {
         try {
           const schemas = typeof category.attributeSchemas === 'string'
             ? JSON.parse(category.attributeSchemas)
             : category.attributeSchemas;
-          
+
           if (schemas.attributeSchemas && Array.isArray(schemas.attributeSchemas)) {
             const attrs: DynamicAttribute[] = schemas.attributeSchemas.map((schema: CategoryAttributeSchema) => ({
               name: schema.name,
@@ -200,14 +201,9 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
     setDynamicAttributes(updated);
   };
 
-  const addTemperatureControl = () => {
-    setTemperatureControls([...temperatureControls, '']);
-  };
-
-  const removeTemperatureControl = (index: number) => {
+  const addTemperatureControl = () => setTemperatureControls([...temperatureControls, '']);
+  const removeTemperatureControl = (index: number) =>
     setTemperatureControls(temperatureControls.filter((_, i) => i !== index));
-  };
-
   const updateTemperatureControl = (index: number, value: string) => {
     const updated = [...temperatureControls];
     updated[index] = value;
@@ -217,78 +213,48 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(t('products.items.form.messages.imageSizeError'));
-        return;
-      }
-
-      if (!file.type.startsWith('image/')) {
-        toast.error(t('products.items.form.messages.imageTypeError'));
-        return;
-      }
-
+      if (file.size > 5 * 1024 * 1024) { toast.error(t('products.items.form.messages.imageSizeError')); return; }
+      if (!file.type.startsWith('image/')) { toast.error(t('products.items.form.messages.imageTypeError')); return; }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setImagePreview(base64String);
-      };
-      reader.onerror = () => {
-        toast.error(t('products.items.form.messages.imageReadError'));
-      };
+      reader.onloadend = () => setImagePreview(reader.result as string);
+      reader.onerror = () => toast.error(t('products.items.form.messages.imageReadError'));
       reader.readAsDataURL(file);
     }
   };
 
-  const removeImage = () => {
-    setImagePreview('');
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate required dynamic attributes
+
     const missingRequired = dynamicAttributes
       .filter(attr => attr.required && !attr.value.trim())
       .map(attr => attr.name);
-    
+
     if (missingRequired.length > 0) {
       toast.error(t('products.items.form.messages.requiredAttributes', { names: missingRequired.join(', ') }));
       return;
     }
 
     setLoading(true);
-
     try {
-      // Convert dynamic attributes to JSON object
       const attributesObj: Record<string, any> = {};
       dynamicAttributes.forEach(attr => {
         if (attr.value) {
-          // Convert value based on type
-          if (attr.type === 'number') {
-            attributesObj[attr.name] = parseFloat(attr.value) || 0;
-          } else if (attr.type === 'boolean') {
-            attributesObj[attr.name] = attr.value === 'true';
-          } else {
-            attributesObj[attr.name] = attr.value;
-          }
+          if (attr.type === 'number') attributesObj[attr.name] = parseFloat(attr.value) || 0;
+          else if (attr.type === 'boolean') attributesObj[attr.name] = attr.value === 'true';
+          else attributesObj[attr.name] = attr.value;
         }
       });
-      const attributesJson = Object.keys(attributesObj).length > 0
-        ? JSON.stringify(attributesObj)
-        : null;
+      const attributesJson = Object.keys(attributesObj).length > 0 ? JSON.stringify(attributesObj) : null;
 
-      // Convert temperature controls
       const tempArray = temperatureControls.filter(tc => tc.trim() !== '');
-      const temperatureControlJson = tempArray.length > 0
-        ? JSON.stringify(tempArray)
-        : null;
+      const temperatureControlJson = tempArray.length > 0 ? JSON.stringify(tempArray) : null;
 
       const requestData: Partial<Item> = {
         categoryId: formData.categoryId,
         sku: formData.sku,
         name: formData.name,
         description: formData.description || undefined,
-        attributes: attributesJson || undefined,           // keep as JSON string — backend expects String
+        attributes: attributesJson || undefined,
         tags: formData.tags || undefined,
         imageUrl: imagePreview || undefined,
         isSerialized: formData.isSerialized,
@@ -305,12 +271,11 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
         await productService.createItem(requestData);
         toast.success(t('products.items.form.messages.createSuccess'));
       }
-      
+
       onSuccess();
       onClose();
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Operation failed';
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || error.message || 'Operation failed');
       console.error('Error:', error);
     } finally {
       setLoading(false);
@@ -319,50 +284,91 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-900">
+  const inputCls = 'w-full border border-gray-300 dark:border-neutral-600 rounded-lg px-4 py-2 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors';
+  const labelCls = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2';
+
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999]">
+      <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-neutral-700">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-neutral-700">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             {mode === 'edit' ? t('products.items.form.editTitle') : t('products.items.form.createTitle')}
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
             <X size={24} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left & Center Columns - Form Fields */}
+            {/* Left & Center */}
             <div className="lg:col-span-2 space-y-6">
               {/* Category & SKU */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={labelCls}>
                     {t('products.items.form.category')} <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={formData.categoryId}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
-                    required
-                  >
-                    <option value="">{t('products.items.form.selectCategory')}</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div ref={categoryDropdownRef} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => { setCategoryDropdownOpen(o => !o); setCategorySearch(''); }}
+                      className={`${inputCls} flex items-center justify-between text-left w-full`}
+                    >
+                      <span className={formData.categoryId ? '' : 'text-gray-400 dark:text-gray-500'}>
+                        {formData.categoryId
+                          ? categories.find(c => c.id === formData.categoryId)?.name ?? t('products.items.form.selectCategory')
+                          : t('products.items.form.selectCategory')}
+                      </span>
+                      <ChevronDown size={16} className={`ml-2 shrink-0 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {categoryDropdownOpen && (
+                      <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg">
+                        <div className="p-2 border-b border-gray-100 dark:border-neutral-700">
+                          <div className="relative">
+                            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                              autoFocus
+                              type="text"
+                              value={categorySearch}
+                              onChange={e => setCategorySearch(e.target.value)}
+                              placeholder={t('common.search') + '...'}
+                              className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                            />
+                          </div>
+                        </div>
+                        <ul className="max-h-48 overflow-y-auto py-1">
+                          {categories
+                            .filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase()))
+                            .map(cat => (
+                              <li
+                                key={cat.id}
+                                onClick={() => { handleCategoryChange(cat.id); setCategoryDropdownOpen(false); }}
+                                className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                                  formData.categoryId === cat.id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                                }`}
+                              >
+                                {cat.name}
+                              </li>
+                            ))}
+                          {categories.filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase())).length === 0 && (
+                            <li className="px-3 py-2 text-sm text-gray-400 text-center">{t('common.noResults') ?? 'No results'}</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={labelCls}>
                     {t('products.items.form.sku')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                    className={`${inputCls} disabled:opacity-60 disabled:cursor-not-allowed`}
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                     required
@@ -375,12 +381,12 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={labelCls}>
                   {t('products.items.form.name')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputCls}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
@@ -391,11 +397,9 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('products.items.form.description')}
-                </label>
+                <label className={labelCls}>{t('products.items.form.description')}</label>
                 <textarea
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputCls}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
@@ -404,40 +408,34 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
                 />
               </div>
 
-              {/* Dynamic Attributes from Category Schema */}
+              {/* Dynamic Attributes */}
               {selectedCategory && (
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <div className="border-t border-gray-200 dark:border-neutral-700 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     {t('products.items.form.categoryAttributes')}
-                    {selectedCategory && (
-                      <span className="text-sm font-normal text-gray-500 ml-2">
-                        {t('products.items.form.fromCategory', { name: selectedCategory.name })}
-                      </span>
-                    )}
+                    <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">
+                      {t('products.items.form.fromCategory', { name: selectedCategory.name })}
+                    </span>
                   </h3>
 
                   {dynamicAttributes.length === 0 ? (
-                    <div className="p-6 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                      <p className="text-gray-500 text-sm">
-                        {t('products.items.form.noAttributes')}
-                      </p>
-                      <p className="text-gray-400 text-xs mt-1">
-                        {t('products.items.form.editCategoryToAdd')}
-                      </p>
+                    <div className="p-6 bg-gray-50 dark:bg-neutral-800 border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-lg text-center">
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">{t('products.items.form.noAttributes')}</p>
+                      <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">{t('products.items.form.editCategoryToAdd')}</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {dynamicAttributes.map((attr, index) => (
                         <div key={index} className="space-y-1">
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label className={labelCls}>
                             {attr.name}
                             {attr.required && <span className="text-red-500 ml-1">*</span>}
-                            <span className="text-xs text-gray-500 ml-2">({attr.type})</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">({attr.type})</span>
                           </label>
-                          
+
                           {attr.type === 'boolean' ? (
                             <select
-                              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className={inputCls}
                               value={attr.value}
                               onChange={(e) => updateDynamicAttribute(index, e.target.value)}
                               required={attr.required}
@@ -446,32 +444,15 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
                               <option value="true">{t('products.items.form.yes')}</option>
                               <option value="false">{t('products.items.form.no')}</option>
                             </select>
-                          ) : attr.type === 'number' ? (
-                            <input
-                              type="number"
-                              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              value={attr.value}
-                              onChange={(e) => updateDynamicAttribute(index, e.target.value)}
-                              required={attr.required}
-                              step="any"
-                              placeholder={t('products.items.form.enterAttribute', { name: attr.name })}
-                            />
-                          ) : attr.type === 'date' ? (
-                            <input
-                              type="date"
-                              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              value={attr.value}
-                              onChange={(e) => updateDynamicAttribute(index, e.target.value)}
-                              required={attr.required}
-                            />
                           ) : (
                             <input
-                              type="text"
-                              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              type={attr.type === 'number' ? 'number' : attr.type === 'date' ? 'date' : 'text'}
+                              className={inputCls}
                               value={attr.value}
                               onChange={(e) => updateDynamicAttribute(index, e.target.value)}
                               required={attr.required}
-                              placeholder={t('products.items.form.enterAttribute', { name: attr.name })}
+                              step={attr.type === 'number' ? 'any' : undefined}
+                              placeholder={attr.type !== 'date' ? t('products.items.form.enterAttribute', { name: attr.name }) : undefined}
                             />
                           )}
                         </div>
@@ -483,12 +464,10 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
               {/* Tags */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('products.items.form.tags')}
-                </label>
+                <label className={labelCls}>{t('products.items.form.tags')}</label>
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputCls}
                   value={formData.tags}
                   onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                   maxLength={500}
@@ -499,27 +478,25 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
               {/* Temperature Controls */}
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <label className="block text-sm font-medium text-gray-700">
-                    {t('products.items.form.temperatureControls')}
-                  </label>
+                  <label className={labelCls + ' mb-0'}>{t('products.items.form.temperatureControls')}</label>
                   <button
                     type="button"
                     onClick={addTemperatureControl}
-                    className="text-sm px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="text-sm px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                   >
                     {t('products.items.form.add')}
                   </button>
                 </div>
 
                 {temperatureControls.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic">{t('products.items.form.noTemperatureControls')}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">{t('products.items.form.noTemperatureControls')}</p>
                 ) : (
                   <div className="space-y-2">
                     {temperatureControls.map((tc, index) => (
                       <div key={index} className="flex gap-2">
                         <input
                           type="text"
-                          className="flex-1 border border-gray-300 rounded-lg px-4 py-2"
+                          className={inputCls}
                           value={tc}
                           onChange={(e) => updateTemperatureControl(index, e.target.value)}
                           placeholder={t('products.items.form.tempControlPlaceholder')}
@@ -527,7 +504,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
                         <button
                           type="button"
                           onClick={() => removeTemperatureControl(index)}
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded"
+                          className="px-3 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                         >
                           ✕
                         </button>
@@ -539,12 +516,10 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
               {/* Shelf Life */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('products.items.form.shelfLife')}
-                </label>
+                <label className={labelCls}>{t('products.items.form.shelfLife')}</label>
                 <input
                   type="number"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputCls}
                   value={formData.shelfLifeDays}
                   onChange={(e) => setFormData({ ...formData, shelfLifeDays: parseInt(e.target.value) || 0 })}
                   min={0}
@@ -553,108 +528,88 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
               </div>
 
               {/* Checkboxes */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 text-blue-600 rounded"
-                    checked={formData.isSerialized}
-                    onChange={(e) => setFormData({ ...formData, isSerialized: e.target.checked })}
-                  />
-                  <span className="text-sm">{t('products.items.form.isSerialized')}</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 text-blue-600 rounded"
-                    checked={formData.isLotManaged}
-                    onChange={(e) => setFormData({ ...formData, isLotManaged: e.target.checked })}
-                  />
-                  <span className="text-sm">{t('products.items.form.isLotManaged')}</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 text-blue-600 rounded"
-                    checked={formData.hazardousMaterial}
-                    onChange={(e) => setFormData({ ...formData, hazardousMaterial: e.target.checked })}
-                  />
-                  <span className="text-sm">{t('products.items.form.hazardousMaterial')}</span>
-                </label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700">
+                {[
+                  { key: 'isSerialized', label: t('products.items.form.isSerialized') },
+                  { key: 'isLotManaged', label: t('products.items.form.isLotManaged') },
+                  { key: 'hazardousMaterial', label: t('products.items.form.hazardousMaterial') },
+                ].map(({ key, label }) => (
+                  <label key={key} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 text-blue-600 rounded accent-blue-600"
+                      checked={formData[key as keyof typeof formData] as boolean}
+                      onChange={(e) => setFormData({ ...formData, [key]: e.target.checked })}
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+                  </label>
+                ))}
               </div>
             </div>
 
-            {/* Right Column - Image Upload */}
+            {/* Right Column - Image */}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('products.items.form.itemImage')}
-                </label>
-                
+                <label className={labelCls}>{t('products.items.form.itemImage')}</label>
+
                 {imagePreview ? (
                   <div className="relative">
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="w-full h-64 object-cover rounded-lg border-2 border-gray-300"
+                      className="w-full h-64 object-cover rounded-lg border-2 border-gray-300 dark:border-neutral-600"
                     />
                     <button
                       type="button"
-                      onClick={removeImage}
+                      onClick={() => setImagePreview('')}
                       className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 shadow-lg"
                     >
                       <X size={16} />
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                  <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <ImageIcon className="w-12 h-12 mb-3 text-gray-400" />
-                      <p className="mb-2 text-sm text-gray-500">
+                      <ImageIcon className="w-12 h-12 mb-3 text-gray-400 dark:text-gray-500" />
+                      <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
                         <span className="font-semibold">{t('products.items.form.clickToUpload')}</span>
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {t('products.items.form.uploadFormats')}
-                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{t('products.items.form.uploadFormats')}</p>
                     </div>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
+                    <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                   </label>
                 )}
-                
-                <p className="text-xs text-gray-500 mt-2">
-                  {t('products.items.form.imageConversion')}
-                </p>
+
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{t('products.items.form.imageConversion')}</p>
               </div>
             </div>
           </div>
 
-          {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-6 mt-6 border-t">
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200 dark:border-neutral-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              className="px-6 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
               disabled={loading}
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition-colors"
               disabled={loading}
             >
-              {loading ? t('products.items.form.saving') : (mode === 'edit' ? t('products.items.form.update') : t('products.items.form.create'))}
+              {loading
+                ? t('products.items.form.saving')
+                : mode === 'edit'
+                ? t('products.items.form.update')
+                : t('products.items.form.create')}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

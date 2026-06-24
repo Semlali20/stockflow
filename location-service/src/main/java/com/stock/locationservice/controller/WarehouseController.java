@@ -5,11 +5,13 @@ import com.stock.locationservice.service.WarehouseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/warehouses")
@@ -41,22 +43,12 @@ public class WarehouseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<WarehouseDTO>> getAllWarehouses(
+    public ResponseEntity<Page<WarehouseDTO>> getAllWarehouses(
             @RequestParam(required = false) String siteId,
-            @RequestParam(required = false) Boolean active) {
+            @RequestParam(required = false) Boolean active,
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         log.info("REST request to get all warehouses - siteId: {}, active: {}", siteId, active);
-
-        List<WarehouseDTO> warehouses;
-
-        if (siteId != null) {
-            warehouses = warehouseService.getWarehousesBySiteId(siteId);
-        } else if (active != null && active) {
-            warehouses = warehouseService.getActiveWarehouses();
-        } else {
-            warehouses = warehouseService.getAllWarehouses();
-        }
-
-        return ResponseEntity.ok(warehouses);
+        return ResponseEntity.ok(warehouseService.getAllWarehouses(siteId, active, pageable));
     }
 
     @PutMapping("/{id}")

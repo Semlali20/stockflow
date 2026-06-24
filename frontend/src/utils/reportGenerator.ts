@@ -169,8 +169,8 @@ export function generatePdfReport(config: ReportConfig): void {
     },
   });
 
-  const dateFilename = format(new Date(), 'yyyy-MM-dd');
-  doc.save(`${filename}-${dateFilename}.pdf`);
+  const pdfUrl = doc.output('bloburl');
+  window.open(pdfUrl, '_blank');
 }
 
 // ─── CSV CLIENT-SIDE EXPORT ───────────────────────────────────────────────────

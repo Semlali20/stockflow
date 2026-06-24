@@ -1,6 +1,7 @@
 // frontend/src/pages/settings/RolesManagementTab.tsx
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import {
   Shield, ShieldCheck, Plus, Edit2, Trash2, Check,
   X as XIcon, Loader2, RefreshCw, Users, ChevronDown,
@@ -10,6 +11,7 @@ import { apiClient } from '@/services/api';
 import { toast } from 'react-hot-toast';
 import { confirmDelete } from '@/utils/confirmDialog';
 import { cn } from '@/utils/cn';
+import { useTranslation } from 'react-i18next';
 
 // ─── Backend DTOs ─────────────────────────────────────────────────────────────
 
@@ -70,9 +72,35 @@ interface RoleFormModalProps {
   onSaved: () => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const translateRoleName = (name: string, t: any): string => {
+  const tKey = `settings.roles.names.${name}`;
+  const translated = t(tKey);
+  return translated === tKey ? name.replace(/_/g, ' ') : translated;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const translateCategory = (cat: string, t: any): string => {
+  const key = cat.toLowerCase();
+  const tKey = `settings.roles.categories.${key}`;
+  const translated = t(tKey);
+  return translated === tKey ? formatCategory(cat) : translated;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const translatePermLabel = (perm: BackendPermission, t: any): string => {
+  const nameKey = perm.name.replace(/:/g, '_');
+  const tKey = `settings.roles.permissions.${nameKey}`;
+  const translated = t(tKey);
+  if (translated !== tKey) return translated;
+  // Fall back to description then parsed name
+  return formatPermLabel(perm);
+};
+
 const RoleFormModal: React.FC<RoleFormModalProps> = ({
   role, allPermissions, onClose, onSaved,
 }) => {
+  const { t } = useTranslation();
   const isEdit = !!role;
   const [name, setName]               = useState(role?.name ?? '');
   const [description, setDescription] = useState(role?.description ?? '');
@@ -198,8 +226,8 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
     );
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
 
         {/* Header */}
@@ -332,7 +360,7 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
                             className="flex items-center gap-2 text-left"
                           >
                             <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
-                              {formatCategory(cat)}
+                              {translateCategory(cat, t)}
                             </span>
                             <span
                               className={cn(
@@ -373,7 +401,7 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
                               />
                               <div className="min-w-0">
                                 <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-tight">
-                                  {formatPermLabel(perm)}
+                                  {translatePermLabel(perm, t)}
                                 </p>
                                 <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
                                   {perm.name}
@@ -398,7 +426,7 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
             onClick={onClose}
             className="px-5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="button"
@@ -407,20 +435,22 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors"
           >
             {loading ? (
-              <><Loader2 className="w-4 h-4 animate-spin" />Saving…</>
+              <><Loader2 className="w-4 h-4 animate-spin" />{t('common.saving')}</>
             ) : (
-              <><Check className="w-4 h-4" />{isEdit ? 'Save Changes' : 'Create Role'}</>
+              <><Check className="w-4 h-4" />{isEdit ? t('common.saveChanges') : t('settings.roles.createRole')}</>
             )}
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
 // ─── Main Tab Component ───────────────────────────────────────────────────────
 
 const RolesManagementTab: React.FC = () => {
+  const { t } = useTranslation();
   const [roles,          setRoles]          = useState<BackendRole[]>([]);
   const [allPermissions, setAllPermissions] = useState<BackendPermission[]>([]);
   const [loading,        setLoading]        = useState(true);
@@ -504,10 +534,10 @@ const RolesManagementTab: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
-              Roles &amp; Permissions
+              {t('settings.roles.title')}
             </h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              View system roles or create custom roles with specific access
+              {t('settings.roles.description')}
             </p>
           </div>
         </div>
@@ -524,7 +554,7 @@ const RolesManagementTab: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Create Role
+            {t('settings.roles.createRole')}
           </button>
         </div>
       </div>
@@ -556,7 +586,7 @@ const RolesManagementTab: React.FC = () => {
                   ? <Lock className="w-3 h-3 shrink-0 opacity-60" />
                   : <span className={cn('w-2 h-2 rounded-full shrink-0', isSelected ? 'bg-current' : 'bg-neutral-400')} />
                 }
-                {role.name.replace(/_/g, ' ')}
+                {translateRoleName(role.name, t)}
                 <span
                   className={cn(
                     'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
@@ -594,7 +624,7 @@ const RolesManagementTab: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h4 className="text-sm font-bold text-neutral-800 dark:text-neutral-200">
-                    {selectedRole.name.replace(/_/g, ' ')}
+                    {translateRoleName(selectedRole.name, t)}
                   </h4>
                   {selectedRole.isSystem ? (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-200 dark:bg-neutral-700 text-neutral-500 uppercase tracking-wide">
@@ -620,7 +650,7 @@ const RolesManagementTab: React.FC = () => {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
               >
                 <Edit2 className="w-3.5 h-3.5" />
-                {selectedRole.isSystem ? 'Edit Permissions' : 'Edit'}
+                {selectedRole.isSystem ? t('settings.roles.editPermissions') : t('common.edit')}
               </button>
               {!selectedRole.isSystem && (
                 <button
@@ -649,7 +679,7 @@ const RolesManagementTab: React.FC = () => {
                   {/* Category header */}
                   <div className="flex items-center justify-between px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 border-b border-neutral-200 dark:border-neutral-700">
                     <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wide">
-                      {formatCategory(cat)}
+                      {translateCategory(cat, t)}
                     </span>
                     <span className="text-xs font-semibold text-indigo-500 dark:text-indigo-400">
                       {perms.length}
@@ -661,7 +691,7 @@ const RolesManagementTab: React.FC = () => {
                       <div key={perm.id} className="flex items-center gap-2 px-4 py-2.5">
                         <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                         <span className="text-xs text-neutral-700 dark:text-neutral-300">
-                          {formatPermLabel(perm)}
+                          {translatePermLabel(perm, t)}
                         </span>
                       </div>
                     ))}

@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -21,7 +20,6 @@ import java.time.LocalDateTime;
 @Slf4j
 @Tag(name = "Audit Logs", description = "Audit log management endpoints")
 @SecurityRequirement(name = "Bearer Authentication")
-@PreAuthorize("hasAnyRole('ADMIN', 'AUDITOR')")
 public class AuditLogController {
 
     private final AuditLogService auditLogService;
@@ -138,20 +136,6 @@ public class AuditLogController {
         log.info("GET /api/audit/status/{} - Get audit logs by status", status);
 
         PageResponse<AuditLogResponse> response = auditLogService.getAuditLogsByStatus(status, page, size);
-
-        return ResponseEntity.ok(response);
-    }
-
-    // ==================== GET FAILED LOGIN ATTEMPTS ====================
-
-    @GetMapping("/failed-logins")
-    @Operation(summary = "Get failed login attempts", description = "Get all failed login attempts")
-    public ResponseEntity<PageResponse<AuditLogResponse>> getFailedLoginAttempts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        log.info("GET /api/audit/failed-logins - Get failed login attempts");
-
-        PageResponse<AuditLogResponse> response = auditLogService.getFailedLoginAttempts(page, size);
 
         return ResponseEntity.ok(response);
     }
